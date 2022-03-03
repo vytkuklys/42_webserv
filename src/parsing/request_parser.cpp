@@ -26,7 +26,7 @@ int get_start_line(std::string s, t_request *request)
 
 int is_whitespace(std::string line)
 {
-    int spaces = 0;
+    size_t spaces = 0;
     for (std::string::iterator it = line.begin(); it != line.end(); ++it)
     {
         if (isspace(*it))
@@ -34,9 +34,7 @@ int is_whitespace(std::string line)
         else
             return (EXIT_FAILURE);
     }
-    if (spaces == line.length())
-        return EXIT_SUCCESS;
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
 
 int get_headers(std::string line, t_request *request)
@@ -82,7 +80,7 @@ int parse_request(t_request *request, int fd)
 {
     char buffer[1500];
     std::string line;
-    size_t bytesRead = recv(fd, buffer, 1500, 0);
+    recv(fd, buffer, 1500, 0);
     std::istringstream data(buffer);
 
     while (data && std::getline(data, line) && get_start_line(line, request))
