@@ -1,4 +1,4 @@
-#include "../inc/Config.hpp"
+#include "../inc/Configuration.hpp"
 #include "../inc/Parsing.hpp"
 #include "../inc/Server.hpp"
 
