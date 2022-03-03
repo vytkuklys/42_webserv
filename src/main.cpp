@@ -2,6 +2,8 @@
 #include "../inc/Parsing.hpp"
 #include "../inc/Server.hpp"
 
+// int main(void){
+
 int main (int argc, char **argv)
 {
 	if (argc != 2)
