@@ -33,7 +33,7 @@ typedef struct s_request
     std::vector<std::string> body;
 } t_request;
 
-int parse_request(t_request *request, int fd);
+int parse_request(t_request *request, int fd, char *buffer);
 void for_testing_print_request_struct(t_request *request);
 int get_body(std::string line, t_request *request);
 int get_headers(std::string line, t_request *request);

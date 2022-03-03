@@ -1,7 +1,7 @@
 CC= c++
 NAME = webserv
 FLAGS = -Wall -Wextra -Werror -std=c++98
-SRC = ./src/*.cpp ./src/config/*.cpp ./src/parsing/*.cpp
+SRC = ./src/*.cpp ./src/config/*.cpp ./src/parsing/*.cpp ./socket/*.cpp ./server/*.cpp
 HEADERS = ./inc/*.hpp
 
 all: $(NAME)
