@@ -26,12 +26,8 @@ int get_start_line(std::string s, t_request *request)
 
 int is_whitespace(std::string line)
 {
-<<<<<<< HEAD
     // int spaces = 0;
     std::size_t spaces = 0;
-=======
-    size_t spaces = 0;
->>>>>>> 315c677d7924d5a43323f3219ef9638841f20496
     for (std::string::iterator it = line.begin(); it != line.end(); ++it)
     {
         if (isspace(*it))
@@ -84,10 +80,7 @@ void for_testing_print_request_struct(t_request *request)
 int parse_request(t_request *request, int fd, char* buffer)
 {
     std::string line;
-<<<<<<< HEAD
     // size_t bytesRead = recv(fd, buffer, 1500, 0);
-=======
->>>>>>> 315c677d7924d5a43323f3219ef9638841f20496
     recv(fd, buffer, 1500, 0);
     std::istringstream data(buffer);
 
