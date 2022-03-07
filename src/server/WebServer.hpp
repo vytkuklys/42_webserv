@@ -2,14 +2,14 @@
 #define WebServer_hpp
 
 #include "SimpleServer.hpp"
-#include "../inc/Parsing.hpp"
+#include "../../inc/Parsing.hpp"
 
 namespace SERVER
 {
 	class WebServer: public SimpleServer
 	{
 	private:
-		t_request* request;
+		Parsing* request;
 		int new_socket;
 		char buffer[1500];
 		void accepter();

@@ -34,8 +34,7 @@
 
 	void SERVER::WebServer::handler()
 	{
-		request = new t_request();
-		parse_request(request, new_socket, buffer);  
+		request = new Parsing(new_socket, buffer);
 		std::cout << buffer << std::endl;
 	}
 

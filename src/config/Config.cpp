@@ -1,4 +1,4 @@
-#include "../../inc/Config.hpp"
+#include "Config.hpp"
 
 Config::Config(std::string inArgv1) : argv1(inArgv1) {}
 
