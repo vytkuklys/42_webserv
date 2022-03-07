@@ -26,7 +26,6 @@ int Parsing::get_start_line(std::string s)
 
 int is_whitespace(std::string line)
 {
-    // int spaces = 0;
     std::size_t spaces = 0;
     for (std::string::iterator it = line.begin(); it != line.end(); ++it)
     {

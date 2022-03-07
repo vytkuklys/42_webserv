@@ -8,7 +8,6 @@
 #include <vector>
 #include <cctype>
 #include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
 #include <cstdlib>      // For exit() and EXIT_FAILURE
 #include <unistd.h>     // For read
 #include <sstream>

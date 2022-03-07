@@ -3,6 +3,7 @@
 
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
+#include <sys/epoll.h>
 
 namespace SERVER
 {
