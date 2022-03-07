@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
-#include "../../inc/Client_handler.hpp"
 
 #define MAX_EVENTS                10
 
