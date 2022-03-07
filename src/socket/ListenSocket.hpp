@@ -1,5 +1,5 @@
-#ifndef ListenSocket_hpp
-#define ListenSocket_hpp
+#ifndef ListenSocket_HPP
+#define ListenSocket_HPP
 
 #include "BindingSocket.hpp"
 

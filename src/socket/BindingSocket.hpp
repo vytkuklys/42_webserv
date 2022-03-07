@@ -1,5 +1,5 @@
-#ifndef BindingSocket_hpp
-#define BindingSocket_hpp
+#ifndef BindingSocket_HPP
+#define BindingSocket_HPP
 
 #include "SimpleSocket.hpp"
 

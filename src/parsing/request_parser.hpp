@@ -24,7 +24,7 @@ class Parsing
         std::vector<std::string>            body;
 
 	public:
-        Parsing( int fd, char *buffer);
+        Parsing (char *buffer);
         void    for_testing_print_request_struct();
         int     get_body(std::string line);
         int     get_headers(std::string line);

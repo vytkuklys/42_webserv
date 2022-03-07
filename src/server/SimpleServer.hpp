@@ -1,7 +1,7 @@
-#ifndef SimpleServer_hpp
-#define SimpleServer_hpp
-
+#ifndef SimpleServer_HPP
+#define SimpleServer_HPP
 #include "../socket/ListenSocket.hpp"
+
 
 namespace SERVER
 {

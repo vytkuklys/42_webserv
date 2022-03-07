@@ -10,6 +10,10 @@ SOCKET::SimpleSocket::SimpleSocket(int domain, int type, int protocol, int port,
 	addr.sin_addr.s_addr = interface;
 	socket_fd = socket(domain, type, protocol);
 	check_return(socket_fd);
+	int optval = 1;
+	if (setsockopt (socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (int)) == -1)
+		perror("csetsockopt");
+
 }
 
 SOCKET::SimpleSocket::~SimpleSocket()

@@ -76,10 +76,9 @@ void Parsing::for_testing_print_request_struct()
     }
 }
 
-Parsing::Parsing(int fd, char* buffer)
+Parsing::Parsing(char* buffer)
 {
     std::string line;
-    recv(fd, buffer, 1500, 0);
     std::istringstream data(buffer);
 
     while (data && std::getline(data, line) && get_start_line(line))

@@ -1,5 +1,5 @@
-#ifndef SimpleSocket_hpp
-#define SimpleSocket_hpp
+#ifndef SimpleSocket_HPP
+#define SimpleSocket_HPP
 
 #include <netinet/in.h> // For sockaddr_in
 
