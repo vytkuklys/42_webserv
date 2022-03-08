@@ -1,8 +1,10 @@
 #ifndef WebServer_HPP
 #define WebServer_HPP
 
-#include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h> 
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
 
@@ -13,11 +15,9 @@ namespace SERVER
 	class WebServer: public SimpleServer
 	{
 	private:
-		int						efd;
 		struct sockaddr_storage tmp_client_saddr;
 		int						tmp_socket_fd;
 		char					buffer[1500];
-		struct epoll_event		ev;
 		void					accepter();
 		void					handler();
 		void					responder();
