@@ -4,7 +4,7 @@ Config::Config(std::string inArgv1) : filename(inArgv1) {}
 
 Config::~Config(void) {}
 
-void Config::set_data(std::string readLine, std::string find)
+void Config::set_data(std::string readLine, std::string find, int level)
 {
 	int begin = readLine.find(find);
 	if (begin == -1)
@@ -18,7 +18,14 @@ void Config::set_data(std::string readLine, std::string find)
 	
 	while (readLine[begin + i] != ';')
 	{
-		sPort.push_back(readLine[begin + i]);
+		if (level == 1)
+			sPort.push_back(readLine[begin + i]);
+		if (level == 2)
+			serverName.push_back(readLine[begin + i]);
+		if (level == 3)
+			errorPage.push_back(readLine[begin + i]);
+		if (level == 4)
+			sBodySize.push_back(readLine[begin + i]);
 		i++;
 	}
 }
@@ -33,8 +40,10 @@ void	Config::retrieveValues(void)
 	{
 		while (getline(readFile, readLine))
 		{
-			// std::cout << readLine << std::endl;
-			set_data(readLine, "listen");
+			set_data(readLine, "listen", 1);
+			// set_data(readLine, "server_name", 2);
+			set_data(readLine, "error_page", 3);
+			set_data(readLine, "client_max_body_size", 4);
 			// readLine = ft_replace(readLine, argv[2], argv[3]);
 			// if (readFile.peek() != EOF)
 		}
@@ -43,10 +52,10 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-std::string const Config::getServerName(void) { return(serverName); }
+int Config::getPort(void) { return(std::stoi(sPort)); }
+
+// std::string const Config::getServerName(void) { return(serverName); }
 
 std::string const Config::getErrorPage(void) { return(errorPage); }
 
-int Config::getPort(void) { return(std::stoi(sPort)); }
-
-int	Config::getBodySize(void) { return(bodySize); }
+int	Config::getBodySize(void) { return(std::stoi(sBodySize)); }

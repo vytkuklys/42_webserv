@@ -14,12 +14,11 @@ int main (int argc, char **argv)
     Config config("config_files/default.conf"); // only for faster testing
 
 	config.retrieveValues();
-	config.getServerName();
-	config.getErrorPage();
-	std::cout << config.getPort() << std::endl;
-	config.getBodySize();
+	// std::cout << config.getServerName() << std::endl;
+	std::cout << config.getErrorPage() << std::endl;
+	std::cout << config.getBodySize() << std::endl;
 
-    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, config.getPort(), INADDR_ANY, 10);
 
 	return (0);
 }
