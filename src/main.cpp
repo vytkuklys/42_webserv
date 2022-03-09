@@ -13,9 +13,10 @@ int main (int argc, char **argv)
     (void)argv;                                 // only for faster testing
     Config config("config_files/default.conf"); // only for faster testing
 
+	config.retrieveValues();
 	config.getServerName();
 	config.getErrorPage();
-	config.getPort();
+	std::cout << config.getPort() << std::endl;
 	config.getBodySize();
 
     SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
