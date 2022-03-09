@@ -15,7 +15,7 @@ int main (int argc, char **argv)
 
 	config.retrieveValues();
 	std::cout << config.getPort() << std::endl;
-	//std::cout << config.getServerName() << std::endl;
+	std::cout << config.getServerName() << std::endl;
 	std::cout << config.getErrorPage() << std::endl;
 	std::cout << config.getBodySize() << std::endl;
 
