@@ -50,7 +50,7 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-static int ft_stoi( std::string s ) 
+int ft_stoi(std::string s) 
 {
     int i;
     std::istringstream(s) >> i;

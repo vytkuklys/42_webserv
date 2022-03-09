@@ -29,4 +29,6 @@ class Config
 
 };
 
+int ft_stoi(std::string s);
+
 #endif
