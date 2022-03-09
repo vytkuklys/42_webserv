@@ -3,13 +3,7 @@
 
 # include <fstream>
 # include <iostream>
-# include <stdlib.h>
-# include <string>
-
-# include <iostream>
-# include <stdio.h>
-# include <ctype.h>
-# include <stdlib.h> 
+# include <sstream>
 
 class Config
 {
@@ -29,10 +23,12 @@ class Config
 		void 	set_data(std::string readLine, std::string find, int level);
 
 		int getPort(void);
-		// std::string const getServerName(void);
+		std::string const getServerName(void);
 		std::string const getErrorPage(void);
 		int	getBodySize(void);
 
 };
+
+int ft_stoi(std::string s);
 
 #endif

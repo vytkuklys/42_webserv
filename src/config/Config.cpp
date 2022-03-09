@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include <sstream>
 
 Config::Config(std::string inArgv1) : filename(inArgv1) {}
 
@@ -42,28 +41,26 @@ void	Config::retrieveValues(void)
 		while (getline(readFile, readLine))
 		{
 			set_data(readLine, "listen", 1);
-			// set_data(readLine, "server_name", 2);
+			set_data(readLine, "server_name", 2);
 			set_data(readLine, "error_page", 3);
 			set_data(readLine, "client_max_body_size", 4);
-			// readLine = ft_replace(readLine, argv[2], argv[3]);
-			// if (readFile.peek() != EOF)
 		}
 	}
 	else
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-// std::stoi is C11 so we have to write our on
-static int stoi( std::string s ) {
+int ft_stoi(std::string s) 
+{
     int i;
     std::istringstream(s) >> i;
-    return i;
+    return (i);
 }
 
-int Config::getPort(void) { return(stoi(sPort)); }
+int Config::getPort(void) { return(ft_stoi(sPort)); }
 
-// std::string const Config::getServerName(void) { return(serverName); }
+std::string const Config::getServerName(void) { return(serverName); }
 
 std::string const Config::getErrorPage(void) { return(errorPage); }
 
-int	Config::getBodySize(void) { return(stoi(sBodySize)); }
+int	Config::getBodySize(void) { return(ft_stoi(sBodySize)); }

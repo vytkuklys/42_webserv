@@ -32,7 +32,7 @@ void SERVER::WebServer::launch()
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < FD_SETSIZE + 1; i++)
+		for (int i = 0; i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
