@@ -42,7 +42,7 @@ void SERVER::WebServer::launch()
 			else if(FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{			
 				tmp_socket_fd = i;
-				std::cout << "weite to " << i << std::endl;
+				std::cout << "write to " << i << std::endl;
 				responder();
 			}
 		}
@@ -93,13 +93,15 @@ void SERVER::WebServer::handle_known_client()
 void SERVER::WebServer::responder()
 {
 	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
-	Parsing *info = &itr->second; // info all header information from client;
-	(void)info;
-	std::string test("HTTP/1.1 200 OK\r\nConnection:	close\r\ncontent-type:	text/html\r\nlast-modified:	Mon, 21 Feb 2022 12:48:28 GMT\r\netag:	\"1a78-62138a1c-215ebfbeb5868481;;;\"\r\naccept-ranges:	bytes\r\ncontent-length:	274\r\ndate:	Wed, 02 Mar 2022 18:14:36 GMT\r\nserver:	LiteSpeed\r\ncontent-security-policy:	upgrade-insecure-requests\r\nalt-svc:	h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\"\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n    <head>\r\n    <title>Webserv</title>\r\n    </head>\r\n    <body style=\"background-color: black; text-align: center;\">\r\n        <p style=\"padding: 10%; color:aliceblue; font-size: 5rem; \">Hello Webserv</p>\r\n    </body>\r\n</html>");
-	if (send(tmp_socket_fd, (const void *)test.c_str(), test.length(), 0) == -1)
-		std::cout << "responder\n";
-	FD_CLR(tmp_socket_fd, &current_sockets); 	 // removes fd from fd set
-	close(tmp_socket_fd);
-	data.erase(itr);
-
+	if (itr != data.end())
+	{
+		Parsing *info = &itr->second; // info all header information from client;
+		(void)info;
+		std::string test("HTTP/1.1 200 OK\r\nConnection:	close\r\ncontent-type:	text/html\r\nlast-modified:	Mon, 21 Feb 2022 12:48:28 GMT\r\netag:	\"1a78-62138a1c-215ebfbeb5868481;;;\"\r\naccept-ranges:	bytes\r\ncontent-length:	274\r\ndate:	Wed, 02 Mar 2022 18:14:36 GMT\r\nserver:	LiteSpeed\r\ncontent-security-policy:	upgrade-insecure-requests\r\nalt-svc:	h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\"\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n    <head>\r\n    <title>Webserv</title>\r\n    </head>\r\n    <body style=\"background-color: black; text-align: center;\">\r\n        <p style=\"padding: 10%; color:aliceblue; font-size: 5rem; \">Hello Webserv</p>\r\n    </body>\r\n</html>");
+		if (send(tmp_socket_fd, (const void *)test.c_str(), test.length(), 0) == -1)
+			std::cout << "responder\n";
+		FD_CLR(tmp_socket_fd, &current_sockets); 	 // removes fd from fd set
+		data.erase(itr);
+		close(tmp_socket_fd);
+	}
 }
