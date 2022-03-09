@@ -14,7 +14,6 @@ int main (int argc, char **argv)
     Config config("config_files/default.conf"); // only for faster testing
 
 	config.retrieveValues();
-	std::cout << config.getPort() << std::endl;
 	std::cout << config.getServerName() << std::endl;
 	std::cout << config.getErrorPage() << std::endl;
 	std::cout << config.getBodySize() << std::endl;
