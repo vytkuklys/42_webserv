@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/select.h> 
+#include <map>
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
 
@@ -19,6 +20,8 @@ namespace SERVER
 		int						tmp_socket_fd;
 		char					buffer[1500];
 		fd_set					current_sockets;
+		fd_set					tmp_write_sockets;
+		std::map<int,Parsing>	data;
 		void					accepter();
 		void					handler();
 		void					responder();
