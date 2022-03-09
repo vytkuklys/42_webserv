@@ -2,8 +2,8 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
-#include <poll.h>
 
+fd_set current_sockets, tmp_sockets;
 
 SERVER::WebServer::WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog) : SimpleServer(domain, type, protocol, port, interface, backlog)
 {
@@ -17,28 +17,23 @@ SERVER::WebServer::~WebServer()
 void SERVER::WebServer::launch()
 {
 	int listener = get_socket()->get_socket_fd();
-	struct pollfd tmp = {fd = listener, events = POLLIN, revents = 0};
-	std::vector<struct pollfd> pollfds = {tmp};
-	numfds = 1;
 	std::cout << "Listening on port 8080" << std::endl;
+	FD_ZERO(&current_sockets);			// init fd set
+	FD_SET(listener, &current_sockets); // add listener to the fd set
 
 	while (42)
 	{
-		if (poll(pollfds.begin().base(), numfds, -1) < 0) // should a timer be set at 5th argument?
+		tmp_sockets = current_sockets;								// tmp copy of fd set, because select function destroys second argument
+		if (select(FD_SETSIZE, &tmp_sockets, NULL, NULL, NULL) < 0) // should a timer be set at 5th argument?
 		{
 			perror("Error\n");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < numfds; i++)
+		for (int i = 0; i < FD_SETSIZE; i++)
 		{
-			if (pollfds[i].fd <= 0)
+			if (FD_ISSET(i, &tmp_sockets)) // fd is ready to be read if true
 			{
-				std::cout << "test if nessesary\n";
-				continue;
-			}
-			if((pollfds[i].revents & POLLIN) == POLLIN)
-			{
-				tmp_socket_fd = pollfds[i].fd;
+				tmp_socket_fd = i;
 				handler();
 			}
 		}
