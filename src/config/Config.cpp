@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include <sstream>
 
 Config::Config(std::string inArgv1) : filename(inArgv1) {}
 

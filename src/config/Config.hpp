@@ -3,13 +3,7 @@
 
 # include <fstream>
 # include <iostream>
-# include <stdlib.h>
-# include <string>
-
-# include <iostream>
-# include <stdio.h>
-# include <ctype.h>
-# include <stdlib.h> 
+# include <sstream>
 
 class Config
 {
