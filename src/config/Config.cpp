@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include <sstream>
 
 Config::Config(std::string inArgv1) : filename(inArgv1) {}
 
@@ -35,7 +36,7 @@ void	Config::retrieveValues(void)
 	std::string readLine;
 	std::ifstream readFile;
 
-	readFile.open(filename);
+	readFile.open(filename.c_str());
 	if (readFile.is_open())
 	{
 		while (getline(readFile, readLine))
@@ -52,10 +53,17 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-int Config::getPort(void) { return(std::stoi(sPort)); }
+// std::stoi is C11 so we have to write our on
+static int stoi( std::string s ) {
+    int i;
+    std::istringstream(s) >> i;
+    return i;
+}
+
+int Config::getPort(void) { return(stoi(sPort)); }
 
 // std::string const Config::getServerName(void) { return(serverName); }
 
 std::string const Config::getErrorPage(void) { return(errorPage); }
 
-int	Config::getBodySize(void) { return(std::stoi(sBodySize)); }
+int	Config::getBodySize(void) { return(stoi(sBodySize)); }
