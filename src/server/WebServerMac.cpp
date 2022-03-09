@@ -24,12 +24,12 @@ void SERVER::WebServer::launch()
 	while (42)
 	{
 		tmp_sockets = current_sockets;								// tmp copy of fd set, because select function destroys second argument
-		if (select(FD_SETSIZE, &tmp_sockets, NULL, NULL, NULL) < 0) // should a timer be set at 5th argument?
+		if (select(FD_SETSIZE + 1, &tmp_sockets, NULL, NULL, NULL) < 0) // should a timer be set at 5th argument?
 		{
 			perror("Error\n");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < FD_SETSIZE; i++)
+		for (int i = 0; i < FD_SETSIZE + 1; i++)
 		{
 			if (FD_ISSET(i, &tmp_sockets)) // fd is ready to be read if true
 			{
