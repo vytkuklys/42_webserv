@@ -29,7 +29,7 @@ class Config
 		void 	set_data(std::string readLine, std::string find, int level);
 
 		int getPort(void);
-		// std::string const getServerName(void);
+		std::string const getServerName(void);
 		std::string const getErrorPage(void);
 		int	getBodySize(void);
 
