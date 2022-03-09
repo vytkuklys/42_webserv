@@ -44,15 +44,12 @@ void	Config::retrieveValues(void)
 			set_data(readLine, "server_name", 2);
 			set_data(readLine, "error_page", 3);
 			set_data(readLine, "client_max_body_size", 4);
-			// readLine = ft_replace(readLine, argv[2], argv[3]);
-			// if (readFile.peek() != EOF)
 		}
 	}
 	else
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-// std::stoi is C11 so we have to write our on
 static int ft_stoi( std::string s ) 
 {
     int i;
