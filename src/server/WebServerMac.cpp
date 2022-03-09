@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 
-fd_set current_sockets, tmp_sockets;
 
 SERVER::WebServer::WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog) : SimpleServer(domain, type, protocol, port, interface, backlog)
 {
@@ -16,6 +15,7 @@ SERVER::WebServer::~WebServer()
 
 void SERVER::WebServer::launch()
 {
+	fd_set tmp_sockets;
 	int listener = get_socket()->get_socket_fd();
 	std::cout << "Listening on port 8080" << std::endl;
 	FD_ZERO(&current_sockets);			// init fd set

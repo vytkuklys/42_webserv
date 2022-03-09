@@ -18,6 +18,7 @@ namespace SERVER
 		struct sockaddr_storage tmp_client_saddr;
 		int						tmp_socket_fd;
 		char					buffer[1500];
+		fd_set					current_sockets;
 		void					accepter();
 		void					handler();
 		void					responder();
