@@ -13,7 +13,8 @@
 #include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
-#include <algorithm> 
+#include <algorithm>
+#include <cstring>
 
 class Parsing
 {

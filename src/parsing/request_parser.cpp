@@ -71,13 +71,25 @@ size_t ft_stoi1(std::string s)
     return (i);
 }
 
+std::string first_numberstring(std::string const & str)
+{
+  char const* digits = "0123456789";
+  std::size_t const n = str.find_first_of(digits);
+  if (n != std::string::npos)
+  {
+    std::size_t const m = str.find_first_not_of(digits, n);
+    return str.substr(n, m != std::string::npos ? m-n : m);
+  }
+  return std::string();
+}
+
 Parsing::Parsing(int fd)
 {
     char*	buffer;
-    char       tmp[10000];
+    // char       tmp[10001];
     buffer = NULL;
     size_t n;
-    size_t n_read;
+    // size_t n_read;
     FILE* data= fdopen(fd, "r");
     std::string line;
     while (data && getline(&buffer, &n, data) && get_start_line(buffer))
@@ -94,33 +106,40 @@ Parsing::Parsing(int fd)
     }
     free(buffer);
     buffer = NULL;
-    for_testing_print_request_struct();
+    // for_testing_print_request_struct();
+    std::string boundary = first_numberstring(headers.find("Content-Type")->second);
     if (method == "POST")
     {
         std::ofstream ofs("test.txt");
         n = ft_stoi1(headers.find("Content-Length")->second);
-        while(n > 0)
-        {
-            if(n > 10000)
-            {
-                n_read = 10000;
-                n = n - n_read;
-            }
-            else
-            {
-                n_read = n;
-                n = 0;
-            }
-            if (fread(tmp, sizeof(char), n_read, data) != n_read)
-                std::cout << "===========error fread===================\n";
-            ofs << tmp;
-            body.append(tmp);
-        }
-        // ofs << &body[body.find("PNG") - 1];
+        body.resize(n);
+        fread((void *)body.c_str(),  sizeof(char), n, data);
+        // while(n > 0)        // im  not shur if Content-Length has alwys the right length so maybe we hav to buffer
+        // {
+            // if(n > 10000)
+            // {
+                // n_read = 10000;
+                // n = n - n_read;
+            // }
+            // else
+            // {
+                // n_read = n;
+                // n = 0;
+            // }
+            // if (fread(tmp, sizeof(char), n_read, data) != n_read)
+                // std::cout << "===========error fread===================\n";
+            // tmp[n_read] = '\0';
+            // body.append(tmp);
+            // if(n <= 10000 && body.find(boundary.c_str()) != std::string::npos)
+            // {
+                // std::cout << "begin" << &body[body.find(boundary.c_str())] << " = " << boundary << std::endl;
+                // break;
+            // }
+        // }
+        ofs << body;
         ofs.close();
-
     }
-    // fclose(data); dosent work maybe someone wave an idear
+    //fclose(data); // dosent work maybe someone wave an idear
 }
 
 std::string Parsing::get(std::string key_word)
