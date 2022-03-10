@@ -21,15 +21,14 @@ namespace SERVER
 		struct sockaddr_storage tmp_client_saddr;
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
-		fd_set					tmp_write_sockets;
+		// fd_set					tmp_write_sockets;
 		std::map<int,Parsing>	data;
 		void					accepter();
 		void					handler();
 		void					responder();
 		void					handle_new_client();
 		void					handle_known_client();
-		void					respond_header(std::stringstream& client, Parsing& info);
-		std::string				http_time(const struct tm *timeptr);
+
 
 	public:
 		WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog);

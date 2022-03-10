@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+  <title>Upload Page</title>
+</head>
+
+<body>
+  <p>Upload Page</p>
+  <form action="/my-handling-form-page" method="post" enctype="multipart/form-data">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="user_name" required /><br>
+    <label for="myfile">Select a file:</label><br>
+    <input type="file" id="myfile" name="user_file" required />
+    <button type="submit">Upload</button>
+  </form>
+</body>
+
+</html>

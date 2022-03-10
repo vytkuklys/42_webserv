@@ -1,6 +1,6 @@
-#include "request_parser.hpp"
+#include "Request.hpp"
 
-int Parsing::get_start_line(std::string s)
+int Parsing::set_start_line(std::string s)
 {
     size_t pos = 0;
     std::string token;
@@ -25,20 +25,7 @@ int Parsing::get_start_line(std::string s)
     return (0);
 }
 
-int is_whitespace(std::string line)
-{
-    std::size_t spaces = 0;
-    for (std::string::iterator it = line.begin(); it != line.end(); ++it)
-    {
-        if (isspace(*it))
-            spaces++;
-        else
-            return (EXIT_FAILURE);
-    }
-    return EXIT_SUCCESS;
-}
-
-int Parsing::get_headers(std::string line)
+int Parsing::set_headers(std::string line)
 {
     size_t pos;
     line.erase(std::remove(line.begin(), line.end(), '\n'), line.end()); //remove the newlines
@@ -80,21 +67,21 @@ Parsing::Parsing(int fd)
     size_t n_read;
     FILE* data= fdopen(fd, "r");
     std::string line;
-    while (data && getline(&buffer, &n, data) && get_start_line(buffer))
+    while (data && getline(&buffer, &n, data) && set_start_line(buffer))
     {
         free(buffer);
         buffer = NULL;
     }
     free(buffer);
     buffer = NULL;
-    while (data && getline(&buffer, &n, data) && get_headers(buffer) == EXIT_SUCCESS)
+    while (data && getline(&buffer, &n, data) && set_headers(buffer) == EXIT_SUCCESS)
     {
         free(buffer);
         buffer = NULL;       
     }
     free(buffer);
     buffer = NULL;
-    for_testing_print_request_struct();
+    // for_testing_print_request_struct();
     if (method == "POST")
     {
         std::ofstream ofs("test.txt");
@@ -123,6 +110,9 @@ Parsing::Parsing(int fd)
     // fclose(data); dosent work maybe someone wave an idear
 }
 
+
+// ----------------- GETTERS ------------------ //
+
 std::string Parsing::get(std::string key_word)
 {
     std::map<std::string, std::string>::iterator itr;
@@ -141,6 +131,35 @@ std::string Parsing::get(std::string key_word)
             return(itr->second);
 
     }
-
 }
 
+std::map<std::string, std::string> Parsing::get_header() const{
+    return (headers);
+}
+std::string Parsing::get_method() const{
+    return (method);
+}
+std::string Parsing::get_path() const{
+    return (path);
+}
+std::string Parsing::get_protocol() const{
+    return (protocol);
+}
+std::string Parsing::get_body() const{
+    return (body);
+}
+
+// ------------------ CHECKERS ------------------ //
+
+int is_whitespace(std::string line)
+{
+    std::size_t spaces = 0;
+    for (std::string::iterator it = line.begin(); it != line.end(); ++it)
+    {
+        if (isspace(*it))
+            spaces++;
+        else
+            return (EXIT_FAILURE);
+    }
+    return EXIT_SUCCESS;
+}
