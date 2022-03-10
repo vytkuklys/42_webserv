@@ -89,3 +89,27 @@ Parsing::Parsing(char* buffer)
         std::getline(data, line);
     for_testing_print_request_struct();
 }
+
+std::string Parsing::get(std::string key_word)
+{
+    std::map<std::string, std::string>::iterator itr;
+    if(key_word == "method")
+        return(method);
+    else if(key_word == "path")
+        return(path);
+    else if(key_word == "protocol")
+        return(protocol);
+    else
+    {
+        itr = headers.find(key_word);
+        if(itr == headers.end())
+            return(key_word);
+        else
+            return(itr->second);
+
+    }
+
+
+
+}
+
