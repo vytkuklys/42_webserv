@@ -29,6 +29,7 @@ namespace SERVER
 		void					handle_new_client();
 		void					handle_known_client();
 		void					respond_header(std::stringstream& client, Parsing& info);
+		void					respond_body(std::stringstream& client, Parsing& info);
 		std::string				http_time(const struct tm *timeptr);
 
 	public:

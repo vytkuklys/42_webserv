@@ -106,7 +106,7 @@ Parsing::Parsing(int fd)
     }
     free(buffer);
     buffer = NULL;
-    // for_testing_print_request_struct();
+    for_testing_print_request_struct();
     std::string boundary = first_numberstring(headers.find("Content-Type")->second);
     if (method == "POST")
     {
@@ -114,7 +114,7 @@ Parsing::Parsing(int fd)
         n = ft_stoi1(headers.find("Content-Length")->second);
         body.resize(n);
         fread((void *)body.c_str(),  sizeof(char), n, data);
-        // while(n > 0)        // im  not shur if Content-Length has alwys the right length so maybe we hav to buffer
+        // while(n > 0)        // im  not shure if Content-Length has alwys the right length so maybe we hav to buffer
         // {
             // if(n > 10000)
             // {
@@ -157,8 +157,7 @@ std::string Parsing::get(std::string key_word)
         if(itr == headers.end())
             return(key_word);
         else
-            return(itr->second);
-
+            return(std::string());
     }
 
 }
