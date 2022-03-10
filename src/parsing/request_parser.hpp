@@ -13,6 +13,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
+#include <algorithm> 
 
 class Parsing
 {
@@ -21,10 +22,10 @@ class Parsing
         std::string                         method;
         std::string                         path;
         std::string                         protocol;
-        std::vector<std::string>            body;
+        std::string                         body;
 
 	public:
-        Parsing (char *buffer);
+        Parsing (int fd);
         std::string get(std::string key_word);
        
         private:

@@ -6,6 +6,7 @@ int Parsing::get_start_line(std::string s)
     std::string token;
     int j = 0;
 
+    s.erase(std::remove(s.begin(), s.end(), '\n'), s.end()); //remove the newlines
     if (s[0] == '/' || s[0] == '#')
         return (1);
     while ((pos = s.find(" ")) != std::string::npos)
@@ -40,20 +41,12 @@ int is_whitespace(std::string line)
 int Parsing::get_headers(std::string line)
 {
     size_t pos;
-
+    line.erase(std::remove(line.begin(), line.end(), '\n'), line.end()); //remove the newlines
     if (line.empty() || is_whitespace(line) == EXIT_SUCCESS)
         return (EXIT_FAILURE);
     pos = line.find(":");
     if (!(line[0] == '/' || line[0] == '#'))
         headers[line.substr(0, pos)] = line.substr(pos + 2, line.length());
-    return (EXIT_SUCCESS);
-}
-
-int Parsing::get_body(std::string line)
-{
-    if (line.empty() || is_whitespace(line) == EXIT_SUCCESS)
-        return (EXIT_SUCCESS);
-    body.push_back(line);
     return (EXIT_SUCCESS);
 }
 
@@ -68,26 +61,66 @@ void Parsing::for_testing_print_request_struct()
     {
         std::cout << it->first << ": " << it->second << '\n';
     }
-    std::vector<std::string>::iterator it2;
-    std::cout << "\n---BODY \n";
-    for (it2 = this->body.begin(); it2 != this->body.end(); ++it2)
-    {
-        std::cout << *it2 << "\n";
-    }
 }
 
-Parsing::Parsing(char* buffer)
-{
-    std::string line;
-    std::istringstream data(buffer);
 
-    while (data && std::getline(data, line) && get_start_line(line))
-        ;
-    while (data && std::getline(data, line) && get_headers(line) == EXIT_SUCCESS)
-        ;
-    while (data && get_body(line) == EXIT_SUCCESS)
-        std::getline(data, line);
+size_t ft_stoi1(std::string s) 
+{
+    size_t i;
+    std::istringstream(s) >> i;
+    return (i);
+}
+
+Parsing::Parsing(int fd)
+{
+    char*	buffer;
+    char       tmp[10000];
+    buffer = NULL;
+    size_t n;
+    size_t n_read;
+    FILE* data= fdopen(fd, "r");
+    std::string line;
+    while (data && getline(&buffer, &n, data) && get_start_line(buffer))
+    {
+        free(buffer);
+        buffer = NULL;
+    }
+    free(buffer);
+    buffer = NULL;
+    while (data && getline(&buffer, &n, data) && get_headers(buffer) == EXIT_SUCCESS)
+    {
+        free(buffer);
+        buffer = NULL;       
+    }
+    free(buffer);
+    buffer = NULL;
     for_testing_print_request_struct();
+    if (method == "POST")
+    {
+        std::ofstream ofs("test.txt");
+        n = ft_stoi1(headers.find("Content-Length")->second);
+        while(n > 0)
+        {
+            if(n > 10000)
+            {
+                n_read = 10000;
+                n = n - n_read;
+            }
+            else
+            {
+                n_read = n;
+                n = 0;
+            }
+            if (fread(tmp, sizeof(char), n_read, data) != n_read)
+                std::cout << "===========error fread===================\n";
+            ofs << tmp;
+            body.append(tmp);
+        }
+        // ofs << &body[body.find("PNG") - 1];
+        ofs.close();
+
+    }
+    // fclose(data); dosent work maybe someone wave an idear
 }
 
 std::string Parsing::get(std::string key_word)
@@ -108,8 +141,6 @@ std::string Parsing::get(std::string key_word)
             return(itr->second);
 
     }
-
-
 
 }
 

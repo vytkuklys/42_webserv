@@ -74,19 +74,17 @@ void SERVER::WebServer::accepter()
 void SERVER::WebServer::handle_known_client()
 {
 	std::cout << "handel_known_client\n";
-	ssize_t numbytes;
-	memset(buffer, 0, 1500);
-	numbytes = recv(tmp_socket_fd, buffer, 1500, 0);
-	if (numbytes == -1)
-		std::cout << "recv error\n";
-	else if (numbytes == 0) // connection closed by client
-	{
-		std::cout << "Socket closed by client " << tmp_socket_fd << "\n";
-		FD_CLR(tmp_socket_fd, &current_sockets);
-		close(tmp_socket_fd);
-		return;
-	}
-	Parsing info(buffer);
+	// ssize_t numbytes;
+	// if (numbytes == -1)
+		// std::cout << "recv error\n";
+	// else if (numbytes == 0) // connection closed by client
+	// {
+		// std::cout << "Socket closed by client " << tmp_socket_fd << "\n";
+		// FD_CLR(tmp_socket_fd, &current_sockets);
+		// close(tmp_socket_fd);
+		// return;
+	// }
+	Parsing info(tmp_socket_fd);
 	std::cout << "insert:" << tmp_socket_fd << std::endl;
 	data.insert(std::pair<int, Parsing>(tmp_socket_fd, info));
 }
