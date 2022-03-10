@@ -113,18 +113,27 @@ void SERVER::WebServer::respond_header(std::stringstream& client, Parsing& info)
 {
 	time_t rawtime = time(NULL);
 	struct tm* ptm = gmtime(&rawtime);
-	client << info.get("protocol") << " 200 OK\r\n"
-			<< "Connection:	close\r\n"
-			<< "content-type:	text/html\r\n"
-			<< "last-modified:	" << http_time(ptm)
-			<< "etag:	\"1a78-62138a1c-215ebfbeb5868481;;;\"\r\n"
-			<< "accept-ranges:	bytes\r\n"
-			<< "content-length:	274\r\n"
-			<< "date:	Wed, 02 Mar 2022 18:14:36 GMT\r\n"
-			<< "server:	LiteSpeed\r\n"
-			<< "content-security-policy:	upgrade-insecure-requests\r\n"
-			<< "alt-svc:	h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\"\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n    <head>\r\n    <title>Webserv</title>\r\n    </head>\r\n    <body style=\"background-color: black; text-align: center;\">\r\n        <p style=\"padding: 10%; color:aliceblue; font-size: 5rem; \">Hello Webserv</p>\r\n    </body>\r\n</html>";
-	
+	std::ifstream file;
+	struct stat stat_buf;
+	stat("html/first_page.html", &stat_buf);
+	file.open("html/first_page.html", std::ifstream::in);
+	if(file.good())
+	{
+		client << info.get("protocol") << " 200 OK\r\n"
+				<< "Connection:	close\r\n"
+				<< "content-type:	text/html\r\n"
+				<< "last-modified:	" << http_time(ptm)
+				<< "etag:	\"1a78-62138a1c-215ebfbeb5868481;;;\"\r\n"
+				<< "accept-ranges:	bytes\r\n"
+				<< "content-length:	" << stat_buf.st_size << "\r\n"
+				<< "date:	"<< http_time(ptm)
+				<< "server:	LiteSpeed\r\n"
+				<< "content-security-policy:	upgrade-insecure-requests\r\n\r\n"
+				<< file.rdbuf();
+
+				file.close();
+			// << "alt-svc:	h3=\":443\"; ma=2592000, h3-29=\":443\"; ma=2592000, h3-Q050=\":443\"; ma=2592000, h3-Q046=\":443\"; ma=2592000, h3-Q043=\":443\"; ma=2592000, quic=\":443\"; ma=2592000; v=\"43,46\"\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n    <head>\r\n    <title>Webserv</title>\r\n    </head>\r\n    <body style=\"background-color: black; text-align: center;\">\r\n        <p style=\"padding: 10%; color:aliceblue; font-size: 5rem; \">Hello Webserv</p>\r\n    </body>\r\n</html>";
+	}
 }
 
 std::string SERVER::WebServer::http_time(const struct tm *timeptr)
@@ -136,7 +145,7 @@ std::string SERVER::WebServer::http_time(const struct tm *timeptr)
 	date 	<< wday_name[timeptr->tm_wday]
 			<< ", " << timeptr->tm_mday << " " 
 			<< mon_name[timeptr->tm_mon] << " "
-			<< 2000 + timeptr->tm_year << " "
+			<< 1900 + timeptr->tm_year << " "
 			<< timeptr->tm_hour << ":"
 			<< timeptr->tm_min << ":"
 			<< timeptr->tm_sec << " GMT\r\n";

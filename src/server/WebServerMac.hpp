@@ -7,6 +7,7 @@
 #include <sys/select.h> 
 #include <map>
 #include <ctime>
+#include <sys/stat.h>
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
 
