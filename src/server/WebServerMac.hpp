@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/select.h> 
 #include <map>
+#include <ctime>
 #include "SimpleServer.hpp"
 #include "../../inc/Parsing.hpp"
 
@@ -27,6 +28,7 @@ namespace SERVER
 		void					responder();
 		void					handle_new_client();
 		void					handle_known_client();
+		void					respond_header();
 
 	public:
 		WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog);
