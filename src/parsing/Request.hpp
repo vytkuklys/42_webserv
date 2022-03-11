@@ -28,13 +28,16 @@ class Parsing
 	public:
         Parsing (int fd);
         std::string get(std::string key_word);
-       
+        std::map<std::string, std::string> get_header() const;
+        std::string get_method() const;
+        std::string get_path() const;
+        std::string get_protocol() const;
+        std::string get_body() const;
+
         private:
         void    for_testing_print_request_struct();
-        int     get_body(std::string line);
-        int     get_headers(std::string line);
-        int     get_start_line(std::string s);
-
+        int     set_headers(std::string line);
+        int     set_start_line(std::string s);
 };
 
 int is_whitespace(std::string line);

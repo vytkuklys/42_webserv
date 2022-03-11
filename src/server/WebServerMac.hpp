@@ -21,7 +21,7 @@ namespace SERVER
 		struct sockaddr_storage tmp_client_saddr;
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
-		fd_set					tmp_write_sockets;
+		// fd_set					tmp_write_sockets;
 		std::map<int,Parsing>	data;
 		void					accepter();
 		void					handler();
