@@ -70,6 +70,7 @@ void SERVER::WebServer::handle_new_client()
 {
 	accepter();
 	FD_SET(tmp_socket_fd, &current_sockets);
+	fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
 	std::cout << "handel_new_client\n"; 
 }
 
