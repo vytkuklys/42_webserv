@@ -73,12 +73,9 @@ std::string first_numberstring(std::string const & str)
 Parsing::Parsing(int fd)
 {
     char*	buffer;
-    // char       tmp[10001];
     buffer = NULL;
     size_t n;
-    // size_t n_read;
     FILE* data= fdopen(fd, "r");
-    std::string line;
     while (data && getline(&buffer, &n, data) && set_start_line(buffer))
     {
         free(buffer);
@@ -93,14 +90,14 @@ Parsing::Parsing(int fd)
     }
     free(buffer);
     buffer = NULL;
-    // for_testing_print_request_struct();
-    std::string boundary = first_numberstring(headers.find("Content-Type")->second);
+    for_testing_print_request_struct();
     if (method == "POST")
     {
         std::ofstream ofs("test.txt");
         n = ft_stoi1(headers.find("Content-Length")->second);
         body.resize(n);
         fread((void *)body.c_str(),  sizeof(char), n, data);
+        // std::string boundary = first_numberstring(headers.find("Content-Type")->second);
         // while(n > 0)        // im  not shur if Content-Length has alwys the right length so maybe we hav to buffer
         // {
             // if(n > 10000)

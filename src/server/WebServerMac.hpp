@@ -9,6 +9,7 @@
 #include <ctime>
 #include <sys/stat.h>
 #include "SimpleServer.hpp"
+#include <algorithm>
 #include "../../inc/Parsing.hpp"
 
 #define MAX_EVENTS                10
@@ -18,10 +19,10 @@ namespace SERVER
 	class WebServer: public SimpleServer
 	{
 	private:
-		struct sockaddr_storage tmp_client_saddr;
+		struct sockaddr_storage tmp_client_saddr;			
+		std::vector<int>		listeners;
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
-		// fd_set					tmp_write_sockets;
 		std::map<int,Parsing>	data;
 		void					accepter();
 		void					handler();
@@ -31,7 +32,7 @@ namespace SERVER
 
 
 	public:
-		WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog);
+		WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog);
 		void launch();
 		~WebServer();
 	};
