@@ -20,7 +20,7 @@ void Response::set_path(std::string const filename)
         path += "index.html";
     is_path_valid = exists_path(path.c_str());
     if (!is_path_valid)
-        path = "./documents/error.html";
+        path = "./documents/error_pages/404.html";
 }
 
 void Response::set_status_line(void)
