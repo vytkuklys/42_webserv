@@ -91,7 +91,7 @@ void	Config::retrieveValues(void)
 		{
 			setData(readLine, "listen", 1);
 			setData(readLine, "server_name", 2);
-			setData(readLine, "error_page", 3);
+			setData(readLine, "error_pages", 3);
 			setData(readLine, "client_max_body_size", 4);
 		}
 	}
