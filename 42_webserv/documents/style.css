@@ -1,0 +1,62 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: black;
+    text-align: center;
+}
+p {
+    padding: 10% 0 5%;
+    color: aliceblue;
+    font-size: 5rem;
+}
+
+
+a, button{
+    padding: .75rem 1rem;
+    background: rgb(18, 140, 7);
+    border-radius: .75rem;
+    font-size: 1.25rem;
+    color: aliceblue;
+    text-decoration: none;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+}
+
+button{
+    padding: .5rem 1rem;
+    display: block;
+    width: 100%;
+    margin: 2rem 0 0 auto;
+}
+
+form{
+    padding-bottom: 2.5rem;
+    text-align: left;
+    margin: 0 auto;
+    max-width: 475px;
+    padding: 1.5rem;
+    background-color: rgb(241, 245, 245);
+    border-radius: .5rem;
+}
+
+label{
+
+    font-size: 1.5rem;
+    margin: 1rem 0 .25rem 0;
+    display: inline-block;
+}
+input{
+    font-size: 1.25rem;
+    padding: .5rem 1rem;
+    width: 100%;
+}
+
+input[type="file"] {
+    padding: initial;
+}
+/*  */

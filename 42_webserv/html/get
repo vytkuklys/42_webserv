@@ -1,0 +1,16 @@
+GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: de,en-US;q=0.7,en;q=0.3
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive
+Cookie: username-localhost-8888="2|1:0|10:1646808435|23:username-localhost-8888|44:M2VmMzVmN2JiNjJmNGY3N2E2Mjc4ZmQ5MTlmZGNlODY=|371a5f7598d5986ec3a2e9d49a72a3eec7d9ec6f367e559f452767bef33d43b6"; _xsrf=2|4145ae77|acf4bd508eb4506bf87fc98f52eaa869|1646808435
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Range: bytes=250-
+If-Range: "1a78-62138a1c-215ebfbeb5868481;;;"
