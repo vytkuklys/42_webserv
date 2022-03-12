@@ -27,7 +27,8 @@ class Config
 
 		void	retrieveValues(void);
 		int		countServer(void);
-		void 	set_data(std::string readLine, std::string find, int level);
+		void 	setData(std::string readLine, std::string find, int level);
+		void	pushContainers(int level);
 
 		std::vector<int> 			getPorts(void);
 		std::vector<std::string> 	getServerNames(void);

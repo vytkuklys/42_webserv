@@ -4,7 +4,31 @@ Config::Config(std::string inArgv1) : filename(inArgv1) {}
 
 Config::~Config(void) {}
 
-void Config::set_data(std::string readLine, std::string find, int level)
+void Config::pushContainers(int level)
+{
+	if (level == 1)
+	{
+		vPorts.push_back(ft_stoi(sPort));
+		sPort.erase();
+	}
+	if (level == 2)
+	{
+		vServerNames.push_back(serverName);
+		serverName.erase();
+	}
+	if (level == 3)
+	{
+		vErrorPages.push_back(errorPage);
+		errorPage.erase();
+	}
+	if (level == 4)
+	{
+		vBodySizes.push_back(ft_stoi(sBodySize));
+		sBodySize.erase();
+	}
+}
+
+void Config::setData(std::string readLine, std::string find, int level)
 {
 	int begin = readLine.find(find);
 	if (begin == -1)
@@ -28,26 +52,7 @@ void Config::set_data(std::string readLine, std::string find, int level)
 			sBodySize.push_back(readLine[begin + i]);
 		i++;
 	}
-	if (level == 1)
-	{
-		vPorts.push_back(ft_stoi(sPort));
-		sPort.erase();
-	}
-	if (level == 2)
-	{
-		vServerNames.push_back(serverName);
-		serverName.erase();
-	}
-	if (level == 3)
-	{
-		vErrorPages.push_back(errorPage);
-		errorPage.erase();
-	}
-	if (level == 4)
-	{
-		vBodySizes.push_back(ft_stoi(sBodySize));
-		sBodySize.erase();
-	}
+	pushContainers(level);
 }
 
 int	Config::countServer(void)
@@ -79,10 +84,10 @@ void	Config::retrieveValues(void)
 	{
 		while (getline(readFile, readLine))
 		{
-			set_data(readLine, "listen", 1);
-			set_data(readLine, "server_name", 2);
-			set_data(readLine, "error_page", 3);
-			set_data(readLine, "client_max_body_size", 4);
+			setData(readLine, "listen", 1);
+			setData(readLine, "server_name", 2);
+			setData(readLine, "error_page", 3);
+			setData(readLine, "client_max_body_size", 4);
 		}
 	}
 	else
