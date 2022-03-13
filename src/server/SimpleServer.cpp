@@ -1,16 +1,25 @@
 #include "SimpleServer.hpp"
+#include <iostream>
 
-SERVER::SimpleServer::SimpleServer(int domain, int type, int protocol, int port, u_long interface, int backlog)
+SERVER::SimpleServer::SimpleServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog)
 {
-	socket = new SOCKET::ListenSocket(domain, type, protocol, port, interface, backlog);
+	for (std::vector<int>::iterator port = ports.begin(); port != ports.end(); port++)
+	{
+		SOCKET::ListenSocket* tmp = new SOCKET::ListenSocket(domain, type, protocol, *port, interface, backlog);
+		sockets.push_back(tmp);
+	}
 }
 
 SERVER::SimpleServer::~SimpleServer()
 {
-	delete(socket);
+	for(std::vector<SOCKET::ListenSocket*>::reverse_iterator socket = sockets.rbegin(); socket != sockets.rend(); ++socket)
+	{
+		delete((*socket));
+		sockets.pop_back();
+	}
 }
 
-SOCKET::ListenSocket* SERVER::SimpleServer::get_socket()
+std::vector<SOCKET::ListenSocket*>& SERVER::SimpleServer::get_sockets()
 {
-	return(socket);
+	return(sockets);
 }

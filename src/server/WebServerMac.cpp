@@ -4,8 +4,15 @@
 #include <string.h>
 
 
-SERVER::WebServer::WebServer(int domain, int type, int protocol, int port, u_long interface, int backlog) : SimpleServer(domain, type, protocol, port, interface, backlog)
+SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog) : SimpleServer(domain, type, protocol, ports, interface, backlog)
 {
+
+	FD_ZERO(&current_sockets);			// init fd set
+	for(std::vector<SOCKET::ListenSocket*>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
+	{
+		listeners.push_back((*socket)->get_socket_fd());
+		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
+	}
 	launch();
 }
 
@@ -17,10 +24,8 @@ void SERVER::WebServer::launch()
 {
 	fd_set tmp_read_sockets;
 	fd_set tmp_write_sockets;
-	int listener = get_socket()->get_socket_fd();
+
 	std::cout << "Listening on port 8080" << std::endl;
-	FD_ZERO(&current_sockets);		// init fd set
-	FD_SET(listener, &current_sockets); // add listener to the fd set
 
 	while (42)
 	{
@@ -36,6 +41,7 @@ void SERVER::WebServer::launch()
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
 				tmp_socket_fd = i;
+				// std::cout << "read" << i << std::endl;
 				handler();
 			}
 			else if(FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
@@ -49,7 +55,7 @@ void SERVER::WebServer::launch()
 
 void SERVER::WebServer::handler()
 {
-	if (tmp_socket_fd == get_socket()->get_socket_fd())
+	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end())
 		handle_new_client();
 	else // data from an existing connection, receive it
 		handle_known_client();
@@ -60,19 +66,19 @@ void SERVER::WebServer::handle_new_client()
 	std::cout << "handle_new_client" << std::endl;
 	accepter();
 	FD_SET(tmp_socket_fd, &current_sockets);
-	// std::cout << "handel_new_client\n"; 
+	std::cout << "handel_new_client " << tmp_socket_fd << std::endl; 
 }
 
 void SERVER::WebServer::accepter()
 {
 	u_long addrlen = sizeof(struct sockaddr_storage);
-	tmp_socket_fd = accept(get_socket()->get_socket_fd(), (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen);
+	tmp_socket_fd = accept(tmp_socket_fd, (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen);
 }
 
 void SERVER::WebServer::handle_known_client()
 {
-	// std::cout << "handel_known_client\n";
 	Parsing info(tmp_socket_fd);
+	std::cout << "handel_known_client " << tmp_socket_fd << std::endl;
 	// std::cout << "insert:" << tmp_socket_fd << std::endl;
 	data.insert(std::pair<int, Parsing>(tmp_socket_fd, info));
 }

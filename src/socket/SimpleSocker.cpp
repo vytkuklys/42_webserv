@@ -1,3 +1,4 @@
+#include<iostream>
 #include "SimpleSocket.hpp"
 #include <sys/socket.h>
 #include <stdio.h>
@@ -7,7 +8,7 @@ SOCKET::SimpleSocket::SimpleSocket(int domain, int type, int protocol, int port,
 {
 	addr.sin_family = domain;
 	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = interface;
+	addr.sin_addr.s_addr = htonl(interface);
 	socket_fd = socket(domain, type, protocol);
 	check_return(socket_fd);
 	int optval = 1;

@@ -50,17 +50,11 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-int ft_stoi(std::string s) 
-{
-    int i;
-    std::istringstream(s) >> i;
-    return (i);
-}
 
-int Config::getPort(void) { return(ft_stoi(sPort)); }
+int Config::getPort(void) { return(ft::stoi(sPort)); }
 
 std::string const Config::getServerName(void) { return(serverName); }
 
 std::string const Config::getErrorPage(void) { return(errorPage); }
 
-int	Config::getBodySize(void) { return(ft_stoi(sBodySize)); }
+int	Config::getBodySize(void) { return(ft::stoi(sBodySize)); }

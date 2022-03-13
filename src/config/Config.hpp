@@ -4,6 +4,7 @@
 # include <fstream>
 # include <iostream>
 # include <sstream>
+# include "../../inc/Helper.hpp"
 
 class Config
 {
@@ -28,7 +29,5 @@ class Config
 		int	getBodySize(void);
 
 };
-
-int ft_stoi(std::string s);
 
 #endif

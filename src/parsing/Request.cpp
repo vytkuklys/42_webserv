@@ -1,4 +1,6 @@
 #include "Request.hpp"
+#include <unistd.h>
+#include <sys/wait.h>
 
 int Parsing::set_start_line(std::string s)
 {
@@ -50,58 +52,91 @@ void Parsing::for_testing_print_request_struct()
     }
 }
 
-
-size_t ft_stoi1(std::string s) 
-{
-    size_t i;
-    std::istringstream(s) >> i;
-    return (i);
-}
-
-std::string first_numberstring(std::string const & str)
-{
-  char const* digits = "0123456789";
-  std::size_t const n = str.find_first_of(digits);
-  if (n != std::string::npos)
-  {
-    std::size_t const m = str.find_first_not_of(digits, n);
-    return str.substr(n, m != std::string::npos ? m-n : m);
-  }
-  return std::string();
-}
-
 Parsing::Parsing(int fd)
 {
     char*	buffer;
-    // char       tmp[10001];
     buffer = NULL;
     size_t n;
-    // size_t n_read;
     FILE* data= fdopen(fd, "r");
-    std::string line;
     while (data && getline(&buffer, &n, data) && set_start_line(buffer))
     {
+        std::cout << buffer << "size=" << n << std::endl;
         free(buffer);
         buffer = NULL;
+        n = 0;
     }
     free(buffer);
     buffer = NULL;
+    n = 0;
     while (data && getline(&buffer, &n, data) && set_headers(buffer) == EXIT_SUCCESS)
     {
+        std::cout << buffer << "size=" << n << std::endl;
         free(buffer);
-        buffer = NULL;       
+        buffer = NULL;    
+        n = 0; 
     }
+    // std::cout << buffer << std::endl;
     free(buffer);
     buffer = NULL;
-    for_testing_print_request_struct();
-    std::string boundary = first_numberstring(headers.find("Content-Type")->second);
+    n = 0;
+    // for_testing_print_request_struct();
     if (method == "POST")
     {
-        std::ofstream ofs("test.txt");
-        n = ft_stoi1(headers.find("Content-Length")->second);
-        body.resize(n);
-        fread((void *)body.c_str(),  sizeof(char), n, data);
-        // while(n > 0)        // im  not shure if Content-Length has alwys the right length so maybe we hav to buffer
+        getline(&buffer, &n, data);
+        std::cout << buffer << "size=" << n << std::endl;
+        free(buffer);
+        buffer = NULL;
+        int fdp = fork();
+        if (fdp == -1)
+            std::cout << "eror fork" << std::endl;
+        if (fdp == 0)
+        {
+            // char * test[2];
+            // test[0] = (char*)"./documents/test.php";
+            // test[1] = NULL;
+
+            // char * test1[3];
+            // test[0] = (char*)"test=TEST";
+            // test[1] = (char*) "PATH=/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/miniconda3/bin:/home/tom/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+            // test[2] = NULL;
+
+            std::string p(std::string("path=") + get("path"));
+            std::string m(std::string("method=") + get("method"));
+            std::string pr(std::string("protocol=") + get("protocol"));
+            char *test[6];
+            test[0] = (char*)"./documents/test.php";
+            test[1] = (&p[0]);
+            test[2] = (&m[0]);
+            test[3] = (&pr[0]);
+            std::string header;
+            std::map<std::string, std::string>::iterator tmp = headers.begin();
+            while ( tmp != headers.end())
+            {
+                header.append(tmp->first + "=" + tmp->second);
+                tmp++;
+                if (tmp == headers.end())
+                    break;
+                header.append("&");
+            }
+            test[4] = (&header[0]);
+            test[5] = NULL;
+            dup2(fd, STDIN_FILENO);
+            if (execvp("./documents/test.php", &test[0]))
+            {
+                perror("execvp");
+                exit(EXIT_FAILURE);
+            }
+
+        }
+        wait(NULL);
+        std::cout << "========================================done==========================================" << std::endl;
+        // system("php ./cgi-bin/example.php");
+        // std::ofstream ofs("test.txt");
+        // n = ft::stoi(headers.find("Content-Length")->second);
+        // body.resize(n);
+        // fread((void *)body.c_str(),  sizeof(char), n, data);
+        // std::string boundary = first_numberstring(headers.find("Content-Type")->second);
+        // while(n > 0)        // im  not shur if Content-Length has alwys the right length so maybe we hav to buffer
         // {
             // if(n > 10000)
             // {
@@ -123,8 +158,8 @@ Parsing::Parsing(int fd)
                 // break;
             // }
         // }
-        ofs << body;
-        ofs.close();
+        // ofs << body;
+        // ofs.close();
     }
     //fclose(data); // dosent work maybe someone wave an idear
 }

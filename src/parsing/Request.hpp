@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <algorithm>
 #include <cstring>
+#include "../../inc/Helper.hpp"
 
 class Parsing
 {

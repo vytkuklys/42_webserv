@@ -18,8 +18,11 @@ int main (int argc, char **argv)
 	std::cout << config.getErrorPage() << std::endl;
 	std::cout << config.getBodySize() << std::endl;
 	std::cout << "." << config.getPort() << "." << std::endl;
+	std::vector<int> ports;
+	ports.push_back(config.getPort());
+	ports.push_back(8081);
 
-    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, config.getPort(), INADDR_ANY, 10);
+    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, ports, INADDR_ANY, 10);
 
 	return (0);
 }
