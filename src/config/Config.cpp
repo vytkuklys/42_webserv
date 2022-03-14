@@ -80,13 +80,13 @@ void	Config::retrieveValues(void)
 	std::ifstream readFile;
 
 	readFile.open(filename.c_str());
-	if (!countServer())
-	{
-		std::cout << "Wrong config file " << filename << std::endl;
-		return ;
-	}
 	if (readFile.is_open())
 	{
+		if (!countServer())
+		{
+			std::cout << "Wrong config file " << filename << std::endl;
+			return ;
+		}
 		while (getline(readFile, readLine))
 		{
 			setData(readLine, "listen", 1);
