@@ -10,7 +10,7 @@
 
 <body>
   <p>Upload Page</p>
-  <form method="post" enctype="multipart/form-data" encoding="chunked">
+  <form method="post" enctype="multipart/form-data" action="index.html">
     <label for="name">Name:</label><br>
     <input type="text" id="name" name="user_name" value="Name" required /><br>
     <label for="myfile">Select a file:</label><br>
@@ -18,8 +18,8 @@
     <input type="file" id="myfile" name="user_file" required />
     <button type="submit">Upload</button>
     <!-- <input type="text" id="test" name="test_name" required /><br> -->
-
   </form>
+  
 </body>
 
 </html>

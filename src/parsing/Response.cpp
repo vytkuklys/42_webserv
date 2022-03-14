@@ -58,7 +58,7 @@ void Response::set_body(void)
             std::cout << "error fork" << std::endl;
         if (pid == 0)
         {
-            std::cout << "child" << std::endl;
+            // std::cout << "child" << std::endl;
             close(pipefd[0]);
             char *test[3];
             test[0] = (char*)"php";
@@ -74,7 +74,7 @@ void Response::set_body(void)
         }
         else
         {
-            std::cout << "parent" << std::endl;
+            // std::cout << "parent" << std::endl;
             int len;
             char* buffer;
             size_t n;
@@ -82,14 +82,14 @@ void Response::set_body(void)
             len = 0;
             n = 0;
             close(pipefd[1]);
-            std::cout << "parent wait" << std::endl;
+            // std::cout << "parent wait" << std::endl;
             if (wait(NULL) == -1)
                 std::cout << "error wait" << std::endl;
-            std::cout << "child returnd" << std::endl;
+            // std::cout << "child returnd" << std::endl;
             FILE* data = fdopen(pipefd[0], "r");
             while (data && ((len = getline(&buffer, &n, data)) != -1))
             {
-                std::cout << buffer << "size=" << n << " len=" << len << std::endl;
+                // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
                 body += buffer;
                 free(buffer);
                 buffer = NULL;
@@ -98,7 +98,7 @@ void Response::set_body(void)
             fclose(data);
             path.resize(path.length() - 3);
             path.append("html");
-            std::cout << "parent end" << std::endl;
+            // std::cout << "parent end" << std::endl;
         }
     }
     else
