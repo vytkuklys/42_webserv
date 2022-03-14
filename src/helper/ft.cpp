@@ -26,3 +26,23 @@ std::string ft::first_numberstring(std::string const & str)
   }
   return std::string();
 }
+
+void ft::nulify(char **buffer, size_t *n)
+{
+    free(*buffer);
+    *buffer = NULL;
+    *n = 0;
+}
+
+int ft::is_whitespace(std::string line)
+{
+    std::size_t spaces = 0;
+    for (std::string::iterator it = line.begin(); it != line.end(); ++it)
+    {
+        if (isspace(*it))
+            spaces++;
+        else
+            return (EXIT_FAILURE);
+    }
+    return EXIT_SUCCESS;
+}

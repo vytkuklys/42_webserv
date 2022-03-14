@@ -41,7 +41,4 @@ class Parsing
         int     set_start_line(std::string s);
 };
 
-int is_whitespace(std::string line);
-
-
 #endif

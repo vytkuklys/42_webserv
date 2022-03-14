@@ -34,7 +34,10 @@ void Response::set_status_line(void)
 
 void Response::set_headers(void)
 {
-    headers["Content-type:"] = "text/" + path.substr(path.find_last_of('.') + 1, path.length()); // currently only functional with text types (css, html, xml), other types: image, video, multipart..
+    if (path.substr(path.find_last_of('.') + 1, path.length()).compare("svg") == 0)
+        headers["Content-type:"] = "image/svg+xml"; // currently only functional with text types (css, html, xml), other types: image, video, multipart..
+    else
+        headers["Content-type:"] = "text/" + path.substr(path.find_last_of('.') + 1, path.length()); // currently only functional with text types (css, html, xml), other types: image, video, multipart..
     headers["Content-length:"] = ft::to_string(body.length());
     headers["Content-security-policy:"] = "upgrade-insecure-requests"; // static header against XSS and data injection attacks not really neede :D
     headers["Connection:"] = "close";                                  // keep-alive value might be needed for file sending
@@ -148,7 +151,7 @@ std::string Response::get_http_time()
          << 1900 + timeptr->tm_year << " "
          << timeptr->tm_hour << ":"
          << timeptr->tm_min << ":"
-         << timeptr->tm_sec << " GMT\r\n";
+         << timeptr->tm_sec << " GMT";
     return (date.str());
 }
 
