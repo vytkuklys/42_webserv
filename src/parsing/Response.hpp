@@ -14,6 +14,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 #include "../../inc/Helper.hpp"
 
 class Response

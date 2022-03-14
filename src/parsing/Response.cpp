@@ -48,15 +48,71 @@ void Response::set_body(void)
 {
     if (input_stream.is_open())
         input_stream.close();
-    input_stream.open(path.c_str());
-    if (input_stream.is_open())
+    if (path.substr(path.find_last_of(".") + 1) == "php")
     {
-        std::string line;
-        while (std::getline(input_stream, line))
+        int pipefd[2];
+        int pid;
+        pipe(pipefd);
+        pid = fork();
+        if (pid == -1)
+            std::cout << "error fork" << std::endl;
+        if (pid == 0)
         {
-            body += line.c_str();
+            std::cout << "child" << std::endl;
+            close(pipefd[0]);
+            char *test[3];
+            test[0] = (char*)"php";
+            test[1] = &(path.substr(path.find_last_of("/") + 1))[0];
+            test[2] = NULL;
+            chdir(path.erase(path.find_last_of("/")).c_str());
+            dup2(pipefd[1], STDOUT_FILENO);
+            if (execvp("php", test))
+            {
+                perror("execvp");
+                exit(EXIT_FAILURE);
+            }
         }
-        input_stream.close();
+        else
+        {
+            std::cout << "parent" << std::endl;
+            int len;
+            char* buffer;
+            size_t n;
+            buffer = NULL;
+            len = 0;
+            n = 0;
+            close(pipefd[1]);
+            std::cout << "parent wait" << std::endl;
+            if (wait(NULL) == -1)
+                std::cout << "error wait" << std::endl;
+            std::cout << "child returnd" << std::endl;
+            FILE* data = fdopen(pipefd[0], "r");
+            while (data && ((len = getline(&buffer, &n, data)) != -1))
+            {
+                std::cout << buffer << "size=" << n << " len=" << len << std::endl;
+                body += buffer;
+                free(buffer);
+                buffer = NULL;
+                n = 0;
+            }
+            fclose(data);
+            path.resize(path.length() - 3);
+            path.append("html");
+            std::cout << "parent end" << std::endl;
+        }
+    }
+    else
+    {
+        input_stream.open(path.c_str());
+        if (input_stream.is_open())
+        {
+            std::string line;
+            while (std::getline(input_stream, line))
+        {
+                body += line.c_str();
+            }
+            input_stream.close();
+        }
     }
 }
 
