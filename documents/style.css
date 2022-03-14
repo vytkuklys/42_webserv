@@ -1,4 +1,4 @@
-*{
+* {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
@@ -8,6 +8,7 @@ body {
     background-color: black;
     text-align: center;
 }
+
 p {
     padding: 10% 0 5%;
     color: aliceblue;
@@ -15,7 +16,8 @@ p {
 }
 
 
-a, button{
+body>a,
+form>button {
     padding: .75rem 1rem;
     background: rgb(18, 140, 7);
     border-radius: .75rem;
@@ -27,14 +29,15 @@ a, button{
     cursor: pointer;
 }
 
-button{
+button {
     padding: .5rem 1rem;
     display: block;
     width: 100%;
     margin: 2rem 0 0 auto;
 }
 
-form{
+form,
+table {
     padding-bottom: 2.5rem;
     text-align: left;
     margin: 0 auto;
@@ -44,14 +47,15 @@ form{
     border-radius: .5rem;
 }
 
-label{
+label {
 
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     margin: 1rem 0 .25rem 0;
     display: inline-block;
 }
-input{
-    font-size: 1.25rem;
+
+input {
+    font-size: 1.1rem;
     padding: .5rem 1rem;
     width: 100%;
 }
@@ -59,4 +63,18 @@ input{
 input[type="file"] {
     padding: initial;
 }
-/*  */
+
+table {
+    margin-top: 2.5rem;
+}
+
+tr>th {
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    padding: .25rem 2.5rem .25rem 0;
+}
+
+tr>td {
+    font-size: 1.05rem;
+    padding: .5rem 0;
+}

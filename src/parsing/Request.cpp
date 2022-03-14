@@ -57,10 +57,11 @@ Parsing::Parsing(int fd)
     char*	buffer;
     buffer = NULL;
     size_t n;
+    int len;
     FILE* data= fdopen(fd, "r");
-    while (data && getline(&buffer, &n, data) && set_start_line(buffer))
+    while (data && (len = getline(&buffer, &n, data)) && set_start_line(buffer))
     {
-        std::cout << buffer << "size=" << n << std::endl;
+        // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
         free(buffer);
         buffer = NULL;
         n = 0;
@@ -68,9 +69,9 @@ Parsing::Parsing(int fd)
     free(buffer);
     buffer = NULL;
     n = 0;
-    while (data && getline(&buffer, &n, data) && set_headers(buffer) == EXIT_SUCCESS)
+    while (data && (len = getline(&buffer, &n, data)) && set_headers(buffer) == EXIT_SUCCESS)
     {
-        std::cout << buffer << "size=" << n << std::endl;
+        // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
         free(buffer);
         buffer = NULL;    
         n = 0; 
@@ -82,29 +83,21 @@ Parsing::Parsing(int fd)
     // for_testing_print_request_struct();
     if (method == "POST")
     {
-        getline(&buffer, &n, data);
-        std::cout << buffer << "size=" << n << std::endl;
-        free(buffer);
         buffer = NULL;
+        n = 0;
+        int pipefd[2];
+        if(pipe(pipefd) == -1)
+            std::cout << "pipe error" << std::endl;
         int fdp = fork();
         if (fdp == -1)
             std::cout << "eror fork" << std::endl;
         if (fdp == 0)
         {
-            // char * test[2];
-            // test[0] = (char*)"./documents/test.php";
-            // test[1] = NULL;
-
-            // char * test1[3];
-            // test[0] = (char*)"test=TEST";
-            // test[1] = (char*) "PATH=/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/sumo_binaries/bin:/home/tom/miniconda3/bin:/home/tom/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
-            // test[2] = NULL;
-
             std::string p(std::string("path=") + get("path"));
             std::string m(std::string("method=") + get("method"));
             std::string pr(std::string("protocol=") + get("protocol"));
             char *test[6];
-            test[0] = (char*)"./documents/test.php";
+            test[0] = (char*)"./cgi-bin/cgi.php";
             test[1] = (&p[0]);
             test[2] = (&m[0]);
             test[3] = (&pr[0]);
@@ -120,46 +113,72 @@ Parsing::Parsing(int fd)
             }
             test[4] = (&header[0]);
             test[5] = NULL;
-            dup2(fd, STDIN_FILENO);
-            if (execvp("./documents/test.php", &test[0]))
+            close(pipefd[1]);
+            dup2(pipefd[0], STDIN_FILENO);
+            if (execvp("./cgi-bin/cgi.php", &test[0]))
             {
                 perror("execvp");
                 exit(EXIT_FAILURE);
             }
 
         }
+        close(pipefd[0]);
+        len = 0;
+        std::map<std::string, std::string>::iterator tmp = headers.find("Content-Length");
+        if (tmp != headers.end())
+        {
+            sleep(2);
+            int n_byts = ft::stoi(tmp->second);
+            while (n_byts && (len = getline(&buffer, &n, data)))
+            {
+                n_byts -= write(pipefd[1], buffer, len);
+                // std::cout << "length = " << len << "n=" << n_byts << std::endl;
+                free(buffer);
+                buffer = NULL;    
+                n = 0; 
+            }
+            close(pipefd[1]);
+
+            // std::cout << "loop ende" << len << std::endl;
+        }
+        else
+        {
+            sleep(2);
+            unsigned int x;  
+            std::stringstream ss;
+            while ((len = getline(&buffer, &n, data)))
+            {
+                std::cout << "len = " << len << std::endl;
+                if (len > 0 && buffer[0] == '\n')
+                {
+                    free(buffer);
+                    buffer = NULL;
+                    n = 0;
+                    continue;
+                }
+                // len = getline(&buffer, &n, data);
+                ss << std::hex << buffer;
+                ss >> x;
+                free(buffer);
+                buffer = NULL;
+                std::cout << "counged input" <<  buffer << len << " x="<< x << std::endl;
+                if (x == 0)
+                {
+                    free(buffer);
+                    buffer = NULL;
+                    close(pipefd[1]);
+
+                }
+                buffer = (char *)malloc(sizeof(char) * x);
+                fread(buffer, sizeof(char), x, data);
+                write(pipefd[1], buffer, x);
+                free(buffer);
+                buffer = NULL;
+            }
+            
+        }
         wait(NULL);
-        std::cout << "========================================done==========================================" << std::endl;
-        // system("php ./cgi-bin/example.php");
-        // std::ofstream ofs("test.txt");
-        // n = ft::stoi(headers.find("Content-Length")->second);
-        // body.resize(n);
-        // fread((void *)body.c_str(),  sizeof(char), n, data);
-        // std::string boundary = first_numberstring(headers.find("Content-Type")->second);
-        // while(n > 0)        // im  not shur if Content-Length has alwys the right length so maybe we hav to buffer
-        // {
-            // if(n > 10000)
-            // {
-                // n_read = 10000;
-                // n = n - n_read;
-            // }
-            // else
-            // {
-                // n_read = n;
-                // n = 0;
-            // }
-            // if (fread(tmp, sizeof(char), n_read, data) != n_read)
-                // std::cout << "===========error fread===================\n";
-            // tmp[n_read] = '\0';
-            // body.append(tmp);
-            // if(n <= 10000 && body.find(boundary.c_str()) != std::string::npos)
-            // {
-                // std::cout << "begin" << &body[body.find(boundary.c_str())] << " = " << boundary << std::endl;
-                // break;
-            // }
-        // }
-        // ofs << body;
-        // ofs.close();
+        // std::cout << "========================================done==========================================" << std::endl;
     }
     //fclose(data); // dosent work maybe someone wave an idear
 }

@@ -5,6 +5,7 @@
 # include <iostream>
 # include <sstream>
 # include "../../inc/Helper.hpp"
+# include <vector>
 
 class Config
 {
@@ -16,17 +17,24 @@ class Config
 		std::string errorPage;
 		std::string	sBodySize;
 
+		std::vector<int> vPorts;
+		std::vector<std::string> vServerNames;
+		std::vector<std::string> vErrorPages;
+		std::vector<int> vBodySizes;
+
 	public:
 		Config(std::string inArgv1);
 		~Config(void);
 
 		void	retrieveValues(void);
-		void 	set_data(std::string readLine, std::string find, int level);
+		int		countServer(void);
+		void 	setData(std::string readLine, std::string find, int level);
+		void	pushContainers(int level);
 
-		int getPort(void);
-		std::string const getServerName(void);
-		std::string const getErrorPage(void);
-		int	getBodySize(void);
+		std::vector<int> 			getPorts(void);
+		std::vector<std::string> 	getServerNames(void);
+		std::vector<std::string> 	getErrorPages(void);
+		std::vector<int>			getBodySizes(void);
 
 };
 
