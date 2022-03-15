@@ -25,7 +25,14 @@ void Config::pushContainers(int level)
 	}
 	if (level == 4)
 	{
-		vBodySizes.push_back(ft::stoi(sBodySize));
+
+		if (ft::stoi(sBodySize) > 10)
+		{
+			std::cout << "client_max_body_size is bigger than 10M" << std::endl;
+			vBodySizes.push_back(10);
+		}
+		else
+			vBodySizes.push_back(ft::stoi(sBodySize));
 		sBodySize.erase();
 	}
 }
@@ -91,7 +98,7 @@ void	Config::retrieveValues(void)
 		}
 		while (getline(readFile, readLine))
 		{
-			setData(readLine, "listen", 1);
+			setData(readLine, "port", 1);
 			setData(readLine, "server_name", 2);
 			setData(readLine, "error_pages", 3);
 			setData(readLine, "client_max_body_size", 4);
