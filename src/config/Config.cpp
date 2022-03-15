@@ -8,6 +8,8 @@ void Config::pushContainers(int level)
 {
 	if (level == 1)
 	{
+		if (ft::stoi(sPort) == 0)
+			std::cout << "Invalid port: " << sPort << std::endl;
 		vPorts.push_back(ft::stoi(sPort));
 		sPort.erase();
 	}

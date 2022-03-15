@@ -1,5 +1,6 @@
 
 #include "ft.hpp"
+#include <iostream>
 
 std::string ft::to_string(std::size_t number)
 {
