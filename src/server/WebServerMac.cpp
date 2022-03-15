@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 
-SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int> &ports, u_long interface, int backlog) : SimpleServer(domain, type, protocol, ports, interface, backlog)
+SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int> &ports, u_long interface, int backlog) : 
+SimpleServer(domain, type, protocol, ports, interface, backlog)
 {
 
 	FD_ZERO(&current_sockets); // init fd set
@@ -12,19 +13,27 @@ SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
 	}
-	launch();
+	launch(ports);
 }
 
 SERVER::WebServer::~WebServer()
 {
 }
 
-void SERVER::WebServer::launch()
+void SERVER::WebServer::launch(std::vector <int> &ports)
 {
 	fd_set tmp_read_sockets;
 	fd_set tmp_write_sockets;
 
-	std::cout << "Listening on port 8080" << std::endl;
+	std::vector<int>::iterator it = ports.begin();
+	std::vector<int>::iterator ite = ports.end();
+
+	std::cout << "Listening on port(s):";
+
+	for(; it != ite; ++it)
+		std::cout << " " << *it;
+
+	std::cout << std::endl;
 
 	while (42)
 	{

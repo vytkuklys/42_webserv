@@ -16,7 +16,7 @@ namespace SERVER
 	public:
 		SimpleServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog);
 		~SimpleServer();
-		virtual void launch() = 0;
+		virtual void launch(std::vector <int> &ports) = 0;
 		std::vector<SOCKET::ListenSocket*>& get_sockets();
 
 	};

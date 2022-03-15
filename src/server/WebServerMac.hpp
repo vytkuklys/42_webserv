@@ -35,7 +35,7 @@ namespace SERVER
 
 	public:
 		WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog);
-		void launch();
+		void launch(std::vector <int> &ports);
 		~WebServer();
 	};
 	
