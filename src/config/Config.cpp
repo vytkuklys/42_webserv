@@ -25,8 +25,9 @@ void Config::pushContainers(int level)
 	}
 	if (level == 4)
 	{
-
-		if (ft::stoi(sBodySize) > 10)
+		if (ft::stoi(sBodySize) == 0)
+			vBodySizes.push_back(1);
+		else if (ft::stoi(sBodySize) > 10)
 		{
 			std::cout << "client_max_body_size is bigger than 10M" << std::endl;
 			vBodySizes.push_back(10);
