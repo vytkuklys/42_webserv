@@ -64,11 +64,12 @@ void Config::setData(std::string readLine, std::string find, int level)
 	pushContainers(level);
 }
 
-int	Config::countServer(void)
+int	Config::countElement(std::string const & Element)
 {
 	std::string readLine;
 	std::ifstream readFile;
 
+	static const size_t npos = -1;
 	int counter = 0;
 
 	readFile.open(filename.c_str());
@@ -76,11 +77,25 @@ int	Config::countServer(void)
 	{
 		while (getline(readFile, readLine))
 		{
-				if (!(readLine.find("server")))
-					counter += 1;
+			if (readLine.find(Element, 0) != npos)
+				counter += 1;
 		}
 	}
 	return (counter);
+}
+
+int		Config::errorChecker(void)
+{
+	if (!countElement("server"))
+		return (-1);
+	if (countElement("{") != countElement("server") ||
+		countElement("}") != countElement("server") ||
+		countElement("port") != countElement("server") ||
+		countElement("s_name") != countElement("server") ||
+		countElement("error_pages") != countElement("server") ||
+		countElement("client_max_body_size") != countElement("server"))
+		return (-1);
+	return (0);
 }
 
 void	Config::retrieveValues(void)
@@ -91,15 +106,15 @@ void	Config::retrieveValues(void)
 	readFile.open(filename.c_str());
 	if (readFile.is_open())
 	{
-		if (!countServer())
+		if (errorChecker() == -1)
 		{
 			std::cout << "Wrong config file " << filename << std::endl;
-			return ;
+			exit(-1);
 		}
 		while (getline(readFile, readLine))
 		{
 			setData(readLine, "port", 1);
-			setData(readLine, "server_name", 2);
+			setData(readLine, "s_name", 2);
 			setData(readLine, "error_pages", 3);
 			setData(readLine, "client_max_body_size", 4);
 		}

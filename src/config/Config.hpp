@@ -27,7 +27,8 @@ class Config
 		~Config(void);
 
 		void	retrieveValues(void);
-		int		countServer(void);
+		int		errorChecker(void);
+		int		countElement(std::string const & Element);
 		void 	setData(std::string readLine, std::string find, int level);
 		void	pushContainers(int level);
 
