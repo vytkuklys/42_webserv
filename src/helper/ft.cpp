@@ -46,3 +46,13 @@ int ft::is_whitespace(std::string line)
     }
     return EXIT_SUCCESS;
 }
+
+bool ft::is_found(std::string const array[], std::string target){
+    int size = array->length();
+	for(int counter = 0;counter<size;counter++){
+		if(array[counter].compare(target) == 0){
+			return true;
+		}
+	}
+    return (false);
+}

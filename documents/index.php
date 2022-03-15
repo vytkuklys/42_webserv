@@ -10,6 +10,11 @@
 </head>
 <body>
     <div>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/upload.html">Upload</a></li>
+        <li><a href="/index.php" class="current">Index</a></li>
+    </ul>
         <p>Index Page</p>
 
         <?php

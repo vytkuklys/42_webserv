@@ -26,20 +26,24 @@ private:
         std::string body;
         std::string status_line;
         std::string path;
+        std::string file_ext;
         std::map<std::string, std::string> headers;
 
         void set_body(void);
         void set_headers(void);
         void set_path(std::string const filename);
         void set_status_line(void);
-        std::string get_path(void);
-
+        void set_content_type(void);
+        void set_image_body(void);
 public:
+        std::string get_path(void);
         Response(Parsing request);
         std::string get_http_response(void);
         std::string get_http_time();
 };
 
+bool is_image_ext(std::string ext);
+bool is_text_ext(std::string ext);
 bool exists_path(std::string const filename);
 
 #endif

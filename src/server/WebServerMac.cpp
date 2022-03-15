@@ -3,12 +3,11 @@
 #include <unistd.h>
 #include <string.h>
 
-
-SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog) : SimpleServer(domain, type, protocol, ports, interface, backlog)
+SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int> &ports, u_long interface, int backlog) : SimpleServer(domain, type, protocol, ports, interface, backlog)
 {
 
-	FD_ZERO(&current_sockets);			// init fd set
-	for(std::vector<SOCKET::ListenSocket*>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
+	FD_ZERO(&current_sockets); // init fd set
+	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
@@ -30,7 +29,7 @@ void SERVER::WebServer::launch()
 	while (42)
 	{
 		tmp_read_sockets = current_sockets;
-		tmp_write_sockets = current_sockets; // tmp copy of fd set, because select function destroys second argument
+		tmp_write_sockets = current_sockets;										   // tmp copy of fd set, because select function destroys second argument
 		if (select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, NULL) < 0) // should a timer be set at 5th argument?
 		{
 			perror("Error");
@@ -44,8 +43,8 @@ void SERVER::WebServer::launch()
 				// std::cout << "read" << i << std::endl;
 				handler();
 			}
-			else if(FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
-			{			
+			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
+			{
 				tmp_socket_fd = i;
 				responder();
 			}
@@ -67,7 +66,7 @@ void SERVER::WebServer::handle_new_client()
 	accepter();
 	FD_SET(tmp_socket_fd, &current_sockets);
 	fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
-	// std::cout << "handel_new_client\n"; 
+	// std::cout << "handel_new_client\n";
 }
 
 void SERVER::WebServer::accepter()
@@ -90,12 +89,23 @@ void SERVER::WebServer::responder()
 	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
 	{
+		int total;
 		Parsing &info = itr->second; // all header information from client
 		Response response(info);
 		http_response = response.get_http_response();
-		if (send(tmp_socket_fd, (const void *)http_response.c_str(), http_response.length(), 0) == -1)
-			std::cout << "responder\n";
-		FD_CLR(tmp_socket_fd, &current_sockets); 	 // removes fd from fd set
+		total = http_response.length();
+		std::cout << http_response  << std::endl;
+		const char *ptr = static_cast<const char *>(http_response.c_str());
+		while (total > 0)
+		{ // larger responses are not sent at once
+			int bytes = send(tmp_socket_fd, (const void *)ptr, total, 0);
+			std::string path = response.get_path();
+			if (bytes == -1)
+				std::cout << "responder\n";
+			ptr += bytes;
+			total -= bytes;
+		}
+		FD_CLR(tmp_socket_fd, &current_sockets); // removes fd from fd set
 		data.erase(itr);
 		close(tmp_socket_fd);
 	}

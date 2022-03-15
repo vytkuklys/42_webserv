@@ -11,5 +11,6 @@ namespace ft
     std::string first_numberstring(std::string const & str);
     void nulify(char **buffer, size_t *n);
     int is_whitespace(std::string line);
+    bool is_found(std::string const array[], std::string target);
 }
 #endif

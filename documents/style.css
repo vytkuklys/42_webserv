@@ -10,11 +10,10 @@ body {
 }
 
 p {
-    padding: 10% 0 5%;
+    padding: 5% 0;
     color: aliceblue;
     font-size: 5rem;
 }
-
 
 body>a,
 form>button {
@@ -77,4 +76,38 @@ tr>th {
 tr>td {
     font-size: 1.05rem;
     padding: .5rem 0;
+}
+
+ul {
+    padding: 1rem;
+    display: flex;
+    color: aliceblue;
+    align-items: center;
+    justify-content: center;
+    list-style-type: none;
+    border-bottom: 1px solid aliceblue;
+}
+
+li {
+    font-size: 2rem;
+    padding: 1rem 2rem;
+}
+
+li a {
+    color: aliceblue;
+    padding: .25rem;
+    text-decoration: none;
+}
+
+img {
+    border-radius: 1rem;
+}
+
+li a:hover {
+    color: rgb(0, 195, 255);
+    transition: .3s ease-in-out;
+}
+
+.current{
+    color: rgb(0, 195, 255);
 }
