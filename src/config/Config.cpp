@@ -40,11 +40,13 @@ void Config::pushContainers(int level)
 
 void Config::setData(std::string readLine, std::string find, int level)
 {
-	int begin = readLine.find(find);
-	if (begin == -1)
-		return ;
+	static const size_t npos = -1;
 	
-	begin = begin + find.length();
+	size_t begin = readLine.find(find);
+	if (begin == npos)
+		return ;
+
+	begin = static_cast<int>(begin) + find.length();
 	int i = 0;
 
 	while (isspace(readLine[begin + i]))
