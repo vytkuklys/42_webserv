@@ -1,6 +1,6 @@
 #include "Config.hpp"
 
-Config::Config(std::string inArgv1) : filename(inArgv1) {}
+Config::Config(std::string inArgv1) : filename(inArgv1) { retrieveValues(); }
 
 Config::~Config(void) {}
 
