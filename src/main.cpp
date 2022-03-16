@@ -12,7 +12,6 @@ int main (int argc, char **argv)
 	//Config config(argv[1]);
     (void)argv;                                 // only for faster testing
     Config config("config_files/default.conf"); // only for faster testing
-
 	std::vector<int> ports = config.getPorts();
 
     SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, ports, INADDR_ANY, 10);

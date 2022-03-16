@@ -81,7 +81,7 @@ void SERVER::WebServer::handle_new_client()
 void SERVER::WebServer::accepter()
 {
 	u_long addrlen = sizeof(struct sockaddr_storage);
-	tmp_socket_fd = accept(tmp_socket_fd, (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen); // copy the listern file fd the new fd is responsible for data transfer
+	tmp_socket_fd = accept(tmp_socket_fd, (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen); // copies the listen fd, the new fd is responsible for data transfer
 }
 
 void SERVER::WebServer::handle_known_client()
