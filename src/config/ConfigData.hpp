@@ -20,10 +20,10 @@ class ConfigData
 		void setErrorPages(std::string inputErrorPages);
 		void setBodySizes(std::string inputBodySizes);
 
-		std::string getPorts(void);
-		std::string getServerNames(void);
-		std::string getErrorPages(void);
-		std::string	getBodySizes(void);
+		std::string getPort(void);
+		std::string getServerName(void);
+		std::string getErrorPage(void);
+		std::string	getBodySize(void);
 
 };
 

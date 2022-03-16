@@ -14,10 +14,10 @@ void ConfigData::setErrorPages(std::string inputErrorPages) { errorPage = inputE
 void ConfigData::setBodySizes(std::string inputBodySizes) { sBodySize = inputBodySizes; }
 
 
-std::string ConfigData::getPorts(void) { return(sPort); }
+std::string ConfigData::getPort(void) { return(sPort); }
 
-std::string ConfigData::getServerNames(void) { return(serverName); }
+std::string ConfigData::getServerName(void) { return(serverName); }
 
-std::string ConfigData::getErrorPages(void) { return(errorPage); }
+std::string ConfigData::getErrorPage(void) { return(errorPage); }
 
-std::string ConfigData::getBodySizes(void) { return(sBodySize); }
+std::string ConfigData::getBodySize(void) { return(sBodySize); }

@@ -38,6 +38,11 @@ void Config::pushContainers(int level)
 	}
 }
 
+//void Config::pushConfigDataClass(int level)
+//{
+//	(void)level;
+//}
+
 void Config::setData(std::string readLine, std::string find, int level)
 {
 	static const size_t npos = -1;
@@ -65,6 +70,39 @@ void Config::setData(std::string readLine, std::string find, int level)
 		i++;
 	}
 	pushContainers(level);
+	//pushConfigDataClass(level);
+}
+
+int	Config::countServerLength(int whichServer)
+{
+	std::string readLine;
+	std::ifstream readFile;
+
+	static const size_t npos = -1;
+	int MakeItZero = 0;
+	int serverCounter = 0;
+	int serverLength = 0;
+
+	readFile.open(filename.c_str());
+	if (readFile.is_open())
+	{
+		while (getline(readFile, readLine))
+		{
+			if (readLine.find("server", 0) != npos)
+				serverCounter += 1;
+			if (serverCounter == whichServer)
+			{
+				if (readLine.find('{', 0) != npos)
+					MakeItZero += 1;
+				if (readLine.find('}', 0) != npos)
+					MakeItZero -= 1;
+				serverLength += 1;
+				if (MakeItZero == 0)
+					return (serverLength - 2);
+			}
+		}
+	}
+	return (-1);
 }
 
 int	Config::countElement(std::string const & Element)
@@ -103,7 +141,9 @@ void	Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	
+
+	//std::cout << countElement("server") << std::endl;
+	//std::cout << countServerLength(1) << std::endl;
 
 	readFile.open(filename.c_str());
 	if (readFile.is_open())
