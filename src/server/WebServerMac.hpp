@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/select.h> 
+#include <sys/select.h>
 #include <map>
 #include <ctime>
 #include <sys/stat.h>
@@ -19,8 +19,8 @@ namespace SERVER
 	class WebServer: public SimpleServer
 	{
 	private:
-		struct sockaddr_storage tmp_client_saddr;			
-		std::vector<int>		listeners;
+		struct sockaddr_storage tmp_client_saddr;
+		std::vector<int>		listeners;				//vector of filedescriptes of the new created lisner sockets
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
 		std::map<int,Parsing>	data;
@@ -38,7 +38,7 @@ namespace SERVER
 		void launch(std::vector <int> &ports);
 		~WebServer();
 	};
-	
+
 
 }
 #endif

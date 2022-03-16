@@ -59,13 +59,13 @@ Parsing::Parsing(int fd)
     size_t n;
     int len;
     FILE *data = fdopen(fd, "r");
-    while (data && (len = getline(&buffer, &n, data)) && set_start_line(buffer))
+    while (data && (len = getline(&buffer, &n, data)) && set_start_line(buffer)) // parsing first line
     {
         // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
         ft::nulify(&buffer, &n);
     }
     ft::nulify(&buffer, &n);
-    while (data && (len = getline(&buffer, &n, data)) && set_headers(buffer) == EXIT_SUCCESS)
+    while (data && (len = getline(&buffer, &n, data)) && set_headers(buffer) == EXIT_SUCCESS) // parsing header data, make pairs
     {
         // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
         ft::nulify(&buffer, &n);
@@ -73,7 +73,7 @@ Parsing::Parsing(int fd)
     // std::cout << buffer << std::endl;
     ft::nulify(&buffer, &n);
     // for_testing_print_request_struct();
-    if (method == "POST")
+    if (method == "POST") // check if it is a post request
     {
         buffer = NULL;
         n = 0;

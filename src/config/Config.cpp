@@ -41,7 +41,7 @@ void Config::pushContainers(int level)
 void Config::setData(std::string readLine, std::string find, int level)
 {
 	static const size_t npos = -1;
-	
+
 	size_t begin = readLine.find(find);
 	if (begin == npos)
 		return ;
@@ -51,7 +51,7 @@ void Config::setData(std::string readLine, std::string find, int level)
 
 	while (isspace(readLine[begin + i]))
 		i++;
-	
+
 	while (readLine[begin + i] != ';')
 	{
 		if (level == 1)
@@ -114,7 +114,7 @@ void	Config::retrieveValues(void)
 			std::cout << "Wrong config file " << filename << std::endl;
 			exit(-1);
 		}
-		while (getline(readFile, readLine))
+		while (std::getline(readFile, readLine))
 		{
 			setData(readLine, "port", 1);
 			setData(readLine, "s_name", 2);
@@ -135,7 +135,7 @@ std::vector<std::string> Config::getErrorPages(void) { return(vErrorPages); }
 std::vector<int> Config::getBodySizes(void) { return(vBodySizes); }
 
 
-int ft_stoi(std::string s) 
+int ft_stoi(std::string s)
 {
     int i;
     std::istringstream(s) >> i;
