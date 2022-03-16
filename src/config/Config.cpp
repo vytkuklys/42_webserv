@@ -91,9 +91,7 @@ int		Config::errorChecker(void)
 {
 	if (!countElement("server"))
 		return (-1);
-	if (countElement("{") != countElement("server") ||
-		countElement("}") != countElement("server") ||
-		countElement("port") != countElement("server") ||
+	if (countElement("port") != countElement("server") ||
 		countElement("s_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server"))
@@ -105,6 +103,7 @@ void	Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
+	
 
 	readFile.open(filename.c_str());
 	if (readFile.is_open())
