@@ -10,16 +10,16 @@
 
 <body>
   <p>Upload Page</p>
-  <form action="/test_error" method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" action="test.html">
     <label for="name">Name:</label><br>
-    <input type="text" id="name" name="user_name" required /><br>
+    <input type="text" id="name" name="user_name" value="Name" required /><br>
     <label for="myfile">Select a file:</label><br>
     <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
     <input type="file" id="myfile" name="user_file" required />
     <button type="submit">Upload</button>
     <!-- <input type="text" id="test" name="test_name" required /><br> -->
-
   </form>
+  
 </body>
 
 </html>

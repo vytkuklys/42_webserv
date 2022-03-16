@@ -63,10 +63,11 @@ void SERVER::WebServer::handler()
 
 void SERVER::WebServer::handle_new_client()
 {
-	std::cout << "handle_new_client" << std::endl;
+	// std::cout << "handle_new_client" << std::endl;
 	accepter();
 	FD_SET(tmp_socket_fd, &current_sockets);
-	std::cout << "handel_new_client " << tmp_socket_fd << std::endl; 
+	fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
+	std::cout << "handel_new_client\n"; 
 }
 
 void SERVER::WebServer::accepter()
@@ -79,7 +80,7 @@ void SERVER::WebServer::handle_known_client()
 {
 	Parsing info(tmp_socket_fd);
 	std::cout << "handel_known_client " << tmp_socket_fd << std::endl;
-	// std::cout << "insert:" << tmp_socket_fd << std::endl;
+	std::cout << "insert:" << tmp_socket_fd << std::endl;
 	data.insert(std::pair<int, Parsing>(tmp_socket_fd, info));
 }
 
