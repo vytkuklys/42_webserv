@@ -11,20 +11,20 @@ int main (int argc, char **argv)
 	}
 	//Config config(argv[1]);
     (void)argv;                                 // only for faster testing
-    Config config("config_files/default.conf"); // only for faster testing
+    Config config("config_files/newdefault.conf"); // only for faster testing
 
-	std::vector<ConfigData *> allData = config.getContConfigData();
-	std::vector<ConfigData *>::iterator it = allData.begin();
-	std::vector<ConfigData *>::iterator ite = allData.end();
+	// std::vector<ConfigData *> allData = config.getContConfigData();
+	// std::vector<ConfigData *>::iterator it = allData.begin();
+	// std::vector<ConfigData *>::iterator ite = allData.end();
 
-	while (it != ite)
-	{
-		std::cout << "Port: " << (*it)->getPort() << std::endl;
-		std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
-		std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
-		std::cout << "Body Size: " << (*it)->getBodySize() << std::endl << std::endl;
-		++it;
-	}
+	// while (it != ite)
+	// {
+	// 	std::cout << "Port: " << (*it)->getPort() << std::endl;
+	// 	std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
+	// 	std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
+	// 	std::cout << "Body Size: " << (*it)->getBodySize() << std::endl << std::endl;
+	// 	++it;
+	// }
 
 	std::vector<int> testPorts;
 	testPorts.push_back(8080);

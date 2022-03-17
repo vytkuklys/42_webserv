@@ -23,6 +23,7 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 			std::cout << "Invalid port: " << sPort << std::endl;
 		tempClass.setPort(ft::stoi(sPort));
 		sPort.erase();
+		tempClass.retrieveValues(filename);
 	}
 	if (level == 2)
 	{
@@ -49,31 +50,43 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	}
 }
 
-void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass)
+void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass, int whichLine)
 {
+	// static int whichLocation = 0;
+
 	size_t begin = readLine.find(find);
 	if (begin == npos)
 		return ;
 
-	begin = static_cast<int>(begin) + find.length();
-	int i = 0;
-
-	while (isspace(readLine[begin + i]))
-		i++;
-
-	while (readLine[begin + i] != ';')
+	if (level == 5)
 	{
-		if (level == 1)
-			sPort.push_back(readLine[begin + i]);
-		if (level == 2)
-			serverName.push_back(readLine[begin + i]);
-		if (level == 3)
-			errorPage.push_back(readLine[begin + i]);
-		if (level == 4)
-			sBodySize.push_back(readLine[begin + i]);
-		i++;
+		(void)whichLine;
+		// std::cout << "Size of Location Block: " << countServerLength("location", ++whichLocation) << std::endl;
+		// std::cout << "Which Line: " << whichLine << std::endl;
+		// std::cout << begin << std::endl;
 	}
-	pushToClass(level, tempClass);
+	else
+	{
+		begin = static_cast<int>(begin) + find.length();
+		int i = 0;
+
+		while (isspace(readLine[begin + i]))
+			i++;
+
+		while (readLine[begin + i] != ';')
+		{
+			if (level == 1)
+				sPort.push_back(readLine[begin + i]);
+			if (level == 2)
+				serverName.push_back(readLine[begin + i]);
+			if (level == 3)
+				errorPage.push_back(readLine[begin + i]);
+			if (level == 4)
+				sBodySize.push_back(readLine[begin + i]);
+			i++;
+		}
+		pushToClass(level, tempClass);
+	}
 }
 
 int	Config::countServerLength(std::string const & find, int whichOne)
@@ -146,6 +159,7 @@ void	Config::retrieveValues(void)
 
 	// int amountOfServers = countElement("server");
 	int whichServer = 0;
+	int whichLine = 1;
 	bool lookForNewServer = true;
 	int serverLength = -1;
 
@@ -173,10 +187,11 @@ void	Config::retrieveValues(void)
 			}
 			if (lookForNewServer == false)
 			{
-				setData(readLine, "port", 1, *tempClass);
-				setData(readLine, "s_name", 2, *tempClass);
-				setData(readLine, "error_pages", 3, *tempClass);
-				setData(readLine, "client_max_body_size", 4, *tempClass);
+				setData(readLine, "port", 1, *tempClass, whichLine);
+				setData(readLine, "s_name", 2, *tempClass, whichLine);
+				setData(readLine, "error_pages", 3, *tempClass, whichLine);
+				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
+				setData(readLine, "location", 5, *tempClass, whichLine);
 				serverLength--;
 				if (serverLength == 0)
 				{
@@ -184,7 +199,7 @@ void	Config::retrieveValues(void)
 					lookForNewServer = true;
 				}
 			}
-
+			++whichLine;
 		}
 	}
 	else
