@@ -15,9 +15,8 @@ Config::~Config(void)
 	ContConfigData.clear();
 }
 
-void Config::pushContainers(int level, ConfigData & tempClass)
+void Config::pushToClass(int level, ConfigData & tempClass)
 {
-	(void)tempClass;
 	if (level == 1)
 	{
 		if (ft::stoi(sPort) == 0)
@@ -74,16 +73,16 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 			sBodySize.push_back(readLine[begin + i]);
 		i++;
 	}
-	pushContainers(level, tempClass);
+	pushToClass(level, tempClass);
 }
 
-int	Config::countServerLength(int whichServer)
+int	Config::countServerLength(std::string const & find, int whichOne)
 {
 	std::string readLine;
 	std::ifstream readFile;
 
 	int MakeItZero = 0;
-	int serverCounter = 0;
+	int Counter = 0;
 	int serverLength = 0;
 
 	readFile.open(filename.c_str());
@@ -91,9 +90,9 @@ int	Config::countServerLength(int whichServer)
 	{
 		while (getline(readFile, readLine))
 		{
-			if (readLine.find("server", 0) != npos)
-				serverCounter += 1;
-			if (serverCounter == whichServer)
+			if (readLine.find(find, 0) != npos)
+				Counter += 1;
+			if (Counter == whichOne)
 			{
 				if (readLine.find('{', 0) != npos)
 					MakeItZero += 1;
@@ -168,7 +167,7 @@ void	Config::retrieveValues(void)
 					// if (amountOfServers == -1)
 					// 	break ;
 					tempClass = new ConfigData();
-					serverLength = countServerLength(++whichServer);
+					serverLength = countServerLength("server", ++whichServer);
 					lookForNewServer = false;
 				}
 			}

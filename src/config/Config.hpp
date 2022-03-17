@@ -29,10 +29,10 @@ class Config
 
 		void	retrieveValues(void);
 		int		errorChecker(void);
-		int		countServerLength(int whichServer);
+		int		countServerLength(std::string const & find, int whichOne);
 		int		countElement(std::string const & Element);
 		void 	setData(std::string readLine, std::string find, int level, ConfigData & tempClass);
-		void	pushContainers(int level, ConfigData & tempClass);
+		void	pushToClass(int level, ConfigData & tempClass);
 
 		std::vector<ConfigData *> & getContConfigData(void);
 
