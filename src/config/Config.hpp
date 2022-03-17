@@ -13,7 +13,7 @@ class Config
 {
 	private:
 		std::vector<ConfigData *> ContConfigData;
-		ConfigData* tempClass;
+		// ConfigData * tempClass;
 
 		std::string const filename;
 		size_t const npos;
@@ -23,10 +23,10 @@ class Config
 		std::string errorPage;
 		std::string	sBodySize;
 
-		std::vector<int> vPorts;
-		std::vector<std::string> vServerNames;
-		std::vector<std::string> vErrorPages;
-		std::vector<int> vBodySizes;
+		// std::vector<int> vPorts;
+		// std::vector<std::string> vServerNames;
+		// std::vector<std::string> vErrorPages;
+		// std::vector<int> vBodySizes;
 
 	public:
 		Config(std::string inArgv1);
@@ -36,14 +36,16 @@ class Config
 		int		errorChecker(void);
 		int		countServerLength(int whichServer);
 		int		countElement(std::string const & Element);
-		void 	setData(std::string readLine, std::string find, int level, ConfigData* tempClass);
-		void	pushContainers(int level, ConfigData* tempClass);
+		void 	setData(std::string readLine, std::string find, int level, ConfigData & tempClass);
+		void	pushContainers(int level, ConfigData & tempClass);
 		//void	pushConfigDataClass(int level);
 
-		std::vector<int> &			getPorts(void);
-		std::vector<std::string> 	getServerNames(void);
-		std::vector<std::string> 	getErrorPages(void);
-		std::vector<int>			getBodySizes(void);
+		std::vector<ConfigData *> & getContConfigData(void);
+
+		// std::vector<int> &			getPorts(void);
+		// std::vector<std::string> 	getServerNames(void);
+		// std::vector<std::string> 	getErrorPages(void);
+		// std::vector<int>			getBodySizes(void);
 
 };
 
