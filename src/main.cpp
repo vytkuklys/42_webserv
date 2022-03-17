@@ -19,10 +19,10 @@ int main (int argc, char **argv)
 
 	while (it != ite)
 	{
-		std::cout << "Ports: " << (*it)->getPort() << std::endl;
-		std::cout << "Server Names: " << (*it)->getServerName() << std::endl;
-		std::cout << "Error Pages: " << (*it)->getErrorPage() << std::endl;
-		std::cout << "Body Sizes: " << (*it)->getBodySize() << std::endl;
+		std::cout << "Port: " << (*it)->getPort() << std::endl;
+		std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
+		std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
+		std::cout << "Body Size: " << (*it)->getBodySize() << std::endl << std::endl;
 		++it;
 	}
 

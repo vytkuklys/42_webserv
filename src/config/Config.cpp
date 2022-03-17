@@ -2,7 +2,18 @@
 
 Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { retrieveValues(); }
 
-Config::~Config(void) {}
+Config::~Config(void) 
+{ 
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		delete *it;
+		++it;
+	}
+	ContConfigData.clear();
+}
 
 void Config::pushContainers(int level, ConfigData & tempClass)
 {
@@ -39,11 +50,6 @@ void Config::pushContainers(int level, ConfigData & tempClass)
 	}
 }
 
-//void Config::pushConfigDataClass(int level)
-//{
-//	(void)level;
-//}
-
 void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass)
 {
 	size_t begin = readLine.find(find);
@@ -69,7 +75,6 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 		i++;
 	}
 	pushContainers(level, tempClass);
-	//pushConfigDataClass(level);
 }
 
 int	Config::countServerLength(int whichServer)
@@ -77,7 +82,6 @@ int	Config::countServerLength(int whichServer)
 	std::string readLine;
 	std::ifstream readFile;
 
-	// static const size_t npos = -1;
 	int MakeItZero = 0;
 	int serverCounter = 0;
 	int serverLength = 0;
@@ -109,7 +113,6 @@ int	Config::countElement(std::string const & Element)
 	std::string readLine;
 	std::ifstream readFile;
 
-	// static const size_t npos = -1;
 	int counter = 0;
 
 	readFile.open(filename.c_str());
@@ -145,7 +148,6 @@ void	Config::retrieveValues(void)
 	// int amountOfServers = countElement("server");
 	int whichServer = 0;
 	bool lookForNewServer = true;
-	bool allocateClass = false;
 	int serverLength = -1;
 
 	readFile.open(filename.c_str());
@@ -165,20 +167,13 @@ void	Config::retrieveValues(void)
 					// amountOfServers -= 1;
 					// if (amountOfServers == -1)
 					// 	break ;
-					allocateClass = true;
-					// ConfigData * tempClass = new ConfigData();
-					// ContConfigData.push_back(tempClass);
+					tempClass = new ConfigData();
 					serverLength = countServerLength(++whichServer);
 					lookForNewServer = false;
 				}
 			}
 			if (lookForNewServer == false)
 			{
-				if (allocateClass == true)
-				{
-					tempClass = new ConfigData();
-					allocateClass = false;
-				}
 				setData(readLine, "port", 1, *tempClass);
 				setData(readLine, "s_name", 2, *tempClass);
 				setData(readLine, "error_pages", 3, *tempClass);
@@ -197,17 +192,7 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-
 std::vector<ConfigData *> & Config::getContConfigData(void) { return(ContConfigData); }
-
-// std::vector<int> & Config::getPorts(void) { return(vPorts); }
-
-// std::vector<std::string> Config::getServerNames(void) { return(vServerNames); }
-
-// std::vector<std::string> Config::getErrorPages(void) { return(vErrorPages); }
-
-// std::vector<int> Config::getBodySizes(void) { return(vBodySizes); }
-
 
 int ft_stoi(std::string s)
 {

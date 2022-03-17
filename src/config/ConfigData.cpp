@@ -3,7 +3,7 @@
 ConfigData::ConfigData(void) : sPort(0), serverName("UNKNOWN"), 
 errorPage("UNKNOWN"), sBodySize(0) {}
 
-ConfigData::~ConfigData(void) {}
+ConfigData::~ConfigData(void) { /*!!DELETE Location classes !!*/ }
 
 
 void ConfigData::setPort(int inputPort) { sPort = inputPort; }

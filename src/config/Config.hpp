@@ -23,11 +23,6 @@ class Config
 		std::string errorPage;
 		std::string	sBodySize;
 
-		// std::vector<int> vPorts;
-		// std::vector<std::string> vServerNames;
-		// std::vector<std::string> vErrorPages;
-		// std::vector<int> vBodySizes;
-
 	public:
 		Config(std::string inArgv1);
 		~Config(void);
@@ -38,14 +33,8 @@ class Config
 		int		countElement(std::string const & Element);
 		void 	setData(std::string readLine, std::string find, int level, ConfigData & tempClass);
 		void	pushContainers(int level, ConfigData & tempClass);
-		//void	pushConfigDataClass(int level);
 
 		std::vector<ConfigData *> & getContConfigData(void);
-
-		// std::vector<int> &			getPorts(void);
-		// std::vector<std::string> 	getServerNames(void);
-		// std::vector<std::string> 	getErrorPages(void);
-		// std::vector<int>			getBodySizes(void);
 
 };
 
