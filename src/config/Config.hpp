@@ -4,13 +4,18 @@
 # include <fstream>
 # include <iostream>
 # include <sstream>
-# include "../../inc/Helper.hpp"
 # include <vector>
+
+# include "../../inc/Helper.hpp"
+# include "ConfigData.hpp"
 
 class Config
 {
 	private:
+		std::vector<ConfigData *> ContConfigData;
+
 		std::string const filename;
+		size_t const npos;
 
 		std::string sPort;
 		std::string serverName;

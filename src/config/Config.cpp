@@ -1,6 +1,6 @@
 #include "Config.hpp"
 
-Config::Config(std::string inArgv1) : filename(inArgv1) { retrieveValues(); }
+Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { retrieveValues(); }
 
 Config::~Config(void) {}
 
@@ -45,8 +45,6 @@ void Config::pushContainers(int level)
 
 void Config::setData(std::string readLine, std::string find, int level)
 {
-	static const size_t npos = -1;
-
 	size_t begin = readLine.find(find);
 	if (begin == npos)
 		return ;
@@ -78,7 +76,7 @@ int	Config::countServerLength(int whichServer)
 	std::string readLine;
 	std::ifstream readFile;
 
-	static const size_t npos = -1;
+	// static const size_t npos = -1;
 	int MakeItZero = 0;
 	int serverCounter = 0;
 	int serverLength = 0;
@@ -110,7 +108,7 @@ int	Config::countElement(std::string const & Element)
 	std::string readLine;
 	std::ifstream readFile;
 
-	static const size_t npos = -1;
+	// static const size_t npos = -1;
 	int counter = 0;
 
 	readFile.open(filename.c_str());
@@ -142,8 +140,11 @@ void	Config::retrieveValues(void)
 	std::string readLine;
 	std::ifstream readFile;
 
-	//std::cout << countElement("server") << std::endl;
-	//std::cout << countServerLength(1) << std::endl;
+	// std::cout << countElement("server") << std::endl;
+	// std::cout << countServerLength(1) << std::endl;
+
+	int amountOfServers = countElement("server");
+	int whichServer = 0;
 
 	readFile.open(filename.c_str());
 	if (readFile.is_open())
@@ -155,6 +156,14 @@ void	Config::retrieveValues(void)
 		}
 		while (std::getline(readFile, readLine))
 		{
+			if (readLine.find("server") != npos)
+			{
+				ConfigData* temp = new ConfigData();
+				(void)temp;
+				amountOfServers -= 1;
+				int serverLength = countServerLength(++whichServer);
+				(void)serverLength;
+			}
 			setData(readLine, "port", 1);
 			setData(readLine, "s_name", 2);
 			setData(readLine, "error_pages", 3);
