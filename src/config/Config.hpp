@@ -34,7 +34,7 @@ class Config
 		void	pushContainers(int level);
 		//void	pushConfigDataClass(int level);
 
-		std::vector<int> 			getPorts(void);
+		std::vector<int> &			getPorts(void);
 		std::vector<std::string> 	getServerNames(void);
 		std::vector<std::string> 	getErrorPages(void);
 		std::vector<int>			getBodySizes(void);

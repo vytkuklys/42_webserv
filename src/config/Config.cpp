@@ -165,7 +165,7 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-std::vector<int> Config::getPorts(void) { return(vPorts); }
+std::vector<int> & Config::getPorts(void) { return(vPorts); }
 
 std::vector<std::string> Config::getServerNames(void) { return(vServerNames); }
 
