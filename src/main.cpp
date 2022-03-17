@@ -13,7 +13,13 @@ int main (int argc, char **argv)
     (void)argv;                                 // only for faster testing
     Config config("config_files/default.conf"); // only for faster testing
 
-    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, config.getPorts(), INADDR_ANY, 10);
+
+	std::vector<int> testPorts;
+	testPorts.push_back(8080);
+	testPorts.push_back(8085);
+	testPorts.push_back(9999);
+
+    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, testPorts, INADDR_ANY, 10);
 
 	return (0);
 }

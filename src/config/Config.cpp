@@ -4,36 +4,37 @@ Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { retrieveValu
 
 Config::~Config(void) {}
 
-void Config::pushContainers(int level)
+void Config::pushContainers(int level, ConfigData* tempClass)
 {
+	(void)tempClass;
 	if (level == 1)
 	{
 		if (ft::stoi(sPort) == 0)
 			std::cout << "Invalid port: " << sPort << std::endl;
-		vPorts.push_back(ft::stoi(sPort));
+		tempClass->setPort(ft::stoi(sPort));
 		sPort.erase();
 	}
 	if (level == 2)
 	{
-		vServerNames.push_back(serverName);
+		tempClass->setServerName(serverName);
 		serverName.erase();
 	}
 	if (level == 3)
 	{
-		vErrorPages.push_back(errorPage);
+		tempClass->setErrorPage(errorPage);
 		errorPage.erase();
 	}
 	if (level == 4)
 	{
 		if (ft::stoi(sBodySize) == 0)
-			vBodySizes.push_back(1);
+			tempClass->setBodySize(1);
 		else if (ft::stoi(sBodySize) > 10)
 		{
 			std::cout << "client_max_body_size is bigger than 10M" << std::endl;
-			vBodySizes.push_back(10);
+			tempClass->setBodySize(10);
 		}
 		else
-			vBodySizes.push_back(ft::stoi(sBodySize));
+			tempClass->setBodySize(ft::stoi(sBodySize));
 		sBodySize.erase();
 	}
 }
@@ -43,7 +44,7 @@ void Config::pushContainers(int level)
 //	(void)level;
 //}
 
-void Config::setData(std::string readLine, std::string find, int level)
+void Config::setData(std::string readLine, std::string find, int level, ConfigData* tempClass)
 {
 	size_t begin = readLine.find(find);
 	if (begin == npos)
@@ -67,7 +68,7 @@ void Config::setData(std::string readLine, std::string find, int level)
 			sBodySize.push_back(readLine[begin + i]);
 		i++;
 	}
-	pushContainers(level);
+	pushContainers(level, tempClass);
 	//pushConfigDataClass(level);
 }
 
@@ -96,7 +97,7 @@ int	Config::countServerLength(int whichServer)
 					MakeItZero -= 1;
 				serverLength += 1;
 				if (MakeItZero == 0)
-					return (serverLength - 2);
+					return (serverLength);
 			}
 		}
 	}
@@ -140,11 +141,10 @@ void	Config::retrieveValues(void)
 	std::string readLine;
 	std::ifstream readFile;
 
-	// std::cout << countElement("server") << std::endl;
-	// std::cout << countServerLength(1) << std::endl;
-
-	int amountOfServers = countElement("server");
+	// int amountOfServers = countElement("server");
 	int whichServer = 0;
+	int lookForNewServer = true;
+	int serverLength = -1;
 
 	readFile.open(filename.c_str());
 	if (readFile.is_open())
@@ -156,18 +156,32 @@ void	Config::retrieveValues(void)
 		}
 		while (std::getline(readFile, readLine))
 		{
-			if (readLine.find("server") != npos)
+			if (lookForNewServer == true)
 			{
-				ConfigData* temp = new ConfigData();
-				(void)temp;
-				amountOfServers -= 1;
-				int serverLength = countServerLength(++whichServer);
-				(void)serverLength;
+				if (readLine.find("server") != npos)
+				{
+					// amountOfServers -= 1;
+					// if (amountOfServers == -1)
+					// 	break ;
+					tempClass = new ConfigData();
+					serverLength = countServerLength(++whichServer);
+					lookForNewServer = false;
+				}
 			}
-			setData(readLine, "port", 1);
-			setData(readLine, "s_name", 2);
-			setData(readLine, "error_pages", 3);
-			setData(readLine, "client_max_body_size", 4);
+			if (lookForNewServer == false)
+			{
+				setData(readLine, "port", 1, tempClass);
+				setData(readLine, "s_name", 2, tempClass);
+				setData(readLine, "error_pages", 3, tempClass);
+				setData(readLine, "client_max_body_size", 4, tempClass);
+				serverLength--;
+				if (serverLength == 0)
+				{
+					ContConfigData.push_back(tempClass);
+					lookForNewServer = true;
+				}
+			}
+
 		}
 	}
 	else

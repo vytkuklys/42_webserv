@@ -13,6 +13,7 @@ class Config
 {
 	private:
 		std::vector<ConfigData *> ContConfigData;
+		ConfigData* tempClass;
 
 		std::string const filename;
 		size_t const npos;
@@ -35,8 +36,8 @@ class Config
 		int		errorChecker(void);
 		int		countServerLength(int whichServer);
 		int		countElement(std::string const & Element);
-		void 	setData(std::string readLine, std::string find, int level);
-		void	pushContainers(int level);
+		void 	setData(std::string readLine, std::string find, int level, ConfigData* tempClass);
+		void	pushContainers(int level, ConfigData* tempClass);
 		//void	pushConfigDataClass(int level);
 
 		std::vector<int> &			getPorts(void);

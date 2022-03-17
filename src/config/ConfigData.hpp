@@ -6,24 +6,24 @@
 class ConfigData
 {
 	private:
-		std::string sPort;
+		int sPort;
 		std::string serverName;
 		std::string errorPage;
-		std::string	sBodySize;
+		int	sBodySize;
 
 	public:
 		ConfigData(void);
 		~ConfigData(void);
 
-		void setPorts(std::string inputPort);
-		void setServerNames(std::string inputServerName);
-		void setErrorPages(std::string inputErrorPages);
-		void setBodySizes(std::string inputBodySizes);
+		void setPort(int inputPort);
+		void setServerName(std::string inputServerName);
+		void setErrorPage(std::string inputErrorPages);
+		void setBodySize(int inputBodySizes);
 
-		std::string getPort(void);
+		int getPort(void);
 		std::string getServerName(void);
 		std::string getErrorPage(void);
-		std::string	getBodySize(void);
+		int	getBodySize(void);
 
 };
 
