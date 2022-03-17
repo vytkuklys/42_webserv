@@ -37,7 +37,7 @@ int main (int argc, char **argv)
     (void)argv;                                 // only for faster testing
     Config config("config_files/newdefault.conf"); // only for faster testing
 
-	// printConfigData(config);
+	printConfigData(config);
 
 	std::vector<int> testPorts;
 	testPorts.push_back(8080);
