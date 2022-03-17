@@ -2,6 +2,30 @@
 #include "../inc/Parsing.hpp"
 #include "../inc/Server.hpp"
 
+void printConfigData(Config config)
+{
+	std::vector<ConfigData *> allData = config.getContConfigData();
+	std::vector<ConfigData *>::iterator it = allData.begin();
+	std::vector<ConfigData *>::iterator ite = allData.end();
+
+	std::vector<LocationData *> locationData = (*it)->getContLocationData();
+	std::vector<LocationData *>::iterator it2 = locationData.begin();
+	std::vector<LocationData *>::iterator ite2 = locationData.end();
+
+	while (it != ite && it2 != ite2)
+	{
+		std::cout << "Port: " << (*it)->getPort() << std::endl;
+		std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
+		std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
+		std::cout << "Body Size: " << (*it)->getBodySize() << std::endl;
+
+		std::cout << "root: " << (*it2)->getRoot() << std::endl << std::endl;
+
+		++it;
+		++it2;
+	}
+}
+
 int main (int argc, char **argv)
 {
 	if (argc != 2 && 0) // only for faster testing
@@ -13,18 +37,7 @@ int main (int argc, char **argv)
     (void)argv;                                 // only for faster testing
     Config config("config_files/newdefault.conf"); // only for faster testing
 
-	// std::vector<ConfigData *> allData = config.getContConfigData();
-	// std::vector<ConfigData *>::iterator it = allData.begin();
-	// std::vector<ConfigData *>::iterator ite = allData.end();
-
-	// while (it != ite)
-	// {
-	// 	std::cout << "Port: " << (*it)->getPort() << std::endl;
-	// 	std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
-	// 	std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
-	// 	std::cout << "Body Size: " << (*it)->getBodySize() << std::endl << std::endl;
-	// 	++it;
-	// }
+	// printConfigData(config);
 
 	std::vector<int> testPorts;
 	testPorts.push_back(8080);

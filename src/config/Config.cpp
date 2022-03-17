@@ -23,7 +23,6 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 			std::cout << "Invalid port: " << sPort << std::endl;
 		tempClass.setPort(ft::stoi(sPort));
 		sPort.erase();
-		tempClass.retrieveValues(filename);
 	}
 	if (level == 2)
 	{
@@ -52,19 +51,14 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 
 void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass, int whichLine)
 {
-	// static int whichLocation = 0;
+	static int whichLocation = 0;
 
 	size_t begin = readLine.find(find);
 	if (begin == npos)
 		return ;
 
 	if (level == 5)
-	{
-		(void)whichLine;
-		// std::cout << "Size of Location Block: " << countServerLength("location", ++whichLocation) << std::endl;
-		// std::cout << "Which Line: " << whichLine << std::endl;
-		// std::cout << begin << std::endl;
-	}
+		tempClass.retrieveValues(filename, whichLine, (whichLine + countServerLength("location", ++whichLocation) - 1));
 	else
 	{
 		begin = static_cast<int>(begin) + find.length();

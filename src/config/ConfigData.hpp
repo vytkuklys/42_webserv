@@ -15,21 +15,23 @@ class ConfigData
 		
 		size_t const npos;
 
-		int sPort;
+		int Port;
 		std::string serverName;
 		std::string errorPage;
-		int	sBodySize;
+		int	BodySize;
 
-		std::string tempLocation;		
-		std::string tempRoot;
-		std::string tempMethod;
-		std::string tempIndex;
+		std::string location;		
+		std::string root;
+		std::string method;
+		std::string index;
 
 	public:
 		ConfigData(void);
 		~ConfigData(void);
 
-		void retrieveValues(std::string const filename);
+		void retrieveValues(std::string const filename, int start, int end);
+		void setData(std::string readLine, std::string find, int level, LocationData & tempClass);
+		void pushToClass(int level, LocationData & tempClass);
 
 		void setPort(int inputPort);
 		void setServerName(std::string inputServerName);
@@ -40,6 +42,8 @@ class ConfigData
 		std::string getServerName(void);
 		std::string getErrorPage(void);
 		int	getBodySize(void);
+
+		std::vector<LocationData *> & getContLocationData(void);
 
 };
 

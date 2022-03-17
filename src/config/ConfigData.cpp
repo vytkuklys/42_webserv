@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), sPort(0), serverName("UNKNOWN"), 
-errorPage("UNKNOWN"), sBodySize(0) {}
+ConfigData::ConfigData(void) : npos(-1), Port(0), 
+serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(0) {}
 
 ConfigData::~ConfigData(void) 
 { 
@@ -18,64 +18,82 @@ ConfigData::~ConfigData(void)
 
 
 
-void	ConfigData::retrieveValues(std::string const filename)
+void ConfigData::pushToClass(int level, LocationData & tempClass)
+{
+	if (level == 2)
+	{
+		tempClass.setRoot(root);
+		root.erase();
+	}
+}
+
+void ConfigData::setData(std::string readLine, std::string find, int level, LocationData & tempClass)
+{
+	size_t begin = readLine.find(find);
+	if (begin == npos)
+		return ;
+
+	begin = static_cast<int>(begin) + find.length();
+	int i = 0;
+
+	while (isspace(readLine[begin + i]))
+		i++;
+
+	while (readLine[begin + i] != ';')
+	{
+		if (level == 2)
+			root.push_back(readLine[begin + i]);
+		i++;
+	}
+	pushToClass(level, tempClass);
+}
+
+void ConfigData::retrieveValues(std::string const filename, int start, int end)
 {
 	std::string readLine;
 	std::ifstream readFile;
 	LocationData * tempClass = nullptr;
 
-	// int amountOfServers = countElement("server");
-	// int whichServer = 0;
 	int whichLine = 1;
-	bool lookForNewServer = true;
-	int serverLength = -1;
 
 	readFile.open(filename.c_str());
 	while (std::getline(readFile, readLine))
 	{
-		if (lookForNewServer == true)
-		{
-			if (readLine.find("server") != npos)
-			{
-				tempClass = new LocationData();
-				// serverLength = countServerLength("server", ++whichServer);
-				lookForNewServer = false;				
-				}
-			}
-		if (lookForNewServer == false)
-		{
-			// setData(readLine, "port", 1, *tempClass, whichLine);
-			// setData(readLine, "s_name", 2, *tempClass, whichLine);
-			// setData(readLine, "error_pages", 3, *tempClass, whichLine);
-			// setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
-			// setData(readLine, "location", 5, *tempClass, whichLine);
-			serverLength--;
-			if (serverLength == 0)
-			{
-				ContLocationData.push_back(tempClass);
-				lookForNewServer = true;
-			}
-		}
+		if (whichLine == start)
+			// if (readLine.find("location") != npos)
+				tempClass = new LocationData();	
+		if (whichLine >= start && whichLine < end)
+			setData(readLine, "root", 2, *tempClass);
 		++whichLine;
+		if (whichLine == end)
+		{
+			ContLocationData.push_back(tempClass);
+			break ;
+		}
 	}
 }
 
 
 
-void ConfigData::setPort(int inputPort) { sPort = inputPort; }
+void ConfigData::setPort(int inputPort) { Port = inputPort; }
 
 void ConfigData::setServerName(std::string inputServerName) { serverName = inputServerName; }
 
 void ConfigData::setErrorPage(std::string inputErrorPages) { errorPage = inputErrorPages; }
 
-void ConfigData::setBodySize(int inputBodySizes) { sBodySize = inputBodySizes; }
+void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 
 
 
-int ConfigData::getPort(void) { return(sPort); }
+int ConfigData::getPort(void) { return(Port); }
 
 std::string ConfigData::getServerName(void) { return(serverName); }
 
 std::string ConfigData::getErrorPage(void) { return(errorPage); }
 
-int ConfigData::getBodySize(void) { return(sBodySize); }
+int ConfigData::getBodySize(void) { return(BodySize); }
+
+
+
+std::vector<LocationData *> & ConfigData::getContLocationData(void) { return(ContLocationData); }
+
