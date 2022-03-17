@@ -3,6 +3,8 @@
 
 # include <iostream>
 
+# include "LocationData.hpp"
+
 class ConfigData
 {
 	private:
