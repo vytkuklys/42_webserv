@@ -32,7 +32,7 @@ class Config
 		void 	setData(std::string readLine, std::string find, int level);
 		void	pushContainers(int level);
 
-		std::vector<int> 			getPorts(void);
+		std::vector<int>& 			getPorts(void);
 		std::vector<std::string> 	getServerNames(void);
 		std::vector<std::string> 	getErrorPages(void);
 		std::vector<int>			getBodySizes(void);
