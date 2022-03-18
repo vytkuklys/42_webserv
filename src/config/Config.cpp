@@ -49,31 +49,38 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	}
 }
 
-void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass)
+void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass, int whichLine)
 {
+	static int whichLocation = 0;
+
 	size_t begin = readLine.find(find);
 	if (begin == npos)
 		return ;
 
-	begin = static_cast<int>(begin) + find.length();
-	int i = 0;
-
-	while (isspace(readLine[begin + i]))
-		i++;
-
-	while (readLine[begin + i] != ';')
+	if (level == 5)
+		tempClass.retrieveValues(filename, whichLine, (whichLine + countServerLength("location", ++whichLocation) - 1));
+	else
 	{
-		if (level == 1)
-			sPort.push_back(readLine[begin + i]);
-		if (level == 2)
-			serverName.push_back(readLine[begin + i]);
-		if (level == 3)
-			errorPage.push_back(readLine[begin + i]);
-		if (level == 4)
-			sBodySize.push_back(readLine[begin + i]);
-		i++;
+		begin = static_cast<int>(begin) + find.length();
+		int i = 0;
+
+		while (isspace(readLine[begin + i]))
+			i++;
+
+		while (readLine[begin + i] != ';')
+		{
+			if (level == 1)
+				sPort.push_back(readLine[begin + i]);
+			if (level == 2)
+				serverName.push_back(readLine[begin + i]);
+			if (level == 3)
+				errorPage.push_back(readLine[begin + i]);
+			if (level == 4)
+				sBodySize.push_back(readLine[begin + i]);
+			i++;
+		}
+		pushToClass(level, tempClass);
 	}
-	pushToClass(level, tempClass);
 }
 
 int	Config::countServerLength(std::string const & find, int whichOne)
@@ -130,8 +137,8 @@ int		Config::errorChecker(void)
 {
 	if (!countElement("server"))
 		return (-1);
-	if (countElement("port") != countElement("server") ||
-		countElement("s_name") != countElement("server") ||
+	if (
+		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server"))
 		return (-1);
@@ -146,6 +153,7 @@ void	Config::retrieveValues(void)
 
 	// int amountOfServers = countElement("server");
 	int whichServer = 0;
+	int whichLine = 1;
 	bool lookForNewServer = true;
 	int serverLength = -1;
 
@@ -166,17 +174,21 @@ void	Config::retrieveValues(void)
 					// amountOfServers -= 1;
 					// if (amountOfServers == -1)
 					// 	break ;
-					tempClass = new ConfigData();
 					serverLength = countServerLength("server", ++whichServer);
-					lookForNewServer = false;
+					if (serverLength > 2)
+					{
+						tempClass = new ConfigData();
+						lookForNewServer = false;
+					}
 				}
 			}
 			if (lookForNewServer == false)
 			{
-				setData(readLine, "port", 1, *tempClass);
-				setData(readLine, "s_name", 2, *tempClass);
-				setData(readLine, "error_pages", 3, *tempClass);
-				setData(readLine, "client_max_body_size", 4, *tempClass);
+				setData(readLine, "port", 1, *tempClass, whichLine);
+				setData(readLine, "srvr_name", 2, *tempClass, whichLine);
+				setData(readLine, "error_pages", 3, *tempClass, whichLine);
+				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
+				setData(readLine, "location", 5, *tempClass, whichLine);
 				serverLength--;
 				if (serverLength == 0)
 				{
@@ -184,7 +196,7 @@ void	Config::retrieveValues(void)
 					lookForNewServer = true;
 				}
 			}
-
+			++whichLine;
 		}
 	}
 	else
