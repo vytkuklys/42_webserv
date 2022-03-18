@@ -1,6 +1,6 @@
 #include "LocationData.hpp"
 
-LocationData::LocationData(void) : root("UNKNOWN"), 
+LocationData::LocationData(void) : location("UNKNOWN"), root("UNKNOWN"), 
 method("UNKNOWN"), index("UNKNOWN") {}
 
 LocationData::~LocationData(void) {}

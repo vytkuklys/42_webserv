@@ -20,6 +20,11 @@ ConfigData::~ConfigData(void)
 
 void ConfigData::pushToClass(int level, LocationData & tempClass)
 {
+	if (level == 1)
+	{
+		tempClass.setLocation(location);
+		location.erase();
+	}
 	if (level == 2)
 	{
 		tempClass.setRoot(root);
@@ -30,7 +35,7 @@ void ConfigData::pushToClass(int level, LocationData & tempClass)
 		tempClass.setMethod(method);
 		method.erase();
 	}
-		if (level == 4)
+	if (level == 4)
 	{
 		tempClass.setIndex(index);
 		index.erase();
@@ -49,15 +54,26 @@ void ConfigData::setData(std::string readLine, std::string find, int level, Loca
 	while (isspace(readLine[begin + i]))
 		i++;
 
-	while (readLine[begin + i] != ';')
+	if (level == 1)
 	{
-		if (level == 2)
-			root.push_back(readLine[begin + i]);
-		if (level == 3)
-			method.push_back(readLine[begin + i]);
-		if (level == 4)
-			index.push_back(readLine[begin + i]);
-		i++;
+		while (readLine[begin + i] != '{')
+		{
+			location.push_back(readLine[begin + i]);
+			i++;
+		}
+	}
+	else
+	{
+		while (readLine[begin + i] != ';')
+		{
+			if (level == 2)
+				root.push_back(readLine[begin + i]);
+			if (level == 3)
+				method.push_back(readLine[begin + i]);
+			if (level == 4)
+				index.push_back(readLine[begin + i]);
+			i++;
+		}
 	}
 	pushToClass(level, tempClass);
 }
@@ -74,10 +90,11 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 	while (std::getline(readFile, readLine))
 	{
 		if (whichLine == start)
-			// if (readLine.find("location") != npos)
+			if (readLine.find("location") != npos)
 				tempClass = new LocationData();	
 		if (whichLine >= start && whichLine < end)
 		{
+			setData(readLine, "location", 1, *tempClass);
 			setData(readLine, "root", 2, *tempClass);
 			setData(readLine, "method", 3, *tempClass);
 			setData(readLine, "indx", 4, *tempClass);

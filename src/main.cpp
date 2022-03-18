@@ -21,7 +21,8 @@ void printConfigData(Config config)
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
 		while (it2 != ite2)
 		{
-			std::cout << std::endl << "root: " << (*it2)->getRoot() << std::endl;
+			std::cout << std::endl << "location: " << (*it2)->getLocation() << std::endl;
+			std::cout << "root: " << (*it2)->getRoot() << std::endl;
 			std::cout << "method: " << (*it2)->getMethod() << std::endl;
 			std::cout << "index: " << (*it2)->getIndex() << std::endl;
 
