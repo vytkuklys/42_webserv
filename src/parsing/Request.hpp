@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cstring>
 #include "../../inc/Helper.hpp"
+#include <fstream>      // std::ifstream
 
 class Parsing
 {
@@ -25,7 +26,7 @@ class Parsing
         std::string                         path;
         std::string                         protocol;
         std::string                         body;
-
+        int                                 pipefd[2];
 	public:
         Parsing (int fd);
         std::string get(std::string key_word);
@@ -34,11 +35,16 @@ class Parsing
         std::string get_path() const;
         std::string get_protocol() const;
         std::string get_body() const;
-
+        bool is_chunked(void);
+        void    set_regular_body(int fd);
+        void    set_chunked_body(int fd);
         private:
         void    for_testing_print_request_struct();
         int     set_headers(std::string line);
         int     set_start_line(std::string s);
+        void    set_regular_body(std::istringstream& data, int bytes);
+        void    set_chunked_body(std::istringstream& data, int bytes);
+        int     get_content_length();
 };
 
 #endif

@@ -6,7 +6,7 @@ Response::Response(Parsing request) : Request(request)
 {
     set_path(Request.get_path());
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-    std::cout << "requested path: " << Request.get("path") << "\n";
+    // std::cout << "requested path: " << Request.get("path") << "\n";
     set_status_line();
     set_body();
     set_headers();
@@ -174,7 +174,6 @@ std::string Response::get_http_response(void)
     }
     response += "\r\n";
     response.append(body);
-    std::cout << response.length();
     return (response);
 }
 

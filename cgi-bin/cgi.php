@@ -2,6 +2,7 @@
 
 <?php
 parse_str($argv[4], $_HEAD);
+// var_dump($_HEAD);
 if (isset($_HEAD['Content-Type']))
 {
     $pos = strpos($_HEAD['Content-Type'], "boundary");
@@ -59,6 +60,7 @@ while(isset($cunked) || $byts > 0 )
             fwrite($stream, $line);  
     }
 }
-fclose($stream);
+if (isset($stream))
+    fclose($stream);
 
 ?>

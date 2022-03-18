@@ -12,8 +12,6 @@
 #include <algorithm>
 #include "../../inc/Parsing.hpp"
 
-#define MAX_EVENTS                10
-
 namespace SERVER
 {
 	class WebServer: public SimpleServer
@@ -23,6 +21,7 @@ namespace SERVER
 		std::vector<int>		listeners;				//vector of filedescriptes of the new created lisner sockets
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
+		fd_set					write_sockets;
 		std::map<int,Parsing>	data;
 		void					accepter();
 		void					handler();
