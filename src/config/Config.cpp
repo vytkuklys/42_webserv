@@ -137,8 +137,8 @@ int		Config::errorChecker(void)
 {
 	if (!countElement("server"))
 		return (-1);
-	if (countElement("port") != countElement("server") ||
-		countElement("s_name") != countElement("server") ||
+	if (
+		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server"))
 		return (-1);
@@ -174,15 +174,18 @@ void	Config::retrieveValues(void)
 					// amountOfServers -= 1;
 					// if (amountOfServers == -1)
 					// 	break ;
-					tempClass = new ConfigData();
 					serverLength = countServerLength("server", ++whichServer);
-					lookForNewServer = false;
+					if (serverLength > 2)
+					{
+						tempClass = new ConfigData();
+						lookForNewServer = false;
+					}
 				}
 			}
 			if (lookForNewServer == false)
 			{
 				setData(readLine, "port", 1, *tempClass, whichLine);
-				setData(readLine, "s_name", 2, *tempClass, whichLine);
+				setData(readLine, "srvr_name", 2, *tempClass, whichLine);
 				setData(readLine, "error_pages", 3, *tempClass, whichLine);
 				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
 				setData(readLine, "location", 5, *tempClass, whichLine);

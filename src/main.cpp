@@ -22,6 +22,9 @@ void printConfigData(Config config)
 		while (it2 != ite2)
 		{
 			std::cout << std::endl << "root: " << (*it2)->getRoot() << std::endl;
+			std::cout << "method: " << (*it2)->getMethod() << std::endl;
+			std::cout << "index: " << (*it2)->getIndex() << std::endl;
+
 			++it2;
 		}
 		std::cout << "~ * * * *  E N D  * * * * ~" << std::endl << std::endl;

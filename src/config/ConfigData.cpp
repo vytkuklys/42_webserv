@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), Port(0), 
-serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(0) {}
+ConfigData::ConfigData(void) : npos(-1), Port(8080), 
+serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(1) {}
 
 ConfigData::~ConfigData(void) 
 { 
@@ -25,6 +25,16 @@ void ConfigData::pushToClass(int level, LocationData & tempClass)
 		tempClass.setRoot(root);
 		root.erase();
 	}
+	if (level == 3)
+	{
+		tempClass.setMethod(method);
+		method.erase();
+	}
+		if (level == 4)
+	{
+		tempClass.setIndex(index);
+		index.erase();
+	}
 }
 
 void ConfigData::setData(std::string readLine, std::string find, int level, LocationData & tempClass)
@@ -43,6 +53,10 @@ void ConfigData::setData(std::string readLine, std::string find, int level, Loca
 	{
 		if (level == 2)
 			root.push_back(readLine[begin + i]);
+		if (level == 3)
+			method.push_back(readLine[begin + i]);
+		if (level == 4)
+			index.push_back(readLine[begin + i]);
 		i++;
 	}
 	pushToClass(level, tempClass);
@@ -63,7 +77,11 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 			// if (readLine.find("location") != npos)
 				tempClass = new LocationData();	
 		if (whichLine >= start && whichLine < end)
+		{
 			setData(readLine, "root", 2, *tempClass);
+			setData(readLine, "method", 3, *tempClass);
+			setData(readLine, "indx", 4, *tempClass);
+		}
 		++whichLine;
 		if (whichLine == end)
 		{
