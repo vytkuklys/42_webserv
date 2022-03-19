@@ -20,9 +20,16 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	if (level == 1)
 	{
 		if (ft::stoi(sPort) == 0)
-			std::cout << "Invalid port: " << sPort << std::endl;
-		tempClass.setPort(ft::stoi(sPort));
-		sPort.erase();
+		{
+			std::cout << "Invalid port: '" << sPort << "'";
+			std::cout << ", default port: '8080' used instead" << std::endl;
+			sPort.erase();
+		}
+		else
+		{
+			tempClass.setPort(ft::stoi(sPort));
+			sPort.erase();
+		}
 	}
 	if (level == 2)
 	{
@@ -135,9 +142,16 @@ int	Config::countElement(std::string const & Element)
 
 int		Config::errorChecker(void)
 {
+	int i = filename.length();
+
+	if (filename[i - 5] != '.' && filename[i - 4] != 'c' &&
+		filename[i - 3] != 'o' && filename[i - 2] != 'n' && 
+		filename[i - 1] != 'f')
+		return (-1);
 	if (!countElement("server"))
 		return (-1);
-	if (
+	if ((countElement("{") != (countElement("server") + countElement("location"))) ||
+		(countElement("}") != (countElement("server") + countElement("location"))) ||
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server"))
