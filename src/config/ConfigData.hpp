@@ -6,6 +6,7 @@
 # include <sstream>
 # include <vector>
 
+# include "../../inc/Helper.hpp"
 # include "LocationData.hpp"
 
 class ConfigData

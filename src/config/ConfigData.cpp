@@ -22,30 +22,37 @@ void ConfigData::pushToClass(int level, LocationData & tempClass)
 {
 	if (level == 1)
 	{
-		tempClass.setLocation(location);
+		if (location.length() == 0 || location.length() > 50)
+			std::cout << "Invalid location: '" << location << "'"  << std::endl;
+		else
+		{
+			location = ft::removeSpacesAfter(location);
+			tempClass.setLocation(location);
+		}
 		location.erase();
 	}
 	if (level == 2)
 	{
-		tempClass.setRoot(root);
+		if (root.length() == 0 || root.length() > 50)
+			std::cout << "Invalid root: '" << root << "'"  << std::endl;
+		else
+			tempClass.setRoot(root);
 		root.erase();
 	}
 	if (level == 3)
 	{
 		if (method != "post" && method != "get" && method != "get post" && method != "post get")
-		{
 			std::cout << "Invalid method: '" << method << "'" << std::endl;
-			method.erase();
-		}
 		else
-		{
 			tempClass.setMethod(method);
-			method.erase();
-		}
+		method.erase();
 	}
 	if (level == 4)
 	{
-		tempClass.setIndex(index);
+		if (index.length() == 0 || index.length() > 50)
+			std::cout << "Invalid indx: '" << index << "'"  << std::endl;
+		else
+			tempClass.setIndex(index);
 		index.erase();
 	}
 }

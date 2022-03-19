@@ -57,3 +57,13 @@ bool ft::is_found(std::string const array[], std::string target){
 	}
     return (false);
 }
+
+std::string ft::removeSpacesAfter(const std::string & inputString)
+{
+  int i = inputString.size();
+
+  while (i >= 0 && inputString[i - 1] == ' ')
+    --i;
+  
+  return (inputString.substr(0, i));
+}

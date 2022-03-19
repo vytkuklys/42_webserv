@@ -19,35 +19,44 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 {
 	if (level == 1)
 	{
-		if (ft::stoi(sPort) == 0)
+		if (ft::stoi(sPort) == 0 || ft::stoi(sPort) > 65535 || 
+			sPort.length() == 0 || sPort[0] == '-')
 		{
 			std::cout << "Invalid port: '" << sPort << "'";
 			std::cout << ", default port: '8080' used instead" << std::endl;
-			sPort.erase();
 		}
 		else
-		{
 			tempClass.setPort(ft::stoi(sPort));
-			sPort.erase();
-		}
+		sPort.erase();
 	}
 	if (level == 2)
 	{
-		tempClass.setServerName(serverName);
+		if (serverName.length() == 0 || serverName.length() > 50)
+			std::cout << "Invalid srvr_name: '" << serverName << "'"  << std::endl;
+		else
+			tempClass.setServerName(serverName);
 		serverName.erase();
 	}
 	if (level == 3)
 	{
-		tempClass.setErrorPage(errorPage);
+		if (errorPage.length() == 0 || errorPage.length() > 100)
+			std::cout << "Invalid error_pages: '" << errorPage << "'"  << std::endl;
+		else
+			tempClass.setErrorPage(errorPage);
 		errorPage.erase();
 	}
 	if (level == 4)
 	{
-		if (ft::stoi(sBodySize) == 0)
+		if (ft::stoi(sBodySize) == 0 || sBodySize.length() == 0 || sBodySize[0] == '-')
+		{
+			std::cout << "Invalid client_max_body_size: '" << sBodySize << "'";
+			std::cout << ", default client_max_body_size: '1' used instead" << std::endl;
 			tempClass.setBodySize(1);
+		}
 		else if (ft::stoi(sBodySize) > 10)
 		{
-			std::cout << "client_max_body_size is bigger than 10M" << std::endl;
+			std::cout << "client_max_body_size is bigger than 10M";
+			std::cout << ", client_max_body_size set at: '10'" << std::endl;
 			tempClass.setBodySize(10);
 		}
 		else
@@ -154,7 +163,8 @@ int		Config::errorChecker(void)
 		(countElement("}") != (countElement("server") + countElement("location"))) ||
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
-		countElement("client_max_body_size") != countElement("server"))
+		countElement("client_max_body_size") != countElement("server") ||
+		countElement("port") > countElement("server") )
 		return (-1);
 	return (0);
 }
@@ -176,7 +186,7 @@ void	Config::retrieveValues(void)
 	{
 		if (errorChecker() == -1)
 		{
-			std::cout << "Wrong config file " << filename << std::endl;
+			std::cout << "Invalid config file '" << filename << "'" << std::endl;
 			exit(-1);
 		}
 		while (std::getline(readFile, readLine))
