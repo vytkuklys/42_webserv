@@ -47,12 +47,6 @@ int main (int argc, char **argv)
 
 	// printConfigData(config);
 
-	std::vector<int> testPorts;
-	testPorts.push_back(8080);
-	testPorts.push_back(8085);
-	testPorts.push_back(65535);
-
-    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, testPorts, INADDR_ANY, 10);
-
+    SERVER::WebServer webServer(config.getPorts(), config); //could not understand why calling config.getPorts() in webServerMac.cpp causes errors
 	return (0);
 }

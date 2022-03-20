@@ -1,9 +1,19 @@
 #include "Config.hpp"
 
-Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { retrieveValues(); }
+Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { 
+	
+	_domain = AF_INET;
+	_type = SOCK_STREAM;
+	_protocol = 0;
+	_interface = INADDR_ANY;
+	_backlog = 10;
+
+	retrieveValues(); 
+}
 
 Config::~Config(void) 
 { 
+	
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
@@ -235,3 +245,21 @@ int ft_stoi(std::string s)
     std::istringstream(s) >> i;
     return (i);
 }
+
+std::vector<int>& Config::getPorts(void)
+{
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		ports.push_back((*it)->getPort());
+		++it;
+	}
+	return (ports);
+}
+int Config::getDomain(void){return (_domain);}
+int Config::getType(void){return (_type);}
+int Config::getProtocol(void){return (_protocol);}
+int Config::getBacklog(void){return (_backlog);}
+int Config::getInterface(void){return (_interface);}

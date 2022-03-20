@@ -3,17 +3,44 @@
 #include <unistd.h>
 #include <string.h>
 
-SERVER::WebServer::WebServer(int domain, int type, int protocol, std::vector<int> &ports, u_long interface, int backlog) : SimpleServer(domain, type, protocol, ports, interface, backlog)
+SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), ports, data.getInterface(), data.getBacklog()), config(data)
 {
-
 	FD_ZERO(&current_sockets); // init fd set
 	FD_ZERO(&write_sockets);
+	test("yes.com");
 	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
 	}
 	launch(ports);
+}
+
+void	SERVER::WebServer::test(std::string name)
+{
+	std::string paths("/upload.html");
+	std::vector<std::string> locations;
+	std::vector<ConfigData *> data = config.getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+
+	while (it != ite)
+	{
+		std::string server_name = (*it)->getServerName();
+		std::vector<LocationData *> locationData = (*it)->getContLocationData();
+		std::vector<LocationData *>::iterator it2 = locationData.begin();
+		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		while (server_name == name && it2 != ite2)
+		{
+			std::string location = (*it2)->getLocation();
+			locations.push_back(location);
+			if (paths == location)
+				std::cout << "FOUND: " << paths << ", LOCATION: " << location << "\n";
+			// std::cout << "root: " << (*it2)->getRoot() << std::endl;
+			++it2;
+		}
+		++it;
+	}
 }
 
 SERVER::WebServer::~WebServer()

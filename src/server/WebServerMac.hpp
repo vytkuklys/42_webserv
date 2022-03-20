@@ -11,6 +11,7 @@
 #include "SimpleServer.hpp"
 #include <algorithm>
 #include "../../inc/Parsing.hpp"
+#include "../../inc/Configuration.hpp"
 
 namespace SERVER
 {
@@ -23,6 +24,7 @@ namespace SERVER
 		fd_set					current_sockets;
 		fd_set					write_sockets;
 		std::map<int,Parsing>	data;
+		Config					config;
 		void					accepter();
 		void					handler();
 		void					responder();
@@ -31,9 +33,10 @@ namespace SERVER
 		void					respond_header(std::stringstream& client, Parsing& info);
 		void					respond_body(std::stringstream& client, Parsing& info);
 		std::string				http_time(const struct tm *timeptr);
+		void	test(std::string name);
 
 	public:
-		WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog);
+		WebServer(std::vector<int>& ports, Config config);
 		void launch(std::vector <int> &ports);
 		~WebServer();
 	};
