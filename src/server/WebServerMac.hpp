@@ -34,9 +34,6 @@ namespace SERVER
 		void					respond_body(std::stringstream& client, Parsing& info);
 		std::string				http_time(const struct tm *timeptr);
 
-		LocationData * test(std::string name);
-		int get_truncated_location(std::vector<std::string>, std::string);
-
 	public:
 		WebServer(std::vector<int>& ports, Config config);
 		void launch(std::vector <int> &ports);

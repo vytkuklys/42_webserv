@@ -49,6 +49,9 @@ public:
 	int getProtocol(void);
 	int getBacklog(void);
 	int getInterface(void);
+	std::string getErrorPage(std::string server);
+	LocationData * get_location(std::string server, std::string path);
+	int get_truncated_location(std::vector<std::string>, std::string);
 };
 
 #endif

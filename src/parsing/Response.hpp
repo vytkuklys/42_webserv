@@ -16,12 +16,14 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include "../../inc/Helper.hpp"
+#include "../../inc/Configuration.hpp"
 
 class Response
 {
 private:
         bool is_path_valid;
         Parsing Request;
+        Config config;
         std::ifstream input_stream;
         std::string body;
         std::string status_line;
@@ -37,7 +39,7 @@ private:
         void set_image_body(void);
 public:
         std::string get_path(void);
-        Response(Parsing request);
+        Response(Parsing request, Config data);
         std::string get_http_response(void);
         std::string get_http_time();
 };

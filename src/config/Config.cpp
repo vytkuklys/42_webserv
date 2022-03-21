@@ -291,3 +291,82 @@ int Config::getType(void) { return (_type); }
 int Config::getProtocol(void) { return (_protocol); }
 int Config::getBacklog(void) { return (_backlog); }
 int Config::getInterface(void) { return (_interface); }
+
+std::string Config::getErrorPage(std::string server)
+{
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		if (server == (*it)->getServerName())
+		{
+			return ((*it)->getErrorPage());
+		}
+		++it;
+	}
+	return ("");
+}
+
+int Config::get_truncated_location(std::vector<std::string> locations, std::string paths)
+{
+	while(!paths.empty() && paths != "/")
+	{
+		unsigned long pos = paths.find_last_of("/");
+		if (pos == std::string::npos)
+			return (-1);
+		if (static_cast<int>(pos) == 0)
+			paths = "/";
+		else
+			paths = paths.substr(0, pos);
+		std::vector<std::string>::iterator it = locations.begin();
+		std::vector<std::string>::iterator ite = locations.end();
+		int index = 0;
+		while (it != ite)
+		{
+			if (*it == paths) 
+				return (index);
+			++it;
+			++index;
+		}
+	}
+	return (-1);
+}
+
+LocationData * Config::get_location(std::string server, std::string path)
+{
+	std::vector<std::string> locations;
+	std::vector<ConfigData *> data = getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+
+	while (it != ite)
+	{
+		std::string server_name = (*it)->getServerName();
+		std::vector<LocationData *> locationData = (*it)->getContLocationData();
+		std::vector<LocationData *>::iterator it2 = locationData.begin();
+		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		while (server_name == server && it2 != ite2)
+		{
+			std::string location = (*it2)->getLocation();
+			locations.push_back(location);
+			if (path == location)
+				return (*it2);
+			++it2;
+		}
+		if (server_name == server)
+			break;
+		++it;
+	}
+	int res = get_truncated_location(locations, path);
+	std::vector<LocationData *> locationData = (*it)->getContLocationData();
+	std::vector<LocationData *>::iterator it2 = locationData.begin();
+	std::vector<LocationData *>::iterator ite2 = locationData.end();
+	while (res-- >= 0 && it2 != ite2)
+	{
+		if (res < 0)
+			return (*it2);
+		++it2;
+	}
+	return (nullptr);
+}

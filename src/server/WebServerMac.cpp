@@ -7,84 +7,12 @@ SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServe
 {
 	FD_ZERO(&current_sockets); // init fd set
 	FD_ZERO(&write_sockets);
- 	LocationData * see = test("yes.com");
-	std::cout << see->getLocation();
 	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
 	}
 	launch(ports);
-}
-
-int SERVER::WebServer::get_truncated_location(std::vector<std::string> locations, std::string paths)
-{
-	while(!paths.empty() && paths != "/")
-	{
-		unsigned long pos = paths.find_last_of("/");
-		if (pos == std::string::npos)
-			return (-1);
-		if (static_cast<int>(pos) == 0)
-			paths = "/";
-		else
-			paths = paths.substr(0, pos);
-		std::vector<std::string>::iterator it = locations.begin();
-		std::vector<std::string>::iterator ite = locations.end();
-		int index = 0;
-		while (it != ite)
-		{
-			std::cout  << *it << ", " << paths << "\n";
-			if (*it == paths) 
-			{
-				return (index);
-			}
-			++it;
-			++index;
-		}
-	}
-	return (-1);
-}
-
-LocationData * SERVER::WebServer::test(std::string name)
-{
-	std::string paths("/upload.html");
-	std::vector<std::string> locations;
-	std::vector<ConfigData *> data = config.getContConfigData();
-	std::vector<ConfigData *>::iterator it = data.begin();
-	std::vector<ConfigData *>::iterator ite = data.end();
-
-	while (it != ite)
-	{
-		std::string server_name = (*it)->getServerName();
-		std::vector<LocationData *> locationData = (*it)->getContLocationData();
-		std::vector<LocationData *>::iterator it2 = locationData.begin();
-		std::vector<LocationData *>::iterator ite2 = locationData.end();
-		while (server_name == name && it2 != ite2)
-		{
-			std::string location = (*it2)->getLocation();
-			locations.push_back(location);
-			if (paths == location)
-			{
-				std::cout << "FOUND: " << paths << ", LOCATION: " << location << "\n";
-				return (*it2);
-			}
-			++it2;
-		}
-		if (server_name == name)
-			break;
-		++it;
-	}
-	int res = get_truncated_location(locations, paths);
-	std::vector<LocationData *> locationData = (*it)->getContLocationData();
-	std::vector<LocationData *>::iterator it2 = locationData.begin();
-	std::vector<LocationData *>::iterator ite2 = locationData.end();
-	while (res-- > 0 && it2 != ite2)
-	{
-		if (res == 0)
-			return (*it2);
-		++it2;
-	}
-	return (*ite2);
 }
 
 SERVER::WebServer::~WebServer()
@@ -129,10 +57,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			}
 			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
-				if (i == 7)
-				{
-					std::cout << "W,";
-				}
 				tmp_socket_fd = i;
 				responder();
 			}
@@ -156,7 +80,7 @@ void SERVER::WebServer::handle_new_client()
 	accepter();
 	fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
 	FD_SET(tmp_socket_fd, &current_sockets);
-	std::cout << "\nhandel_new_client - " << tmp_socket_fd << "\n";
+	// std::cout << "\nhandel_new_client - " << tmp_socket_fd << "\n";
 }
 
 void SERVER::WebServer::accepter()
@@ -167,10 +91,6 @@ void SERVER::WebServer::accepter()
 
 void SERVER::WebServer::handle_known_client()
 {
-	if (tmp_socket_fd == 7)
-	{
-		std::cout << "testing window\n";
-	}
 	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
 	if (itr == data.end())
 	{
@@ -198,13 +118,9 @@ void SERVER::WebServer::responder()
 	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
 	{
-		std::cout << "Response - " << tmp_socket_fd << "\n";
 		int total;
 		Parsing &info = itr->second; // all header information from client
-		{
-			Config test(config);
-		}
-		Response response(info);
+		Response response(info, config);
 		http_response = response.get_http_response();
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
