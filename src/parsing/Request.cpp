@@ -72,7 +72,7 @@ Parsing::Parsing(int fd)
     }
     // std::cout << buffer << std::endl;
     ft::nulify(&buffer, &n);
-    // for_testing_print_request_struct();
+    for_testing_print_request_struct();
     if (method == "POST") // check if it is a post request
     {
         buffer = NULL;

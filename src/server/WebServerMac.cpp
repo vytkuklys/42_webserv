@@ -63,7 +63,7 @@ void SERVER::WebServer::launch(std::vector <int> &ports)
 
 void SERVER::WebServer::handler()
 {
-	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end()) //check it is in listern array
+	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end()) //check if it is in linsteners vector array
 		handle_new_client();
 	else // data from an existing connection, receive it
 		handle_known_client();
@@ -81,13 +81,13 @@ void SERVER::WebServer::handle_new_client()
 void SERVER::WebServer::accepter()
 {
 	u_long addrlen = sizeof(struct sockaddr_storage);
-	tmp_socket_fd = accept(tmp_socket_fd, (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen); // copy the listern file fd the new fd is responsible for data transfer
+	tmp_socket_fd = accept(tmp_socket_fd, (struct sockaddr *)&tmp_client_saddr, (socklen_t *)&addrlen); // copies the listen fd, the new fd is responsible for data transfer
 }
 
 void SERVER::WebServer::handle_known_client()
 {
 	Parsing info(tmp_socket_fd);
-	std::cout << "handel_known_client " << tmp_socket_fd << std::endl;
+	//std::cout << "handel_known_client " << tmp_socket_fd << std::endl;
 	// std::cout << "insert:" << tmp_socket_fd << std::endl;
 	data.insert(std::pair<int, Parsing>(tmp_socket_fd, info));
 }
