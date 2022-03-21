@@ -7,7 +7,8 @@ SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServe
 {
 	FD_ZERO(&current_sockets); // init fd set
 	FD_ZERO(&write_sockets);
-	test("yes.com");
+ 	LocationData * see = test("yes.com");
+	std::cout << see->getLocation();
 	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
 		listeners.push_back((*socket)->get_socket_fd());
@@ -16,7 +17,35 @@ SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServe
 	launch(ports);
 }
 
-void	SERVER::WebServer::test(std::string name)
+int SERVER::WebServer::get_truncated_location(std::vector<std::string> locations, std::string paths)
+{
+	while(!paths.empty() && paths != "/")
+	{
+		unsigned long pos = paths.find_last_of("/");
+		if (pos == std::string::npos)
+			return (-1);
+		if (static_cast<int>(pos) == 0)
+			paths = "/";
+		else
+			paths = paths.substr(0, pos);
+		std::vector<std::string>::iterator it = locations.begin();
+		std::vector<std::string>::iterator ite = locations.end();
+		int index = 0;
+		while (it != ite)
+		{
+			std::cout  << *it << ", " << paths << "\n";
+			if (*it == paths) 
+			{
+				return (index);
+			}
+			++it;
+			++index;
+		}
+	}
+	return (-1);
+}
+
+LocationData * SERVER::WebServer::test(std::string name)
 {
 	std::string paths("/upload.html");
 	std::vector<std::string> locations;
@@ -35,12 +64,27 @@ void	SERVER::WebServer::test(std::string name)
 			std::string location = (*it2)->getLocation();
 			locations.push_back(location);
 			if (paths == location)
+			{
 				std::cout << "FOUND: " << paths << ", LOCATION: " << location << "\n";
-			// std::cout << "root: " << (*it2)->getRoot() << std::endl;
+				return (*it2);
+			}
 			++it2;
 		}
+		if (server_name == name)
+			break;
 		++it;
 	}
+	int res = get_truncated_location(locations, paths);
+	std::vector<LocationData *> locationData = (*it)->getContLocationData();
+	std::vector<LocationData *>::iterator it2 = locationData.begin();
+	std::vector<LocationData *>::iterator ite2 = locationData.end();
+	while (res-- > 0 && it2 != ite2)
+	{
+		if (res == 0)
+			return (*it2);
+		++it2;
+	}
+	return (*ite2);
 }
 
 SERVER::WebServer::~WebServer()
@@ -70,7 +114,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		timeout.tv_usec = 0;
 		tmp_read_sockets = current_sockets;
 		tmp_write_sockets = write_sockets;
-		int len;										   // tmp copy of fd set, because select function destroys second argument
+		int len;																				   // tmp copy of fd set, because select function destroys second argument
 		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
 		{
 			perror("Error");
@@ -134,7 +178,7 @@ void SERVER::WebServer::handle_known_client()
 		data.insert(std::pair<int, Parsing>(tmp_socket_fd, request));
 		FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if(itr != data.end())
+	else if (itr != data.end())
 	{
 		Parsing &res = itr->second;
 		if (res.is_chunked())
@@ -157,6 +201,9 @@ void SERVER::WebServer::responder()
 		std::cout << "Response - " << tmp_socket_fd << "\n";
 		int total;
 		Parsing &info = itr->second; // all header information from client
+		{
+			Config test(config);
+		}
 		Response response(info);
 		http_response = response.get_http_response();
 		total = http_response.length();
@@ -170,7 +217,7 @@ void SERVER::WebServer::responder()
 			total -= bytes;
 		}
 		FD_CLR(tmp_socket_fd, &current_sockets); // removes fd from fd set
-		FD_CLR(tmp_socket_fd, &write_sockets); // removes fd from fd set
+		FD_CLR(tmp_socket_fd, &write_sockets);	 // removes fd from fd set
 		data.erase(itr);
 		close(tmp_socket_fd);
 	}

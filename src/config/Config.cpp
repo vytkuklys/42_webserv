@@ -1,19 +1,20 @@
 #include "Config.hpp"
 
-Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { 
-	
+Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1)
+{
+
 	_domain = AF_INET;
 	_type = SOCK_STREAM;
 	_protocol = 0;
 	_interface = INADDR_ANY;
 	_backlog = 10;
 
-	retrieveValues(); 
+	retrieveValues();
 }
 
-Config::~Config(void) 
-{ 
-	
+Config::~Config(void)
+{
+
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
@@ -25,11 +26,38 @@ Config::~Config(void)
 	ContConfigData.clear();
 }
 
-void Config::pushToClass(int level, ConfigData & tempClass)
+Config::Config(const Config &value) : filename(value.filename), npos(value.npos)
+{
+	*this = value;
+}
+
+Config &Config::operator=(Config const &value)
+{
+	int size = value.ContConfigData.size();
+	int i = 0;
+	while (i < size)
+	{
+		ConfigData *tempClass = new ConfigData(*value.ContConfigData[i]);
+		ContConfigData.push_back(tempClass);
+		i++;
+	}
+	this->sPort = value.sPort;
+	this->serverName = value.serverName;
+	this->errorPage = value.errorPage;
+	this->sBodySize = value.sBodySize;
+	this->_domain = value._domain;
+	this->_type = value._type;
+	this->_protocol = value._protocol;
+	this->_interface = value._interface;
+	this->_backlog = value._backlog;
+	return *this;
+}
+
+void Config::pushToClass(int level, ConfigData &tempClass)
 {
 	if (level == 1)
 	{
-		if (ft::stoi(sPort) == 0 || ft::stoi(sPort) > 65535 || 
+		if (ft::stoi(sPort) == 0 || ft::stoi(sPort) > 65535 ||
 			sPort.length() == 0 || sPort[0] == '-')
 		{
 			std::cout << "Invalid port: '" << sPort << "'";
@@ -42,7 +70,7 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	if (level == 2)
 	{
 		if (serverName.length() == 0 || serverName.length() > 50)
-			std::cout << "Invalid srvr_name: '" << serverName << "'"  << std::endl;
+			std::cout << "Invalid srvr_name: '" << serverName << "'" << std::endl;
 		else
 			tempClass.setServerName(serverName);
 		serverName.erase();
@@ -50,7 +78,7 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	if (level == 3)
 	{
 		if (errorPage.length() == 0 || errorPage.length() > 100)
-			std::cout << "Invalid error_pages: '" << errorPage << "'"  << std::endl;
+			std::cout << "Invalid error_pages: '" << errorPage << "'" << std::endl;
 		else
 			tempClass.setErrorPage(errorPage);
 		errorPage.erase();
@@ -75,13 +103,13 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	}
 }
 
-void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass, int whichLine)
+void Config::setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine)
 {
 	static int whichLocation = 0;
 
 	size_t begin = readLine.find(find);
 	if (begin == npos)
-		return ;
+		return;
 
 	if (level == 5)
 		tempClass.retrieveValues(filename, whichLine, (whichLine + countServerLength("location", ++whichLocation) - 1));
@@ -109,7 +137,7 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 	}
 }
 
-int	Config::countServerLength(std::string const & find, int whichOne)
+int Config::countServerLength(std::string const &find, int whichOne)
 {
 	std::string readLine;
 	std::ifstream readFile;
@@ -140,7 +168,7 @@ int	Config::countServerLength(std::string const & find, int whichOne)
 	return (-1);
 }
 
-int	Config::countElement(std::string const & Element)
+int Config::countElement(std::string const &Element)
 {
 	std::string readLine;
 	std::ifstream readFile;
@@ -159,12 +187,12 @@ int	Config::countElement(std::string const & Element)
 	return (counter);
 }
 
-int		Config::errorChecker(void)
+int Config::errorChecker(void)
 {
 	int i = filename.length();
 
 	if (filename[i - 5] != '.' && filename[i - 4] != 'c' &&
-		filename[i - 3] != 'o' && filename[i - 2] != 'n' && 
+		filename[i - 3] != 'o' && filename[i - 2] != 'n' &&
 		filename[i - 1] != 'f')
 		return (-1);
 	if (!countElement("server"))
@@ -174,16 +202,16 @@ int		Config::errorChecker(void)
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server") ||
-		countElement("port") > countElement("server") )
+		countElement("port") > countElement("server"))
 		return (-1);
 	return (0);
 }
 
-void	Config::retrieveValues(void)
+void Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	ConfigData * tempClass = nullptr;
+	ConfigData *tempClass = nullptr;
 
 	// int amountOfServers = countElement("server");
 	int whichServer = 0;
@@ -237,16 +265,16 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-std::vector<ConfigData *> & Config::getContConfigData(void) { return(ContConfigData); }
+std::vector<ConfigData *> &Config::getContConfigData(void) { return (ContConfigData); }
 
 int ft_stoi(std::string s)
 {
-    int i;
-    std::istringstream(s) >> i;
-    return (i);
+	int i;
+	std::istringstream(s) >> i;
+	return (i);
 }
 
-std::vector<int>& Config::getPorts(void)
+std::vector<int> &Config::getPorts(void)
 {
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
@@ -258,8 +286,8 @@ std::vector<int>& Config::getPorts(void)
 	}
 	return (ports);
 }
-int Config::getDomain(void){return (_domain);}
-int Config::getType(void){return (_type);}
-int Config::getProtocol(void){return (_protocol);}
-int Config::getBacklog(void){return (_backlog);}
-int Config::getInterface(void){return (_interface);}
+int Config::getDomain(void) { return (_domain); }
+int Config::getType(void) { return (_type); }
+int Config::getProtocol(void) { return (_protocol); }
+int Config::getBacklog(void) { return (_backlog); }
+int Config::getInterface(void) { return (_interface); }

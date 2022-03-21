@@ -1,10 +1,10 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), Port(8080), 
-serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(1) {}
+ConfigData::ConfigData(void) : npos(-1), Port(8080),
+							   serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(1) {}
 
-ConfigData::~ConfigData(void) 
-{ 
+ConfigData::~ConfigData(void)
+{
 	std::vector<LocationData *>::iterator it = ContLocationData.begin();
 	std::vector<LocationData *>::iterator ite = ContLocationData.end();
 
@@ -16,14 +16,39 @@ ConfigData::~ConfigData(void)
 	ContLocationData.clear();
 }
 
+ConfigData::ConfigData(const ConfigData &value) : npos(value.npos)
+{
+	*this = value;
+}
 
+ConfigData &ConfigData::operator=(ConfigData const &value)
+{
+	int size = value.ContLocationData.size();
+	int i = 0;
+	while (i < size)
+	{
+		LocationData *tempClass = new LocationData(*value.ContLocationData[i]);
+		ContLocationData.push_back(tempClass);
+		i++;
+	}
+	this->ContLocationData.push_back(new LocationData());
+	this->Port = value.Port;
+	this->serverName = value.serverName;
+	this->errorPage = value.errorPage;
+	this->BodySize = value.BodySize;
+	this->location = value.location;
+	this->root = value.root;
+	this->method = value.method;
+	this->index = value.index;
+	return *this;
+}
 
-void ConfigData::pushToClass(int level, LocationData & tempClass)
+void ConfigData::pushToClass(int level, LocationData &tempClass)
 {
 	if (level == 1)
 	{
 		if (location.length() == 0 || location.length() > 50)
-			std::cout << "Invalid location: '" << location << "'"  << std::endl;
+			std::cout << "Invalid location: '" << location << "'" << std::endl;
 		else
 		{
 			location = ft::removeSpacesAfter(location);
@@ -34,7 +59,7 @@ void ConfigData::pushToClass(int level, LocationData & tempClass)
 	if (level == 2)
 	{
 		if (root.length() == 0 || root.length() > 50)
-			std::cout << "Invalid root: '" << root << "'"  << std::endl;
+			std::cout << "Invalid root: '" << root << "'" << std::endl;
 		else
 			tempClass.setRoot(root);
 		root.erase();
@@ -50,18 +75,18 @@ void ConfigData::pushToClass(int level, LocationData & tempClass)
 	if (level == 4)
 	{
 		if (index.length() == 0 || index.length() > 50)
-			std::cout << "Invalid indx: '" << index << "'"  << std::endl;
+			std::cout << "Invalid indx: '" << index << "'" << std::endl;
 		else
 			tempClass.setIndex(index);
 		index.erase();
 	}
 }
 
-void ConfigData::setData(std::string readLine, std::string find, int level, LocationData & tempClass)
+void ConfigData::setData(std::string readLine, std::string find, int level, LocationData &tempClass)
 {
 	size_t begin = readLine.find(find);
 	if (begin == npos)
-		return ;
+		return;
 
 	begin = static_cast<int>(begin) + find.length();
 	int i = 0;
@@ -97,7 +122,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	LocationData * tempClass = nullptr;
+	LocationData *tempClass = nullptr;
 
 	int whichLine = 1;
 
@@ -106,7 +131,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 	{
 		if (whichLine == start)
 			if (readLine.find("location") != npos)
-				tempClass = new LocationData();	
+				tempClass = new LocationData();
 		if (whichLine >= start && whichLine < end)
 		{
 			setData(readLine, "location", 1, *tempClass);
@@ -118,12 +143,10 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 		if (whichLine == end)
 		{
 			ContLocationData.push_back(tempClass);
-			break ;
+			break;
 		}
 	}
 }
-
-
 
 void ConfigData::setPort(int inputPort) { Port = inputPort; }
 
@@ -133,17 +156,12 @@ void ConfigData::setErrorPage(std::string inputErrorPages) { errorPage = inputEr
 
 void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 
+int ConfigData::getPort(void) { return (Port); }
 
+std::string ConfigData::getServerName(void) { return (serverName); }
 
-int ConfigData::getPort(void) { return(Port); }
+std::string ConfigData::getErrorPage(void) { return (errorPage); }
 
-std::string ConfigData::getServerName(void) { return(serverName); }
+int ConfigData::getBodySize(void) { return (BodySize); }
 
-std::string ConfigData::getErrorPage(void) { return(errorPage); }
-
-int ConfigData::getBodySize(void) { return(BodySize); }
-
-
-
-std::vector<LocationData *> & ConfigData::getContLocationData(void) { return(ContLocationData); }
-
+std::vector<LocationData *> &ConfigData::getContLocationData(void) { return (ContLocationData); }
