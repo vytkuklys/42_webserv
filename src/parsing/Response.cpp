@@ -4,6 +4,7 @@
 
 Response::Response(Parsing request, Config data) : Request(request), config(data)
 {
+    default_error = "./documents/html_errors";
     set_path(Request.get_path());
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
     set_status_line();
@@ -17,6 +18,7 @@ void Response::set_path(std::string const filename)
 {
     path = filename;
     LocationData * loc = config.get_location("yes.com", filename);
+    has_access = is_authorized(loc->getMethod(), Request.get_method());
     if (loc != nullptr)
 	{
         if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
@@ -27,19 +29,26 @@ void Response::set_path(std::string const filename)
             path += loc->getIndex();
     }
     is_path_valid = exists_path(path.c_str());
-    if (!is_path_valid || loc == nullptr)
+    if (!is_path_valid || !has_access || loc == nullptr)
     {
         path = config.getErrorPage("yes.com");
-        path.append("/404.html");
+        if (path.empty())
+            path = default_error;
+        if (!is_path_valid || loc == nullptr)
+            path.append("/404.html");
+        else
+            path.append("/403.html");
     }
 }
 
 void Response::set_status_line(void)
 {
-    if (is_path_valid)
-        status_line = "HTTP/1.1 200 OK";
-    else
+    if (!is_path_valid)
         status_line = "HTTP/1.1 404 NOT FOUND";
+    else if (has_access == false)
+        status_line = "HTTP/1.1 403 FORBIDDEN";
+    else
+        status_line = "HTTP/1.1 200 OK";
 }
 
 void Response::set_content_type(void)
@@ -231,4 +240,15 @@ bool is_text_ext(std::string ext)
 {
     static const std::string text[] = {"html", "css", "js", "txt", "php", "xml", "csv"};
     return (ft::is_found(text, ext));
+}
+
+bool is_authorized(std::string server, std::string request)
+{
+    std::transform(server.begin(), server.end(), server.begin(), ft::to_lower);
+    std::transform(request.begin(), request.end(), request.begin(), ft::to_lower);
+
+    std::cout << "\n server:" << server << ", req: " << request << "\n";
+    if (server.find(request, 0) == std::string::npos)
+        return (false);
+    return (true);
 }

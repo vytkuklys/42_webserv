@@ -76,3 +76,9 @@ bool ft::replace(std::string& str, const std::string& from, const std::string& t
     str.replace(start_pos, from.length(), to);
     return true;
 }
+
+char ft::to_lower(char c) {
+    if (c <= 'Z' && c >= 'A')
+        return c - ('Z' - 'z');
+    return c;
+}

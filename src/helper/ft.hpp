@@ -14,5 +14,6 @@ namespace ft
     bool is_found(std::string const array[], std::string target);
     std::string removeSpacesAfter(const std::string & inputString);
     bool replace(std::string& str, const std::string& from, const std::string& to);
+    char to_lower(char c);
 }
 #endif
