@@ -179,7 +179,7 @@ bool Parsing::is_chunked(void)
 {
     if (headers.find("Content-Length") == headers.end())
     {
-        std::cout << "not found";
+        std::cout << "Chunked branch\n";
         return (true);
     }
     return (false);

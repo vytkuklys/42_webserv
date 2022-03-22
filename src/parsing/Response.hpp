@@ -22,8 +22,10 @@ class Response
 {
 private:
         bool is_path_valid;
+        bool has_access;
         Parsing Request;
         Config config;
+        std::string default_error;
         std::ifstream input_stream;
         std::string body;
         std::string status_line;
@@ -46,6 +48,7 @@ public:
 
 bool is_image_ext(std::string ext);
 bool is_text_ext(std::string ext);
+bool is_authorized(std::string server, std::string request);
 bool exists_path(std::string const filename);
 
 #endif
