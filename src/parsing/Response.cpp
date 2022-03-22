@@ -2,11 +2,10 @@
 #include <string.h>
 #include <sys/stat.h>
 
-Response::Response(Parsing request) : Request(request)
+Response::Response(Parsing request, Config data) : Request(request), config(data)
 {
     set_path(Request.get_path());
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-    std::cout << "requested path: " << Request.get("path") << "\n";
     set_status_line();
     set_body();
     set_headers();
@@ -16,12 +15,23 @@ Response::Response(Parsing request) : Request(request)
 
 void Response::set_path(std::string const filename)
 {
-    path = "./documents" + filename;
-    if (filename[filename.length() - 1] == '/')
-        path += "index.html";
+    path = filename;
+    LocationData * loc = config.get_location("yes.com", filename);
+    if (loc != nullptr)
+	{
+        if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
+            path.insert(0, loc->getRoot());
+        else
+            ft::replace(path, loc->getLocation(), loc->getRoot());
+        if (filename[filename.length() - 1] == '/')
+            path += loc->getIndex();
+    }
     is_path_valid = exists_path(path.c_str());
-    if (!is_path_valid)
-        path = "./documents/html_errors/404.html";
+    if (!is_path_valid || loc == nullptr)
+    {
+        path = config.getErrorPage("yes.com");
+        path.append("/404.html");
+    }
 }
 
 void Response::set_status_line(void)
@@ -174,7 +184,6 @@ std::string Response::get_http_response(void)
     }
     response += "\r\n";
     response.append(body);
-    std::cout << response.length();
     return (response);
 }
 

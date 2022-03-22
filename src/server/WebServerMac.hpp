@@ -11,8 +11,7 @@
 #include "SimpleServer.hpp"
 #include <algorithm>
 #include "../../inc/Parsing.hpp"
-
-#define MAX_EVENTS                10
+#include "../../inc/Configuration.hpp"
 
 namespace SERVER
 {
@@ -23,7 +22,9 @@ namespace SERVER
 		std::vector<int>		listeners;				//vector of filedescriptes of the new created lisner sockets
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
+		fd_set					write_sockets;
 		std::map<int,Parsing>	data;
+		Config					config;
 		void					accepter();
 		void					handler();
 		void					responder();
@@ -34,7 +35,7 @@ namespace SERVER
 		std::string				http_time(const struct tm *timeptr);
 
 	public:
-		WebServer(int domain, int type, int protocol, std::vector<int>& ports, u_long interface, int backlog);
+		WebServer(std::vector<int>& ports, Config config);
 		void launch(std::vector <int> &ports);
 		~WebServer();
 	};

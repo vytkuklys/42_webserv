@@ -1,9 +1,20 @@
 #include "Config.hpp"
 
-Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1) { retrieveValues(); }
+Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1)
+{
+
+	_domain = AF_INET;
+	_type = SOCK_STREAM;
+	_protocol = 0;
+	_interface = INADDR_ANY;
+	_backlog = 10;
+
+	retrieveValues();
+}
 
 Config::~Config(void)
 {
+
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
@@ -15,32 +26,75 @@ Config::~Config(void)
 	ContConfigData.clear();
 }
 
-void Config::pushToClass(int level, ConfigData & tempClass)
+Config::Config(const Config &value) : filename(value.filename), npos(value.npos)
+{
+	*this = value;
+}
+
+Config &Config::operator=(Config const &value)
+{
+	int size = value.ContConfigData.size();
+	int i = 0;
+	while (i < size)
+	{
+		ConfigData *tempClass = new ConfigData(*value.ContConfigData[i]);
+		ContConfigData.push_back(tempClass);
+		i++;
+	}
+	this->sPort = value.sPort;
+	this->serverName = value.serverName;
+	this->errorPage = value.errorPage;
+	this->sBodySize = value.sBodySize;
+	this->_domain = value._domain;
+	this->_type = value._type;
+	this->_protocol = value._protocol;
+	this->_interface = value._interface;
+	this->_backlog = value._backlog;
+	return *this;
+}
+
+void Config::pushToClass(int level, ConfigData &tempClass)
 {
 	if (level == 1)
 	{
-		if (ft::stoi(sPort) == 0)
-			std::cout << "Invalid port: " << sPort << std::endl;
-		tempClass.setPort(ft::stoi(sPort));
+		if (ft::stoi(sPort) == 0 || ft::stoi(sPort) > 65535 ||
+			sPort.length() == 0 || sPort[0] == '-')
+		{
+			std::cout << "Invalid port: '" << sPort << "'";
+			std::cout << ", default port: '8080' used instead" << std::endl;
+		}
+		else
+			tempClass.setPort(ft::stoi(sPort));
 		sPort.erase();
 	}
 	if (level == 2)
 	{
-		tempClass.setServerName(serverName);
+		if (serverName.length() == 0 || serverName.length() > 50)
+			std::cout << "Invalid srvr_name: '" << serverName << "'" << std::endl;
+		else
+			tempClass.setServerName(serverName);
 		serverName.erase();
 	}
 	if (level == 3)
 	{
-		tempClass.setErrorPage(errorPage);
+		if (errorPage.length() == 0 || errorPage.length() > 100)
+			std::cout << "Invalid error_pages: '" << errorPage << "'" << std::endl;
+		else
+			tempClass.setErrorPage(errorPage);
 		errorPage.erase();
 	}
 	if (level == 4)
 	{
-		if (ft::stoi(sBodySize) == 0)
+		if (ft::stoi(sBodySize) == 0 || sBodySize.length() == 0 || sBodySize[0] == '-')
+		{
+			std::cout << "Invalid client_max_body_size: '" << sBodySize << "'";
+			std::cout << ", default client_max_body_size: '1' used instead" << std::endl;
 			tempClass.setBodySize(1);
+		}
 		else if (ft::stoi(sBodySize) > 10)
 		{
-			std::cout << "client_max_body_size is bigger than 10M" << std::endl;
+			std::cout << "client_max_body_size is bigger than 10M";
+			std::cout << ", client_max_body_size set at: '10'" << std::endl;
 			tempClass.setBodySize(10);
 		}
 		else
@@ -49,13 +103,13 @@ void Config::pushToClass(int level, ConfigData & tempClass)
 	}
 }
 
-void Config::setData(std::string readLine, std::string find, int level, ConfigData & tempClass, int whichLine)
+void Config::setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine)
 {
 	static int whichLocation = 0;
 
 	size_t begin = readLine.find(find);
 	if (begin == npos)
-		return ;
+		return;
 
 	if (level == 5)
 		tempClass.retrieveValues(filename, whichLine, (whichLine + countServerLength("location", ++whichLocation) - 1));
@@ -83,7 +137,7 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 	}
 }
 
-int	Config::countServerLength(std::string const & find, int whichOne)
+int Config::countServerLength(std::string const &find, int whichOne)
 {
 	std::string readLine;
 	std::ifstream readFile;
@@ -114,7 +168,7 @@ int	Config::countServerLength(std::string const & find, int whichOne)
 	return (-1);
 }
 
-int	Config::countElement(std::string const & Element)
+int Config::countElement(std::string const &Element)
 {
 	std::string readLine;
 	std::ifstream readFile;
@@ -133,23 +187,31 @@ int	Config::countElement(std::string const & Element)
 	return (counter);
 }
 
-int		Config::errorChecker(void)
+int Config::errorChecker(void)
 {
+	int i = filename.length();
+
+	if (filename[i - 5] != '.' && filename[i - 4] != 'c' &&
+		filename[i - 3] != 'o' && filename[i - 2] != 'n' &&
+		filename[i - 1] != 'f')
+		return (-1);
 	if (!countElement("server"))
 		return (-1);
-	if (
+	if ((countElement("{") != (countElement("server") + countElement("location"))) ||
+		(countElement("}") != (countElement("server") + countElement("location"))) ||
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
-		countElement("client_max_body_size") != countElement("server"))
+		countElement("client_max_body_size") != countElement("server") ||
+		countElement("port") > countElement("server"))
 		return (-1);
 	return (0);
 }
 
-void	Config::retrieveValues(void)
+void Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	ConfigData * tempClass = nullptr;
+	ConfigData *tempClass = nullptr;
 
 	// int amountOfServers = countElement("server");
 	int whichServer = 0;
@@ -162,7 +224,7 @@ void	Config::retrieveValues(void)
 	{
 		if (errorChecker() == -1)
 		{
-			std::cout << "Wrong config file " << filename << std::endl;
+			std::cout << "Invalid config file '" << filename << "'" << std::endl;
 			exit(-1);
 		}
 		while (std::getline(readFile, readLine))
@@ -203,11 +265,108 @@ void	Config::retrieveValues(void)
 		std::cout << "Unable to open file: " << filename << std::endl;
 }
 
-std::vector<ConfigData *> & Config::getContConfigData(void) { return(ContConfigData); }
+std::vector<ConfigData *> &Config::getContConfigData(void) { return (ContConfigData); }
 
 int ft_stoi(std::string s)
 {
-    int i;
-    std::istringstream(s) >> i;
-    return (i);
+	int i;
+	std::istringstream(s) >> i;
+	return (i);
+}
+
+std::vector<int> &Config::getPorts(void)
+{
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		ports.push_back((*it)->getPort());
+		++it;
+	}
+	return (ports);
+}
+int Config::getDomain(void) { return (_domain); }
+int Config::getType(void) { return (_type); }
+int Config::getProtocol(void) { return (_protocol); }
+int Config::getBacklog(void) { return (_backlog); }
+int Config::getInterface(void) { return (_interface); }
+
+std::string Config::getErrorPage(std::string server)
+{
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		if (server == (*it)->getServerName())
+		{
+			return ((*it)->getErrorPage());
+		}
+		++it;
+	}
+	return ("");
+}
+
+int Config::get_truncated_location(std::vector<std::string> locations, std::string paths)
+{
+	while(!paths.empty() && paths != "/")
+	{
+		unsigned long pos = paths.find_last_of("/");
+		if (pos == std::string::npos)
+			return (-1);
+		if (static_cast<int>(pos) == 0)
+			paths = "/";
+		else
+			paths = paths.substr(0, pos);
+		std::vector<std::string>::iterator it = locations.begin();
+		std::vector<std::string>::iterator ite = locations.end();
+		int index = 0;
+		while (it != ite)
+		{
+			if (*it == paths)
+				return (index);
+			++it;
+			++index;
+		}
+	}
+	return (-1);
+}
+
+LocationData * Config::get_location(std::string server, std::string path)
+{
+	std::vector<std::string> locations;
+	std::vector<ConfigData *> data = getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+
+	while (it != ite)
+	{
+		std::string server_name = (*it)->getServerName();
+		std::vector<LocationData *> locationData = (*it)->getContLocationData();
+		std::vector<LocationData *>::iterator it2 = locationData.begin();
+		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		while (server_name == server && it2 != ite2)
+		{
+			std::string location = (*it2)->getLocation();
+			locations.push_back(location);
+			if (path == location)
+				return (*it2);
+			++it2;
+		}
+		if (server_name == server)
+			break;
+		++it;
+	}
+	int res = get_truncated_location(locations, path);
+	std::vector<LocationData *> locationData = (*it)->getContLocationData();
+	std::vector<LocationData *>::iterator it2 = locationData.begin();
+	std::vector<LocationData *>::iterator ite2 = locationData.end();
+	while (res-- >= 0 && it2 != ite2)
+	{
+		if (res < 0)
+			return (*it2);
+		++it2;
+	}
+	return (nullptr);
 }

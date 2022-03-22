@@ -12,5 +12,7 @@ namespace ft
     void nulify(char **buffer, size_t *n);
     int is_whitespace(std::string line);
     bool is_found(std::string const array[], std::string target);
+    std::string removeSpacesAfter(const std::string & inputString);
+    bool replace(std::string& str, const std::string& from, const std::string& to);
 }
 #endif

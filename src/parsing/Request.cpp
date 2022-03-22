@@ -1,7 +1,7 @@
 #include "Request.hpp"
 #include <unistd.h>
 #include <sys/wait.h>
-
+#include <sstream>
 int Parsing::set_start_line(std::string s)
 {
     size_t pos = 0;
@@ -54,30 +54,21 @@ void Parsing::for_testing_print_request_struct()
 
 Parsing::Parsing(int fd)
 {
-    char *buffer;
-    buffer = NULL;
-    size_t n;
-    int len;
-    FILE *data = fdopen(fd, "r");
-    while (data && (len = getline(&buffer, &n, data)) && set_start_line(buffer)) // parsing first line
-    {
-        // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
-        ft::nulify(&buffer, &n);
-    }
-    ft::nulify(&buffer, &n);
-    while (data && (len = getline(&buffer, &n, data)) && set_headers(buffer) == EXIT_SUCCESS) // parsing header data, make pairs
-    {
-        // std::cout << buffer << "size=" << n << " len=" << len << std::endl;
-        ft::nulify(&buffer, &n);
-    }
-    // std::cout << buffer << std::endl;
-    ft::nulify(&buffer, &n);
-    for_testing_print_request_struct();
+    char buffer[4001];
+    std::string line;
+    size_t bytes = recv(fd, buffer, 4000, 0);
+    std::istringstream data(std::string(buffer, bytes), std::ios::binary);
+    bytes += 1;
+    while (data && std::getline(data, line) && set_start_line(line))
+        ;
+    while (data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
+        ;
+
+    std::cout << "\n"
+              << path << "\n";
+
     if (method == "POST") // check if it is a post request
     {
-        buffer = NULL;
-        n = 0;
-        int pipefd[2];
         if (pipe(pipefd) == -1)
             std::cout << "pipe error" << std::endl;
         int fdp = fork();
@@ -113,61 +104,23 @@ Parsing::Parsing(int fd)
                 exit(EXIT_FAILURE);
             }
         }
-        close(pipefd[0]);
-        len = 0;
-        std::map<std::string, std::string>::iterator tmp = headers.find("Content-Length");
-        if (tmp != headers.end())
-        {
-            sleep(2);
-            int n_byts = ft::stoi(tmp->second);
-            while (n_byts && (len = getline(&buffer, &n, data)))
-            {
-                n_byts -= write(pipefd[1], buffer, len);
-                // std::cout << "length = " << len << "n=" << n_byts << std::endl;
-                ft::nulify(&buffer, &n);
-            }
-            close(pipefd[1]);
 
-            // std::cout << "loop ende" << len << std::endl;
-        }
-        else
+        close(pipefd[0]);
+        if (!is_chunked())
         {
-            sleep(2);
-            unsigned int x;
-            std::stringstream ss;
-            while ((len = getline(&buffer, &n, data)))
+            int test = 0;
+            while (data && std::getline(data, line))
             {
-                std::cout << "len = " << len << std::endl;
-                if (len > 0 && buffer[0] == '\n')
-                {
-                    free(buffer);
-                    buffer = NULL;
-                    n = 0;
-                    continue;
-                }
-                // len = getline(&buffer, &n, data);
-                ss << std::hex << buffer;
-                ss >> x;
-                free(buffer);
-                buffer = NULL;
-                std::cout << "counged input" << buffer << len << " x=" << x << std::endl;
-                if (x == 0)
-                {
-                    free(buffer);
-                    buffer = NULL;
-                    close(pipefd[1]);
-                }
-                buffer = (char *)malloc(sizeof(char) * x);
-                fread(buffer, sizeof(char), x, data);
-                write(pipefd[1], buffer, x);
-                free(buffer);
-                buffer = NULL;
+                write(pipefd[1], line.c_str(), line.length());
+                std::cout << "Line: " << line << std::endl;
+                test++;
             }
+            std::cout << "loops after reading header in POST: " << test << "\n";
         }
-        wait(NULL);
-        // std::cout << "========================================done==========================================" << std::endl;
     }
     // fclose(data); // dosent work maybe someone wave an idear
+
+    // fclose also closes file descriptor. How to
 }
 
 // ----------------- GETTERS ------------------ //
@@ -210,4 +163,96 @@ std::string Parsing::get_protocol() const
 std::string Parsing::get_body() const
 {
     return (body);
+}
+
+int Parsing::get_content_length()
+{
+    std::map<std::string, std::string>::iterator tmp = headers.find("Content-Length");
+    if (tmp != headers.end())
+        return (ft::stoi(tmp->second));
+    return (-1);
+}
+
+// --------------------- CHECKERS ---------------------
+
+bool Parsing::is_chunked(void)
+{
+    if (headers.find("Content-Length") == headers.end())
+    {
+        std::cout << "not found";
+        return (true);
+    }
+    return (false);
+}
+
+// --------------- OVERLOADS ---------------- //
+
+void Parsing::set_regular_body(int fd)
+{
+    if (fd == 7)
+    {
+        std::cout << "Is this the case?";
+    }
+    char buffer[4001];
+    size_t bytes = recv(fd, buffer, 4000, 0);
+    std::istringstream data(std::string(buffer, bytes), std::ios::binary);
+    if ((int)bytes == -1)
+    {
+        // do something
+    }
+    else if ((int)bytes == 0)
+    {
+        // do somethings else
+    }
+    size_t written = write(pipefd[1], data.str().c_str(), bytes);
+    if ((int)written == -1)
+    {
+        // do something
+    }
+    else if (written == 0)
+    {
+        // do something else
+    }
+    if ((int)bytes < 4000)
+    {
+        close(pipefd[1]);
+        wait(NULL);
+    }
+}
+
+void Parsing::set_chunked_body(int fd)
+{
+
+    // handle chunked below
+    fd++;
+    //  unsigned int x;
+    //             std::stringstream ss;
+    //             while ((len = getline(&buffer, &n, data)))
+    //             {
+    //                 std::cout << "len = " << len << std::endl;
+    //                 if (len > 0 && buffer[0] == '\n')
+    //                 {
+    //                     free(buffer);
+    //                     buffer = NULL;
+    //                     n = 0;
+    //                     continue;
+    //                 }
+    //                 // len = getline(&buffer, &n, data);
+    //                 ss << std::hex << buffer;
+    //                 ss >> x;
+    //                 free(buffer);
+    //                 buffer = NULL;
+    //                 std::cout << "counged input" << buffer << len << " x=" << x << std::endl;
+    //                 if (x == 0)
+    //                 {
+    //                     free(buffer);
+    //                     buffer = NULL;
+    //                     close(pipefd[1]);
+    //                 }
+    //                 buffer = (char *)malloc(sizeof(char) * x);
+    //                 fread(buffer, sizeof(char), x, data);
+    //                 write(pipefd[1], buffer, x);
+    //                 free(buffer);
+    //                 buffer = NULL;
+    //             }
 }

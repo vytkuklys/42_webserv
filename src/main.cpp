@@ -11,20 +11,20 @@ void printConfigData(Config config)
 	while (it != ite)
 	{
 		std::cout << std::endl << "~ * * * * SERVER * * * * ~" << std::endl;
-		std::cout << "Port: " << (*it)->getPort() << std::endl;
-		std::cout << "Server Name: " << (*it)->getServerName() << std::endl;
-		std::cout << "Error Page: " << (*it)->getErrorPage() << std::endl;
-		std::cout << "Body Size: " << (*it)->getBodySize() << std::endl;
+		std::cout << "Port: '" << (*it)->getPort() << "'" << std::endl;
+		std::cout << "Server Name: '" << (*it)->getServerName() << "'" << std::endl;
+		std::cout << "Error Page: '" << (*it)->getErrorPage() << "'" << std::endl;
+		std::cout << "Body Size: '" << (*it)->getBodySize() << "'" << std::endl;
 
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
 		while (it2 != ite2)
 		{
-			std::cout << std::endl << "location: " << (*it2)->getLocation() << std::endl;
-			std::cout << "root: " << (*it2)->getRoot() << std::endl;
-			std::cout << "method: " << (*it2)->getMethod() << std::endl;
-			std::cout << "index: " << (*it2)->getIndex() << std::endl;
+			std::cout << std::endl << "location: '" << (*it2)->getLocation() << "'" << std::endl;
+			std::cout << "root: '" << (*it2)->getRoot() << "'" << std::endl;
+			std::cout << "method: '" << (*it2)->getMethod() << "'" << std::endl;
+			std::cout << "index: '" << (*it2)->getIndex() << "'" << std::endl;
 
 			++it2;
 		}
@@ -41,18 +41,12 @@ int main (int argc, char **argv)
 		std::cout << "Invalid input" << std::endl;
 		return (-1);
 	}
-	//Config config(argv[1]);
+	// Config config(argv[1]);
     (void)argv;                                 // only for faster testing
     Config config("config_files/newdefault.conf"); // only for faster testing
 
 	// printConfigData(config);
 
-	std::vector<int> testPorts;
-	testPorts.push_back(8080);
-	testPorts.push_back(8085);
-	testPorts.push_back(9999);
-
-    SERVER::WebServer webServer(AF_INET, SOCK_STREAM, 0, testPorts, INADDR_ANY, 10);
-
+    SERVER::WebServer webServer(config.getPorts(), config); //could not understand why calling config.getPorts() in webServerMac.cpp causes errors
 	return (0);
 }
