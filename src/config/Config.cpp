@@ -308,9 +308,9 @@ std::string Config::getErrorPage(std::string server)
 	return ("");
 }
 
-int Config::get_truncated_location(std::vector<std::string> locations, std::string paths)
+int Config::get_location_index(std::vector<std::string> locations, std::string paths)
 {
-	while(!paths.empty() && paths != "/")
+	while (!paths.empty() && paths != "/")
 	{
 		unsigned long pos = paths.find_last_of("/");
 		if (pos == std::string::npos)
@@ -324,7 +324,7 @@ int Config::get_truncated_location(std::vector<std::string> locations, std::stri
 		int index = 0;
 		while (it != ite)
 		{
-			if (*it == paths) 
+			if (*it == paths)
 				return (index);
 			++it;
 			++index;
@@ -333,7 +333,29 @@ int Config::get_truncated_location(std::vector<std::string> locations, std::stri
 	return (-1);
 }
 
-LocationData * Config::get_location(std::string server, std::string path)
+LocationData *Config::get_truncated_location(std::vector<std::string> locations, std::string path, std::string port)
+{
+	int res = get_location_index(locations, path);
+	std::vector<ConfigData *> data = getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+	while (res != -1 && it != ite)
+	{
+		std::vector<LocationData *> locationData = (*it)->getContLocationData();
+		std::vector<LocationData *>::iterator it2 = locationData.begin();
+		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		while (it2 != ite2 && port == ft::to_string((*it)->getPort()))
+		{
+			if (--res < 0)
+				return (*it2);
+			++it2;
+		}
+		++it;
+	}
+	return (nullptr);
+}
+
+LocationData *Config::get_location(std::string port, std::string path)
 {
 	std::vector<std::string> locations;
 	std::vector<ConfigData *> data = getContConfigData();
@@ -342,31 +364,25 @@ LocationData * Config::get_location(std::string server, std::string path)
 
 	while (it != ite)
 	{
-		std::string server_name = (*it)->getServerName();
+		std::string sPort = ft::to_string((*it)->getPort());
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
-		while (server_name == server && it2 != ite2)
+		while (sPort == port && it2 != ite2)
 		{
 			std::string location = (*it2)->getLocation();
-			locations.push_back(location);
+			if (location != "UNKNOWN")
+				locations.push_back(location);
 			if (path == location)
+			{
 				return (*it2);
+			}
 			++it2;
 		}
-		if (server_name == server)
+		if (sPort == port)
 			break;
 		++it;
 	}
-	int res = get_truncated_location(locations, path);
-	std::vector<LocationData *> locationData = (*it)->getContLocationData();
-	std::vector<LocationData *>::iterator it2 = locationData.begin();
-	std::vector<LocationData *>::iterator ite2 = locationData.end();
-	while (res-- >= 0 && it2 != ite2)
-	{
-		if (res < 0)
-			return (*it2);
-		++it2;
-	}
-	return (nullptr);
+	LocationData * location = get_truncated_location(locations, path, port);
+	return (location);
 }

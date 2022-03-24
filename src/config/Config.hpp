@@ -29,6 +29,9 @@ private:
 	int _interface;
 	int _backlog;
 
+	int get_location_index(std::vector<std::string> locations, std::string paths);
+	LocationData * get_truncated_location(std::vector<std::string> locations, std::string path, std::string port);
+
 public:
 	Config(std::string inArgv1);
 	~Config(void);
@@ -50,8 +53,7 @@ public:
 	int getBacklog(void);
 	int getInterface(void);
 	std::string getErrorPage(std::string server);
-	LocationData * get_location(std::string server, std::string path);
-	int get_truncated_location(std::vector<std::string>, std::string);
+	LocationData * get_location(std::string port, std::string path);
 };
 
 #endif

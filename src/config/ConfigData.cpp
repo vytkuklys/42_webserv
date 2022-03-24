@@ -31,7 +31,6 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 		ContLocationData.push_back(tempClass);
 		i++;
 	}
-	this->ContLocationData.push_back(new LocationData());
 	this->Port = value.Port;
 	this->serverName = value.serverName;
 	this->errorPage = value.errorPage;
