@@ -66,8 +66,14 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 	}
 	if (level == 3)
 	{
-		if (method != "post" && method != "get" && method != "get post" && method != "post get" && method != "delete")
-			std::cout << "Invalid method: '" << method << "'" << std::endl;
+		if (method != "post" && method != "get" &&  method != "delete" &&
+			method != "post get" && method != "get post" &&
+			method != "get delete" && method != "delete get" && 
+			method != "post delete" && method != "delete post" && 
+			method != "post get delete" && method != "post delete get" && 
+			method != "get delete post" && method != "get post delete" && 
+			method != "delete post get" && method != "delete get post")
+				std::cout << "Invalid method: '" << method << "'" << std::endl;
 		else
 			tempClass.setMethod(method);
 		method.erase();
