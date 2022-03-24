@@ -5,6 +5,7 @@
 Response::Response(Parsing request, Config data) : Request(request), config(data)
 {
     default_error = "./documents/html_errors";
+    has_access = true;
     set_path(Request.get_path());
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
     set_status_line();
@@ -18,7 +19,6 @@ void Response::set_path(std::string const filename)
 {
     path = filename;
     LocationData * loc = config.get_location("yes.com", filename);
-    has_access = is_authorized(loc->getMethod(), Request.get_method());
     if (loc != nullptr)
 	{
         if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
@@ -27,10 +27,13 @@ void Response::set_path(std::string const filename)
             ft::replace(path, loc->getLocation(), loc->getRoot());
         if (filename[filename.length() - 1] == '/')
             path += loc->getIndex();
+        has_access = is_authorized(loc->getMethod(), Request.get_method());
     }
     is_path_valid = exists_path(path.c_str());
+    std::cout << "valid: " << is_path_valid << "\n";
     if (!is_path_valid || !has_access || loc == nullptr)
     {
+    std::cout << "valid: +\n\n";
         path = config.getErrorPage("yes.com");
         if (path.empty())
             path = default_error;
@@ -38,6 +41,7 @@ void Response::set_path(std::string const filename)
             path.append("/404.html");
         else
             path.append("/403.html");
+        std::cout << "Path: " << path << std::endl;
     }
 }
 
@@ -65,6 +69,8 @@ void Response::set_headers(void)
     headers["Content-length:"] = ft::to_string(body.length());
     headers["Content-security-policy:"] = "upgrade-insecure-requests";
     headers["Connection:"] = "close";
+    headers["Server:"] = "Weebserv/1.0.0 (Unix)";
+    headers["Transfer-Encoding:"] = "identity";
     headers["Accept-ranges:"] = "bytes";
     headers["Date:"] = get_http_time();
 }
@@ -247,7 +253,6 @@ bool is_authorized(std::string server, std::string request)
     std::transform(server.begin(), server.end(), server.begin(), ft::to_lower);
     std::transform(request.begin(), request.end(), request.begin(), ft::to_lower);
 
-    std::cout << "\n server:" << server << ", req: " << request << "\n";
     if (server.find(request, 0) == std::string::npos)
         return (false);
     return (true);

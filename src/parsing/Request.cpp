@@ -58,15 +58,13 @@ Parsing::Parsing(int fd)
     std::string line;
     size_t bytes = recv(fd, buffer, 4000, 0);
     std::istringstream data(std::string(buffer, bytes), std::ios::binary);
-    bytes += 1;
     while (data && std::getline(data, line) && set_start_line(line))
         ;
     while (data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
         ;
 
-    std::cout << "\n"
-              << path << "\n";
-
+    bytes += 1;
+    std::cout << "PATH: " << path << "\n";
     if (method == "POST") // check if it is a post request
     {
         if (pipe(pipefd) == -1)
@@ -118,9 +116,14 @@ Parsing::Parsing(int fd)
             std::cout << "loops after reading header in POST: " << test << "\n";
         }
     }
+    else if (method == "GET")
+    {
+        while (data && std::getline(data, line)) //flushing get body, it is not instructive in http
+            ;
+    }
     // fclose(data); // dosent work maybe someone wave an idear
 
-    // fclose also closes file descriptor. How to 
+    // fclose also closes file descriptor. How to
 }
 
 // ----------------- GETTERS ------------------ //
@@ -225,6 +228,7 @@ void Parsing::set_chunked_body(int fd)
 
     // handle chunked below
     fd++;
+    std::cout << " - fd: " << fd << "Path: " << path << "\n";
     //  unsigned int x;
     //             std::stringstream ss;
     //             while ((len = getline(&buffer, &n, data)))
