@@ -9,6 +9,8 @@ int Parsing::set_start_line(std::string s)
     int j = 0;
 
     s.erase(std::remove(s.begin(), s.end(), '\n'), s.end()); // remove the newlines
+	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+
     if (s[0] == '/' || s[0] == '#')
         return (1);
     while ((pos = s.find(" ")) != std::string::npos)
@@ -31,6 +33,7 @@ int Parsing::set_headers(std::string line)
 {
     size_t pos;
     line.erase(std::remove(line.begin(), line.end(), '\n'), line.end()); // remove the newlines
+    line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
     if (line.empty() || ft::is_whitespace(line) == EXIT_SUCCESS)
         return (EXIT_FAILURE);
     pos = line.find(":");
@@ -76,29 +79,61 @@ Parsing::Parsing(int fd)
             std::cout << "eror fork" << std::endl;
         if (fdp == 0)
         {
-            std::string p(std::string("path=") + get("path"));
-            std::string m(std::string("method=") + get("method"));
-            std::string pr(std::string("protocol=") + get("protocol"));
-            char *test[6];
-            test[0] = (char *)"./cgi-bin/cgi.php";
-            test[1] = (&p[0]);
-            test[2] = (&m[0]);
-            test[3] = (&pr[0]);
-            std::string header;
-            std::map<std::string, std::string>::iterator tmp = headers.begin();
-            while (tmp != headers.end())
+			std::vector<char *> env;
+			std::vector<std::string> env_strings;
+			std::map<std::string, std::string>::iterator tmp;
+            if ((tmp = headers.find("Content-Length")) != headers.end())
             {
-                header.append(tmp->first + "=" + tmp->second);
-                tmp++;
-                if (tmp == headers.end())
-                    break;
-                header.append("&");
+                env_strings.push_back("CONTENT_LENGTH=" + tmp->second);
             }
-            test[4] = (&header[0]);
-            test[5] = NULL;
+			env_strings.resize(20);
+			env_strings.push_back("QUERY_STRING=");
+			env_strings.push_back("REQUEST_URI=" + get_path());
+			env_strings.push_back("REDIRECT_STATUS=200");
+			env_strings.push_back("SCRIPT_NAME=" + get_path());
+			env_strings.push_back("SCRIPT_FILENAME=./documents/" + get_path());
+			std::cout << env_strings.back() << std::endl;
+			// env_strings.push_back("DOCUMENT_ROOT=");
+			env_strings.push_back("REQUEST_METHOD=" + method);
+			env_strings.push_back("SERVER_PROTOCOL=" + protocol);
+			env_strings.push_back("SERVER_SOFTWARE=webserv");
+			env_strings.push_back("GATEWAY_INTERFACE=CGI/1.1");
+			env_strings.push_back("REQUEST_SCHEME=http");
+            if ((tmp = headers.find("Host")) != headers.end())
+            {
+                env_strings.push_back("SERVER_PORT=" + tmp->second);
+				env_strings.back().erase(std::strlen("SERVER_PORT=") - 1, env_strings.back().find(":"));
+            }
+			env_strings.push_back("SERVER_ADDR=");
+            if ((tmp = headers.find("Host")) != headers.end())
+            {
+                env_strings.push_back("SERVER_PORT=" + tmp->second);
+				env_strings.back().erase(env_strings.back().find(":") - 1, env_strings.back().length() - 1);
+            }
+
+			if ((tmp = headers.find("Content-Type")) != headers.end())
+            {
+                env_strings.push_back("CONTENT_TYPE=" + tmp->second);
+            }
+			// env_strings.push_back("=");
+			// env_strings.push_back("REDIRECT_STATUS=200");
+			// env_strings.push_back("REDIRECT_STATUS=200");
+			// env_strings.push_back("REDIRECT_STATUS=200");
+			// env_strings.push_back("REDIRECT_STATUS=200");
+
+			for(size_t i = 0; i < env_strings.size(); i++)
+			{
+				env.push_back(&(env_strings[i][0]));
+				// std::cout << i << std::endl;
+				// env.push_back(&(env_strings[i]));
+
+			}
+			env.push_back(NULL);
             close(pipefd[1]);
             dup2(pipefd[0], STDIN_FILENO);
-            if (execvp("./cgi-bin/cgi.php", &test[0]))
+
+			char * const * nll = NULL;
+            if (execve("/Users/shackbei/goinfre/.brew/bin/php-cgi", nll, &env[0]))
             {
                 perror("execvp");
                 exit(EXIT_FAILURE);

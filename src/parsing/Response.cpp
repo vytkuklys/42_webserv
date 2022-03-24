@@ -109,7 +109,7 @@ void Response::set_body(void)
 {
     if (input_stream.is_open())
         input_stream.close();
-    if (file_ext == "php")
+    if (file_ext == "php----------------------")
     {
         int pipefd[2];
         int pid;
