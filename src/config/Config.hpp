@@ -18,16 +18,23 @@ private:
 	std::vector<ConfigData *> ContConfigData;
 	std::string const filename;
 	size_t const npos;
+
 	std::vector<int> ports;
+
 	std::string sPort;
 	std::string serverName;
 	std::string errorPage;
 	std::string sBodySize;
+	std::string directoryListing;
+
 	int _domain;
 	int _type;
 	int _protocol;
 	int _interface;
 	int _backlog;
+
+	int get_location_index(std::vector<std::string> locations, std::string paths);
+	LocationData * get_truncated_location(std::vector<std::string> locations, std::string path, std::string port);
 
 public:
 	Config(std::string inArgv1);
@@ -49,9 +56,9 @@ public:
 	int getProtocol(void);
 	int getBacklog(void);
 	int getInterface(void);
-	std::string getErrorPage(std::string server);
-	LocationData * get_location(std::string server, std::string path);
-	int get_truncated_location(std::vector<std::string>, std::string);
+	std::string getErrorPage(std::string port);
+	bool getDirectoryListing(std::string port);
+	LocationData * get_location(std::string port, std::string path);
 };
 
 #endif

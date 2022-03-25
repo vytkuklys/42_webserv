@@ -78,7 +78,10 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	if (level == 3)
 	{
 		if (errorPage.length() == 0 || errorPage.length() > 100)
-			std::cout << "Invalid error_pages: '" << errorPage << "'" << std::endl;
+		{
+			std::cout << "Invalid error_pages: '" << errorPage << "'";
+			std::cout << ", default error_pages: './documents/html_errors' used instead" << std::endl;
+		}
 		else
 			tempClass.setErrorPage(errorPage);
 		errorPage.erase();
@@ -100,6 +103,19 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 		else
 			tempClass.setBodySize(ft::stoi(sBodySize));
 		sBodySize.erase();
+	}
+	if (level == 6)
+	{
+		if (directoryListing != "on" && directoryListing != "off" )
+		{
+			std::cout << "Invalid directory_listing: '" << directoryListing << "'";
+			std::cout << ", default directory_listing: 'on' used instead" << std::endl;
+		}
+		else
+		{
+			tempClass.setDirectoryListing(directoryListing);
+		}
+		directoryListing.erase();
 	}
 }
 
@@ -131,6 +147,8 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 				errorPage.push_back(readLine[begin + i]);
 			if (level == 4)
 				sBodySize.push_back(readLine[begin + i]);
+			if (level == 6)
+				directoryListing.push_back(readLine[begin + i]);
 			i++;
 		}
 		pushToClass(level, tempClass);
@@ -202,6 +220,7 @@ int Config::errorChecker(void)
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server") ||
+		countElement("directory_listing") != countElement("server") ||
 		countElement("port") > countElement("server"))
 		return (-1);
 	return (0);
@@ -213,7 +232,6 @@ void Config::retrieveValues(void)
 	std::ifstream readFile;
 	ConfigData *tempClass = nullptr;
 
-	// int amountOfServers = countElement("server");
 	int whichServer = 0;
 	int whichLine = 1;
 	bool lookForNewServer = true;
@@ -233,9 +251,6 @@ void Config::retrieveValues(void)
 			{
 				if (readLine.find("server") != npos)
 				{
-					// amountOfServers -= 1;
-					// if (amountOfServers == -1)
-					// 	break ;
 					serverLength = countServerLength("server", ++whichServer);
 					if (serverLength > 2)
 					{
@@ -251,6 +266,7 @@ void Config::retrieveValues(void)
 				setData(readLine, "error_pages", 3, *tempClass, whichLine);
 				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
 				setData(readLine, "location", 5, *tempClass, whichLine);
+				setData(readLine, "directory_listing", 6, *tempClass, whichLine);
 				serverLength--;
 				if (serverLength == 0)
 				{
@@ -292,14 +308,14 @@ int Config::getProtocol(void) { return (_protocol); }
 int Config::getBacklog(void) { return (_backlog); }
 int Config::getInterface(void) { return (_interface); }
 
-std::string Config::getErrorPage(std::string server)
+std::string Config::getErrorPage(std::string port)
 {
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
 	while (it != ite)
 	{
-		if (server == (*it)->getServerName())
+		if (std::atoi(port.c_str()) == (*it)->getPort())
 		{
 			return ((*it)->getErrorPage());
 		}
@@ -308,9 +324,30 @@ std::string Config::getErrorPage(std::string server)
 	return ("");
 }
 
-int Config::get_truncated_location(std::vector<std::string> locations, std::string paths)
+bool Config::getDirectoryListing(std::string port)
 {
-	while(!paths.empty() && paths != "/")
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+			std::cout << "1";
+	while (it != ite)
+	{
+		if (std::atoi(port.c_str()) == (*it)->getPort())
+		{
+			std::string dir = (*it)->getDirectoryListing();
+			if (dir == "on")
+				return (true);
+			else
+				return (false);
+		}
+		++it;
+	}
+	return (false);
+}
+
+int Config::get_location_index(std::vector<std::string> locations, std::string paths)
+{
+	while (!paths.empty() && paths != "/")
 	{
 		unsigned long pos = paths.find_last_of("/");
 		if (pos == std::string::npos)
@@ -333,7 +370,29 @@ int Config::get_truncated_location(std::vector<std::string> locations, std::stri
 	return (-1);
 }
 
-LocationData * Config::get_location(std::string server, std::string path)
+LocationData *Config::get_truncated_location(std::vector<std::string> locations, std::string path, std::string port)
+{
+	int res = get_location_index(locations, path);
+	std::vector<ConfigData *> data = getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+	while (res != -1 && it != ite)
+	{
+		std::vector<LocationData *> locationData = (*it)->getContLocationData();
+		std::vector<LocationData *>::iterator it2 = locationData.begin();
+		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		while (it2 != ite2 && port == ft::to_string((*it)->getPort()))
+		{
+			if (--res < 0)
+				return (*it2);
+			++it2;
+		}
+		++it;
+	}
+	return (nullptr);
+}
+
+LocationData *Config::get_location(std::string port, std::string path)
 {
 	std::vector<std::string> locations;
 	std::vector<ConfigData *> data = getContConfigData();
@@ -342,31 +401,25 @@ LocationData * Config::get_location(std::string server, std::string path)
 
 	while (it != ite)
 	{
-		std::string server_name = (*it)->getServerName();
+		std::string sPort = ft::to_string((*it)->getPort());
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
-		while (server_name == server && it2 != ite2)
+		while (sPort == port && it2 != ite2)
 		{
 			std::string location = (*it2)->getLocation();
-			locations.push_back(location);
+			if (location != "UNKNOWN")
+				locations.push_back(location);
 			if (path == location)
+			{
 				return (*it2);
+			}
 			++it2;
 		}
-		if (server_name == server)
+		if (sPort == port)
 			break;
 		++it;
 	}
-	int res = get_truncated_location(locations, path);
-	std::vector<LocationData *> locationData = (*it)->getContLocationData();
-	std::vector<LocationData *>::iterator it2 = locationData.begin();
-	std::vector<LocationData *>::iterator ite2 = locationData.end();
-	while (res-- >= 0 && it2 != ite2)
-	{
-		if (res < 0)
-			return (*it2);
-		++it2;
-	}
-	return (nullptr);
+	LocationData * location = get_truncated_location(locations, path, port);
+	return (location);
 }

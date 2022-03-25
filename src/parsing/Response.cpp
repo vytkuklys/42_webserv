@@ -4,41 +4,44 @@
 
 Response::Response(Parsing request, Config data) : Request(request), config(data)
 {
-	default_error = "./documents/html_errors";
-	set_path(Request.get_path());
-	file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-	set_status_line();
-	set_body();
-	set_headers();
+    default_error = "./documents/html_errors";
+    has_access = true;
+    set_path(Request.get_path());
+    file_ext = path.substr(path.find_last_of('.') + 1, path.length());
+    set_status_line();
+    set_body();
+    set_headers();
 }
 
 // ----------------- SETTERS ------------------- //
 
 void Response::set_path(std::string const filename)
 {
-	path = filename;
-	LocationData * loc = config.get_location("yes.com", filename);
-	has_access = is_authorized(loc->getMethod(), Request.get_method());
-	if (loc != nullptr)
+    path = filename;
+    std::string port = ft::remove_whitespace(Request.get_port());
+    bool is_listing_on = config.getDirectoryListing(port);
+    LocationData * loc = config.get_location(port, filename);
+    if (loc != nullptr)
 	{
-		if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
-			path.insert(0, loc->getRoot());
-		else
-			ft::replace(path, loc->getLocation(), loc->getRoot());
-		if (filename[filename.length() - 1] == '/')
-			path += loc->getIndex();
-	}
-	is_path_valid = exists_path(path.c_str());
-	if (!is_path_valid || !has_access || loc == nullptr)
-	{
-		path = config.getErrorPage("yes.com");
-		if (path.empty())
-			path = default_error;
-		if (!is_path_valid || loc == nullptr)
-			path.append("/404.html");
-		else
-			path.append("/403.html");
-	}
+        if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
+            path.insert(0, loc->getRoot());
+        else
+            ft::replace(path, loc->getLocation(), loc->getRoot());
+        if (filename[filename.length() - 1] == '/')
+            path += loc->getIndex();
+        has_access = is_authorized(loc->getMethod(), Request.get_method());
+    }
+    is_path_valid = exists_path(path.c_str());
+    if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
+    {
+        path = config.getErrorPage(port);
+        if (path.empty())
+            path = default_error;
+        if (!is_path_valid || loc == nullptr)
+            path.append("/404.html");
+        else
+            path.append("/403.html");
+    }
 }
 
 void Response::set_status_line(void)
@@ -55,22 +58,31 @@ void Response::set_status_line(void)
 
 void Response::set_content_type(void)
 {
-	if (is_text_ext(file_ext))
-		headers["Content-type:"] = "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript")));
-	else if (is_image_ext(file_ext))
-		headers["Content-type:"] = "image/" + ((file_ext != "svg" && file_ext != "jpg") ? file_ext : (file_ext == "svg" ? "svg+xml" : "jpeg"));
+        std::cout << file_ext << std::endl;
+
+    if (is_text_ext(file_ext))
+    {
+        headers["Content-type:"] = "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript")));
+    }
+    else if (is_image_ext(file_ext))
+    {
+        headers["Content-type:"] = "image/" + ((file_ext != "svg" && file_ext != "jpg") ? file_ext : (file_ext == "svg" ? "svg+xml" : "jpeg"));
+
+    }
 }
 
 void Response::set_headers(void)
 {
-	set_content_type();
+    set_content_type();
 	if(Request.get_method() == "POST")
 		headers["Location:"] = "../index.html";
-	headers["Content-length:"] = ft::to_string(body.length());
-	headers["Content-security-policy:"] = "upgrade-insecure-requests";
-	headers["Connection:"] = "close";
-	headers["Accept-ranges:"] = "bytes";
-	headers["Date:"] = get_http_time();
+    headers["Content-length:"] = ft::to_string(body.length());
+    headers["Content-security-policy:"] = "upgrade-insecure-requests";
+    headers["Connection:"] = "close";
+    headers["Server:"] = "Weebserv/1.0.0 (Unix)";
+    headers["Transfer-Encoding:"] = "identity";
+    headers["Accept-ranges:"] = "bytes";
+    headers["Date:"] = get_http_time();
 }
 
 void Response::set_image_body(void)
@@ -236,14 +248,14 @@ bool exists_path(std::string const path)
 
 bool is_image_ext(std::string ext)
 {
-	static const std::string image[] = {"png", "jpg", "jpeg", "svg", "webp", "gif", "tiff", "avif", "bmp"};
-	return (ft::is_found(image, ext));
+    const std::string image[] = {"png", "jpg", "jpeg", "svg", "webp", "gif", "tiff", "avif", "bmp"};
+    return (ft::is_found(image, ext, 9));
 }
 
 bool is_text_ext(std::string ext)
 {
-	static const std::string text[] = {"html", "css", "js", "txt", "php", "xml", "csv"};
-	return (ft::is_found(text, ext));
+    const std::string text[] = {"html", "css", "js", "txt", "php", "xml", "csv"};
+    return (ft::is_found(text, ext, 7));
 }
 
 bool is_authorized(std::string server, std::string request)
@@ -251,8 +263,7 @@ bool is_authorized(std::string server, std::string request)
 	std::transform(server.begin(), server.end(), server.begin(), ft::to_lower);
 	std::transform(request.begin(), request.end(), request.begin(), ft::to_lower);
 
-	std::cout << "\n server:" << server << ", req: " << request << "\n";
-	if (server.find(request, 0) == std::string::npos)
-		return (false);
-	return (true);
+    if (server.find(request, 0) == std::string::npos)
+        return (false);
+    return (true);
 }

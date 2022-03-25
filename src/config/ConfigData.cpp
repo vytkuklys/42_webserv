@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), Port(8080),
-							   serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(1) {}
+ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"), 
+errorPage("./documents/html_errors"), BodySize(1), directoryListing("on") {}
 
 ConfigData::~ConfigData(void)
 {
@@ -31,9 +31,9 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 		ContLocationData.push_back(tempClass);
 		i++;
 	}
-	this->ContLocationData.push_back(new LocationData());
 	this->Port = value.Port;
 	this->serverName = value.serverName;
+	this->directoryListing = value.directoryListing;
 	this->errorPage = value.errorPage;
 	this->BodySize = value.BodySize;
 	this->location = value.location;
@@ -66,8 +66,14 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 	}
 	if (level == 3)
 	{
-		if (method != "post" && method != "get" && method != "get post" && method != "post get" && method != "delete")
-			std::cout << "Invalid method: '" << method << "'" << std::endl;
+		if (method != "post" && method != "get" &&  method != "delete" &&
+			method != "post get" && method != "get post" &&
+			method != "get delete" && method != "delete get" && 
+			method != "post delete" && method != "delete post" && 
+			method != "post get delete" && method != "post delete get" && 
+			method != "get delete post" && method != "get post delete" && 
+			method != "delete post get" && method != "delete get post")
+				std::cout << "Invalid method: '" << method << "'" << std::endl;
 		else
 			tempClass.setMethod(method);
 		method.erase();
@@ -148,6 +154,8 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 	}
 }
 
+
+
 void ConfigData::setPort(int inputPort) { Port = inputPort; }
 
 void ConfigData::setServerName(std::string inputServerName) { serverName = inputServerName; }
@@ -156,6 +164,10 @@ void ConfigData::setErrorPage(std::string inputErrorPages) { errorPage = inputEr
 
 void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 
+void ConfigData::setDirectoryListing(std::string inputDirectoryListing) { directoryListing = inputDirectoryListing; }
+
+
+
 int ConfigData::getPort(void) { return (Port); }
 
 std::string ConfigData::getServerName(void) { return (serverName); }
@@ -163,5 +175,9 @@ std::string ConfigData::getServerName(void) { return (serverName); }
 std::string ConfigData::getErrorPage(void) { return (errorPage); }
 
 int ConfigData::getBodySize(void) { return (BodySize); }
+
+std::string ConfigData::getDirectoryListing(void) { return (directoryListing); }
+
+
 
 std::vector<LocationData *> &ConfigData::getContLocationData(void) { return (ContLocationData); }

@@ -29,6 +29,7 @@ class Parsing
 		int								 pipefd[2];
 		unsigned long					 missing_chuncked_data;
 		pid_t							pid_child;
+		std::string                         port;
 	public:
 		Parsing (int fd);
 		std::string get(std::string key_word);
@@ -37,6 +38,7 @@ class Parsing
 		std::string get_path() const;
 		std::string get_protocol() const;
 		std::string get_body() const;
+        std::string get_port();
 		bool is_chunked(void);
 		void	set_regular_body(int fd);
 		void	set_chunked_body(int fd);

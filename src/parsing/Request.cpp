@@ -206,6 +206,16 @@ std::string Parsing::get_body() const
 	return (body);
 }
 
+std::string Parsing::get_port()
+{
+    if (headers.find("Host") != headers.end())
+    {
+        std::string host = headers.find("Host")->second;
+        port = host.substr(host.find_last_of(':') + 1, host.length());
+    }
+    return (port);
+}
+
 int Parsing::get_content_length()
 {
 	std::map<std::string, std::string>::iterator tmp = headers.find("Content-Length");
@@ -218,12 +228,17 @@ int Parsing::get_content_length()
 
 bool Parsing::is_chunked(void)
 {
-	if (headers.find("Content-Length") == headers.end())
-	{
-		// std::cout << "Chunked branch\n";
-		return (true);
-	}
-	return (false);
+    if (headers.find("Content-Length") == headers.end())
+    {
+        std::cout << "Chunked branch\n";
+        std::cout << "down\n";
+        for_testing_print_request_struct();
+        std::cout << "\nup\n";
+        std::cout << "~~For debugging purposes.";
+        exit(1);
+        return (true);
+    }
+    return (false);
 }
 
 // --------------- OVERLOADS ---------------- //

@@ -56,19 +56,30 @@ int ft::is_whitespace(std::string line)
 	return EXIT_SUCCESS;
 }
 
-bool ft::is_found(std::string const array[], std::string target){
-	int size = array->length();
-	for(int counter = 0;counter<size;counter++){
-		if(array[counter].compare(target) == 0){
-			return true;
-		}
-	}
-	return (false);
+std::string ft::remove_whitespace(std::string line)
+{
+    int i = line.size();
+
+    while (i >= 0 && std::isspace(line[i - 1]))
+        --i;
+    return (line.substr(0, i));
 }
 
-std::string ft::removeSpacesAfter(const std::string & inputString)
+bool ft::is_found(std::string const array[], std::string target, int size)
 {
-  int i = inputString.size();
+    for (int counter = 0; counter < size; counter++)
+    {
+        if (array[counter].compare(target) == 0)
+        {
+            return true;
+        }
+    }
+    return (false);
+}
+
+std::string ft::removeSpacesAfter(const std::string &inputString)
+{
+    int i = inputString.size();
 
   while (i >= 0 && inputString[i - 1] == ' ')
 	--i;
@@ -76,7 +87,7 @@ std::string ft::removeSpacesAfter(const std::string & inputString)
   return (inputString.substr(0, i));
 }
 
-bool ft::replace(std::string& str, const std::string& from, const std::string& to)
+bool ft::replace(std::string &str, const std::string &from, const std::string &to)
 {
 	size_t start_pos = str.find(from);
 	if(start_pos == std::string::npos)

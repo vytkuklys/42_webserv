@@ -20,6 +20,7 @@ private:
 	std::string serverName;
 	std::string errorPage;
 	int BodySize;
+	std::string directoryListing;
 
 	std::string location;
 	std::string root;
@@ -40,11 +41,13 @@ public:
 	void setServerName(std::string inputServerName);
 	void setErrorPage(std::string inputErrorPages);
 	void setBodySize(int inputBodySizes);
+	void setDirectoryListing(std::string inputDirectoryListing);
 
 	int getPort(void);
 	std::string getServerName(void);
 	std::string getErrorPage(void);
 	int getBodySize(void);
+	std::string getDirectoryListing(void);
 
 	std::vector<LocationData *> &getContLocationData(void);
 };
