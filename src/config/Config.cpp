@@ -78,7 +78,10 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	if (level == 3)
 	{
 		if (errorPage.length() == 0 || errorPage.length() > 100)
-			std::cout << "Invalid error_pages: '" << errorPage << "'" << std::endl;
+		{
+			std::cout << "Invalid error_pages: '" << errorPage << "'";
+			std::cout << ", default error_pages: './documents/html_errors' used instead" << std::endl;
+		}
 		else
 			tempClass.setErrorPage(errorPage);
 		errorPage.erase();
@@ -213,7 +216,6 @@ void Config::retrieveValues(void)
 	std::ifstream readFile;
 	ConfigData *tempClass = nullptr;
 
-	// int amountOfServers = countElement("server");
 	int whichServer = 0;
 	int whichLine = 1;
 	bool lookForNewServer = true;
@@ -233,9 +235,6 @@ void Config::retrieveValues(void)
 			{
 				if (readLine.find("server") != npos)
 				{
-					// amountOfServers -= 1;
-					// if (amountOfServers == -1)
-					// 	break ;
 					serverLength = countServerLength("server", ++whichServer);
 					if (serverLength > 2)
 					{
