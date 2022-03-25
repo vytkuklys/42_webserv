@@ -56,7 +56,8 @@ public:
 	int getProtocol(void);
 	int getBacklog(void);
 	int getInterface(void);
-	std::string getErrorPage(std::string server);
+	std::string getErrorPage(std::string port);
+	bool getDirectoryListing(std::string port);
 	LocationData * get_location(std::string port, std::string path);
 };
 

@@ -57,9 +57,8 @@ std::string ft::remove_whitespace(std::string line)
     return (line.substr(0, i));
 }
 
-bool ft::is_found(std::string const array[], std::string target)
+bool ft::is_found(std::string const array[], std::string target, int size)
 {
-    int size = array->length();
     for (int counter = 0; counter < size; counter++)
     {
         if (array[counter].compare(target) == 0)

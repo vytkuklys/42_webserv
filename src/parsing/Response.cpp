@@ -18,7 +18,9 @@ Response::Response(Parsing request, Config data) : Request(request), config(data
 void Response::set_path(std::string const filename)
 {
     path = filename;
-    LocationData * loc = config.get_location(ft::remove_whitespace(Request.get_port()), filename);
+    std::string port = ft::remove_whitespace(Request.get_port());
+    bool is_listing_on = config.getDirectoryListing(port);
+    LocationData * loc = config.get_location(port, filename);
     if (loc != nullptr)
 	{
         if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
@@ -30,9 +32,9 @@ void Response::set_path(std::string const filename)
         has_access = is_authorized(loc->getMethod(), Request.get_method());
     }
     is_path_valid = exists_path(path.c_str());
-    if (!is_path_valid || !has_access || loc == nullptr)
+    if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
     {
-        path = config.getErrorPage("yes.com");
+        path = config.getErrorPage(port);
         if (path.empty())
             path = default_error;
         if (!is_path_valid || loc == nullptr)
@@ -54,10 +56,17 @@ void Response::set_status_line(void)
 
 void Response::set_content_type(void)
 {
+        std::cout << file_ext << std::endl;
+
     if (is_text_ext(file_ext))
+    {
         headers["Content-type:"] = "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript")));
+    }
     else if (is_image_ext(file_ext))
+    {
         headers["Content-type:"] = "image/" + ((file_ext != "svg" && file_ext != "jpg") ? file_ext : (file_ext == "svg" ? "svg+xml" : "jpeg"));
+
+    }
 }
 
 void Response::set_headers(void)
@@ -235,14 +244,14 @@ bool exists_path(std::string const path)
 
 bool is_image_ext(std::string ext)
 {
-    static const std::string image[] = {"png", "jpg", "jpeg", "svg", "webp", "gif", "tiff", "avif", "bmp"};
-    return (ft::is_found(image, ext));
+    const std::string image[] = {"png", "jpg", "jpeg", "svg", "webp", "gif", "tiff", "avif", "bmp"};
+    return (ft::is_found(image, ext, 9));
 }
 
 bool is_text_ext(std::string ext)
 {
-    static const std::string text[] = {"html", "css", "js", "txt", "php", "xml", "csv"};
-    return (ft::is_found(text, ext));
+    const std::string text[] = {"html", "css", "js", "txt", "php", "xml", "csv"};
+    return (ft::is_found(text, ext, 7));
 }
 
 bool is_authorized(std::string server, std::string request)

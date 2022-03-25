@@ -33,6 +33,7 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 	}
 	this->Port = value.Port;
 	this->serverName = value.serverName;
+	this->directoryListing = value.directoryListing;
 	this->errorPage = value.errorPage;
 	this->BodySize = value.BodySize;
 	this->location = value.location;

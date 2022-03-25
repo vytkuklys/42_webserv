@@ -112,7 +112,9 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			std::cout << ", default directory_listing: 'on' used instead" << std::endl;
 		}
 		else
+		{
 			tempClass.setDirectoryListing(directoryListing);
+		}
 		directoryListing.erase();
 	}
 }
@@ -306,20 +308,41 @@ int Config::getProtocol(void) { return (_protocol); }
 int Config::getBacklog(void) { return (_backlog); }
 int Config::getInterface(void) { return (_interface); }
 
-std::string Config::getErrorPage(std::string server)
+std::string Config::getErrorPage(std::string port)
 {
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
 	while (it != ite)
 	{
-		if (server == (*it)->getServerName())
+		if (std::atoi(port.c_str()) == (*it)->getPort())
 		{
 			return ((*it)->getErrorPage());
 		}
 		++it;
 	}
 	return ("");
+}
+
+bool Config::getDirectoryListing(std::string port)
+{
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+			std::cout << "1";
+	while (it != ite)
+	{
+		if (std::atoi(port.c_str()) == (*it)->getPort())
+		{
+			std::string dir = (*it)->getDirectoryListing();
+			if (dir == "on")
+				return (true);
+			else
+				return (false);
+		}
+		++it;
+	}
+	return (false);
 }
 
 int Config::get_location_index(std::vector<std::string> locations, std::string paths)

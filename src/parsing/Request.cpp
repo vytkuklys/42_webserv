@@ -57,6 +57,8 @@ Parsing::Parsing(int fd)
     char buffer[4001];
     std::string line;
     size_t bytes = recv(fd, buffer, 4000, 0);
+    // buffer[bytes] = '\0';
+    // std::cout << buffer;
     std::istringstream data(std::string(buffer, bytes), std::ios::binary);
     while (data && std::getline(data, line) && set_start_line(line))
         ;
