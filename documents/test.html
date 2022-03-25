@@ -1,6 +1,3 @@
-X-Powered-By: PHP/8.1.3
-Content-type: text/html; charset=UTF-8
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
 <style type="text/css">
@@ -29,12 +26,11 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <h2>Environment</h2>
 <table>
 <tr class="h"><th>Variable</th><th>Value</th></tr>
-<tr><td class="e">CONTENT_LENGTH </td><td class="v">2707 </td></tr>
 <tr><td class="e">QUERY_STRING </td><td class="v"><i>no value</i> </td></tr>
-<tr><td class="e">REQUEST_URI </td><td class="v">/test1.php </td></tr>
+<tr><td class="e">REQUEST_URI </td><td class="v">/cgi-bin/cgi.php </td></tr>
 <tr><td class="e">REDIRECT_STATUS </td><td class="v">200 </td></tr>
-<tr><td class="e">SCRIPT_NAME </td><td class="v">/test1.php </td></tr>
-<tr><td class="e">SCRIPT_FILENAME </td><td class="v">./documents//test1.php </td></tr>
+<tr><td class="e">SCRIPT_NAME </td><td class="v">/cgi-bin/cgi.php </td></tr>
+<tr><td class="e">SCRIPT_FILENAME </td><td class="v">./cgi-bin/cgi.php </td></tr>
 <tr><td class="e">REQUEST_METHOD </td><td class="v">POST </td></tr>
 <tr><td class="e">SERVER_PROTOCOL </td><td class="v">HTTP/1.1 </td></tr>
 <tr><td class="e">SERVER_SOFTWARE </td><td class="v">webserv </td></tr>
@@ -42,32 +38,17 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class="e">REQUEST_SCHEME </td><td class="v">http </td></tr>
 <tr><td class="e">SERVER_ADDR </td><td class="v"><i>no value</i> </td></tr>
 <tr><td class="e">SERVER_PORT </td><td class="v">localhos </td></tr>
-<tr><td class="e">CONTENT_TYPE </td><td class="v">multipart/form-data; boundary=----WebKitFormBoundarydotsjubzDT2ZFinR </td></tr>
+<tr><td class="e">CONTENT_TYPE </td><td class="v">application/x-www-form-urlencoded </td></tr>
 <tr><td class="e">__CF_USER_TEXT_ENCODING </td><td class="v">0x18C4D:0x0:0x0 </td></tr>
 </table>
 <h2>PHP Variables</h2>
 <table>
 <tr class="h"><th>Variable</th><th>Value</th></tr>
-<tr><td class="e">$_REQUEST['user_name']</td><td class="v">Name</td></tr>
-<tr><td class="e">$_REQUEST['MAX_FILE_SIZE']</td><td class="v">30000</td></tr>
-<tr><td class="e">$_POST['user_name']</td><td class="v">Name</td></tr>
-<tr><td class="e">$_POST['MAX_FILE_SIZE']</td><td class="v">30000</td></tr>
-<tr><td class="e">$_FILES['user_file']</td><td class="v"><pre>Array
-(
-    [name] =&gt; 42.png
-    [full_path] =&gt; 42.png
-    [type] =&gt; image/png
-    [tmp_name] =&gt; /private/var/tmp/phphV9fKJ
-    [error] =&gt; 0
-    [size] =&gt; 2318
-)
-</pre></td></tr>
-<tr><td class="e">$_SERVER['CONTENT_LENGTH']</td><td class="v">2707</td></tr>
 <tr><td class="e">$_SERVER['QUERY_STRING']</td><td class="v"><i>no value</i></td></tr>
-<tr><td class="e">$_SERVER['REQUEST_URI']</td><td class="v">/test1.php</td></tr>
+<tr><td class="e">$_SERVER['REQUEST_URI']</td><td class="v">/cgi-bin/cgi.php</td></tr>
 <tr><td class="e">$_SERVER['REDIRECT_STATUS']</td><td class="v">200</td></tr>
-<tr><td class="e">$_SERVER['SCRIPT_NAME']</td><td class="v">/test1.php</td></tr>
-<tr><td class="e">$_SERVER['SCRIPT_FILENAME']</td><td class="v">./documents//test1.php</td></tr>
+<tr><td class="e">$_SERVER['SCRIPT_NAME']</td><td class="v">/cgi-bin/cgi.php</td></tr>
+<tr><td class="e">$_SERVER['SCRIPT_FILENAME']</td><td class="v">./cgi-bin/cgi.php</td></tr>
 <tr><td class="e">$_SERVER['REQUEST_METHOD']</td><td class="v">POST</td></tr>
 <tr><td class="e">$_SERVER['SERVER_PROTOCOL']</td><td class="v">HTTP/1.1</td></tr>
 <tr><td class="e">$_SERVER['SERVER_SOFTWARE']</td><td class="v">webserv</td></tr>
@@ -75,10 +56,10 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class="e">$_SERVER['REQUEST_SCHEME']</td><td class="v">http</td></tr>
 <tr><td class="e">$_SERVER['SERVER_ADDR']</td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">$_SERVER['SERVER_PORT']</td><td class="v">localhos</td></tr>
-<tr><td class="e">$_SERVER['CONTENT_TYPE']</td><td class="v">multipart/form-data; boundary=----WebKitFormBoundarydotsjubzDT2ZFinR</td></tr>
+<tr><td class="e">$_SERVER['CONTENT_TYPE']</td><td class="v">application/x-www-form-urlencoded</td></tr>
 <tr><td class="e">$_SERVER['__CF_USER_TEXT_ENCODING']</td><td class="v">0x18C4D:0x0:0x0</td></tr>
-<tr><td class="e">$_SERVER['PHP_SELF']</td><td class="v">/test1.php</td></tr>
-<tr><td class="e">$_SERVER['REQUEST_TIME_FLOAT']</td><td class="v">1648037858.014</td></tr>
-<tr><td class="e">$_SERVER['REQUEST_TIME']</td><td class="v">1648037858</td></tr>
+<tr><td class="e">$_SERVER['PHP_SELF']</td><td class="v">/cgi-bin/cgi.php</td></tr>
+<tr><td class="e">$_SERVER['REQUEST_TIME_FLOAT']</td><td class="v">1648149174.0437</td></tr>
+<tr><td class="e">$_SERVER['REQUEST_TIME']</td><td class="v">1648149174</td></tr>
 </table>
 </div></body></html>

@@ -68,7 +68,6 @@ void SERVER::WebServer::handler()
 {
 	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end()) // check if it is in linsteners vector array
 	{
-
 		handle_new_client();
 	}
 	else // data from an existing connection, receive it
@@ -118,6 +117,7 @@ void SERVER::WebServer::responder()
 	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
 	{
+		std::cout << "respons" << std::cout;
 		int total;
 		Parsing &info = itr->second; // all header information from client
 		Response response(info, config);

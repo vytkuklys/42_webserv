@@ -18,14 +18,14 @@
         <p>Index Page</p>
 
         <?php
-            function formatBytes($bytes, $precision = 2) { 
-                $units = array('B', 'KB', 'MB', 'GB', 'TB'); 
-            
-                $bytes = max($bytes, 0); 
-                $pow = floor(($bytes ? log($bytes) : 0) / log(1024)); 
-                $pow = min($pow, count($units) - 1); 
-                return round($bytes, $precision).' '.$units[$pow]; 
-            } 
+            function formatBytes($bytes, $precision = 2) {
+                $units = array('B', 'KB', 'MB', 'GB', 'TB');
+
+                $bytes = max($bytes, 0);
+                $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+                $pow = min($pow, count($units) - 1);
+                return round($bytes, $precision).' '.$units[$pow];
+            }
             echo "<table>";
             echo "<tr><th>Filename</th><th>Size</th><th>Last Modified</th></tr>";
             $fileList = glob('*');
@@ -36,7 +36,7 @@
                     echo '<td>'.formatBytes(filesize($filename)).'</td>';
                     echo '<td>'.date("F d Y H:i:s", filemtime($filename)).'</td>';
                     echo "</tr>";
-                }   
+                }
             }
             echo "</table>";
         ?>
