@@ -218,6 +218,7 @@ int Config::errorChecker(void)
 		countElement("srvr_name") != countElement("server") ||
 		countElement("error_pages") != countElement("server") ||
 		countElement("client_max_body_size") != countElement("server") ||
+		countElement("directory_listing") != countElement("server") ||
 		countElement("port") > countElement("server"))
 		return (-1);
 	return (0);
