@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), Port(8080),
-							   serverName("UNKNOWN"), errorPage("UNKNOWN"), BodySize(1) {}
+ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"), 
+errorPage("./documents/html_errors./documents/html_errors"), BodySize(1) {}
 
 ConfigData::~ConfigData(void)
 {
