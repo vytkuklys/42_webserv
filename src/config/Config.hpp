@@ -18,11 +18,15 @@ private:
 	std::vector<ConfigData *> ContConfigData;
 	std::string const filename;
 	size_t const npos;
+
 	std::vector<int> ports;
+
 	std::string sPort;
 	std::string serverName;
 	std::string errorPage;
 	std::string sBodySize;
+	std::string directoryListing;
+
 	int _domain;
 	int _type;
 	int _protocol;

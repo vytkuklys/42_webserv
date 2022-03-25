@@ -104,6 +104,17 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			tempClass.setBodySize(ft::stoi(sBodySize));
 		sBodySize.erase();
 	}
+	if (level == 6)
+	{
+		if (directoryListing != "on" && directoryListing != "off" )
+		{
+			std::cout << "Invalid directory_listing: '" << directoryListing << "'";
+			std::cout << ", default directory_listing: 'on' used instead" << std::endl;
+		}
+		else
+			tempClass.setDirectoryListing(directoryListing);
+		directoryListing.erase();
+	}
 }
 
 void Config::setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine)
@@ -134,6 +145,8 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 				errorPage.push_back(readLine[begin + i]);
 			if (level == 4)
 				sBodySize.push_back(readLine[begin + i]);
+			if (level == 6)
+				directoryListing.push_back(readLine[begin + i]);
 			i++;
 		}
 		pushToClass(level, tempClass);
@@ -250,6 +263,7 @@ void Config::retrieveValues(void)
 				setData(readLine, "error_pages", 3, *tempClass, whichLine);
 				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
 				setData(readLine, "location", 5, *tempClass, whichLine);
+				setData(readLine, "directory_listing", 6, *tempClass, whichLine);
 				serverLength--;
 				if (serverLength == 0)
 				{

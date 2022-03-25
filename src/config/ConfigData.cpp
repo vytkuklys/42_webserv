@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
 ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"), 
-errorPage("./documents/html_errors./documents/html_errors"), BodySize(1) {}
+errorPage("./documents/html_errors./documents/html_errors"), BodySize(1), directoryListing("on") {}
 
 ConfigData::~ConfigData(void)
 {
@@ -153,6 +153,8 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 	}
 }
 
+
+
 void ConfigData::setPort(int inputPort) { Port = inputPort; }
 
 void ConfigData::setServerName(std::string inputServerName) { serverName = inputServerName; }
@@ -161,6 +163,10 @@ void ConfigData::setErrorPage(std::string inputErrorPages) { errorPage = inputEr
 
 void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 
+void ConfigData::setDirectoryListing(std::string inputDirectoryListing) { directoryListing = inputDirectoryListing; }
+
+
+
 int ConfigData::getPort(void) { return (Port); }
 
 std::string ConfigData::getServerName(void) { return (serverName); }
@@ -168,5 +174,9 @@ std::string ConfigData::getServerName(void) { return (serverName); }
 std::string ConfigData::getErrorPage(void) { return (errorPage); }
 
 int ConfigData::getBodySize(void) { return (BodySize); }
+
+std::string ConfigData::getDirectoryListing(void) { return (directoryListing); }
+
+
 
 std::vector<LocationData *> &ConfigData::getContLocationData(void) { return (ContLocationData); }
