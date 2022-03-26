@@ -235,7 +235,7 @@ bool Parsing::is_chunked(void)
         for_testing_print_request_struct();
         std::cout << "\nup\n";
         std::cout << "~~For debugging purposes.";
-        exit(1);
+        //exit(1);
         return (true);
     }
     return (false);
