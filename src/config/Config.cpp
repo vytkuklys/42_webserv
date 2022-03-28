@@ -94,11 +94,11 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			std::cout << ", default client_max_body_size: '1' used instead" << std::endl;
 			tempClass.setBodySize(1);
 		}
-		else if (ft::stoi(sBodySize) > 10)
+		else if (ft::stoi(sBodySize) > 100)
 		{
-			std::cout << "client_max_body_size is bigger than 10M";
-			std::cout << ", client_max_body_size set at: '10'" << std::endl;
-			tempClass.setBodySize(10);
+			std::cout << "client_max_body_size is bigger than 100M";
+			std::cout << ", client_max_body_size set at: '100'" << std::endl;
+			tempClass.setBodySize(100);
 		}
 		else
 			tempClass.setBodySize(ft::stoi(sBodySize));
