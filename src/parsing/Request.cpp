@@ -292,12 +292,12 @@ bool Parsing::is_chunked(void)
 {
     if (headers.find("Content-Length") == headers.end())
     {
-        // std::cout << "Chunked branch\n";
-        // std::cout << "down\n";
-        // for_testing_print_request_struct();
-        // std::cout << "\nup\n";
-        // std::cout << "~~For debugging purposes.";
-        // exit(1);
+        std::cout << "Chunked branch\n";
+        std::cout << "down\n";
+        for_testing_print_request_struct();
+        std::cout << "\nup\n";
+        std::cout << "~~For debugging purposes.";
+        //exit(1);
         return (true);
     }
     return (false);
