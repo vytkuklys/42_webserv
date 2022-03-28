@@ -2,17 +2,26 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sstream>
-int Parsing::set_start_line(std::string s)
+#include <strings.h>
+bool Parsing::set_start_line(std::string s)
 {
 	size_t pos = 0;
 	std::string token;
 	int j = 0;
-
-	s.erase(std::remove(s.begin(), s.end(), '\n'), s.end()); // remove the newlines
+	if(s.find("\r") == std::string::npos)
+	{
+		raw_header_line += s;
+		return (EXIT_FAILURE);
+	}
+	parsing_position = header;
+	if (raw_header_line.empty() == false)
+	{
+		s = raw_header_line + s;
+		raw_header_line.clear();
+	}
 	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
-
 	if (s[0] == '/' || s[0] == '#')
-		return (1);
+		return (EXIT_FAILURE);
 	while ((pos = s.find(" ")) != std::string::npos)
 	{
 		token = s.substr(0, pos);
@@ -26,16 +35,29 @@ int Parsing::set_start_line(std::string s)
 		s.erase(0, pos + 1);
 	}
 	this->protocol = s;
-	return (0);
+	return (EXIT_SUCCESS);
 }
 
 int Parsing::set_headers(std::string line)
 {
 	size_t pos;
-	line.erase(std::remove(line.begin(), line.end(), '\n'), line.end()); // remove the newlines
+	// std::cout << line << std::endl;
+	if(line.find("\r") == std::string::npos)
+	{
+		raw_header_line += line;
+		return (EXIT_FAILURE);
+	}
+	if (raw_header_line.empty() == false)
+	{
+		line = raw_header_line + line;
+		raw_header_line.clear();
+	}
 	line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 	if (line.empty() || ft::is_whitespace(line) == EXIT_SUCCESS)
+	{
+		parsing_position = first_body;
 		return (EXIT_FAILURE);
+	}
 	pos = line.find(":");
 	if (!(line[0] == '/' || line[0] == '#'))
 		headers[line.substr(0, pos)] = line.substr(pos + 2, line.length());
@@ -57,25 +79,49 @@ void Parsing::for_testing_print_request_struct()
 
 Parsing::Parsing(int fd)
 {
+	parsing_position = first_line;
+	status_line = "HTTP/1.1 200 OK";
+	fill_header(fd);
+}
+
+Parsing::~Parsing()
+{
+	return;
+}
+
+void	Parsing::fill_header(int fd)
+{
 	char buffer[4001];
 	std::string line;
 	size_t bytes = recv(fd, buffer, 4000, 0);
-	// std::cout << "bysts=" << bytes << "\nbuffer" << buffer << std::endl;
+	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
+	write(1, buffer, bytes);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
 	// std::cout << "missing_dat: " << "." << data.str().length() << "." << std::endl;
 
-	bytes += 1;
-	while (data && std::getline(data, line) && set_start_line(line))
+	// bytes += 1; //not nessesary ?
+
+	while ((parsing_position == first_line) && data && std::getline(data, line) && set_start_line(line))
 		;
-	while (data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
-		;
+	// std::cout << line << std::endl;
+	while ((parsing_position == header) && data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
+	{
+			// std::cout << line << std::endl;
+		// std::cout << line << data <<std::endl;
+	}
+	// std::cout << line << std::endl;
+
 
 	// std::cout << "\n"
 	// 		  << path << "\n";
-
-	if (method == "POST") // check if it is a post request
+	std::map<std::string, std::string>::iterator length_location = headers.find("Content-Length");
+	int length = 1;
+	if (length_location != headers.end())
+		length = ft::stoi(length_location->second);
+	if (parsing_position == first_body && method == "POST" && length > 0) // check if it is a post request
 	{
-		if (pipe(pipefd) == -1)
+		// std::cout << method << std::endl;
+		if (pipe(pipe_in) == -1)
 			std::cout << "pipe error" << std::endl;
 		int pid_child = fork();
 		if (pid_child == -1)
@@ -129,8 +175,8 @@ Parsing::Parsing(int fd)
 				env.push_back(&(env_strings[i][0]));
 			}
 			env.push_back(NULL);
-			close(pipefd[1]);
-			dup2(pipefd[0], STDIN_FILENO);
+			close(pipe_in[1]);
+			dup2(pipe_in[0], STDIN_FILENO);
 			dup2(STDERR_FILENO, STDOUT_FILENO);
 			char * const * nll = NULL;
 			if (execve("/Users/shackbei/goinfre/.brew/bin/php-cgi", nll, &env[0]))
@@ -139,13 +185,13 @@ Parsing::Parsing(int fd)
 				exit(EXIT_FAILURE);
 			}
 		}
-		close(pipefd[0]);
+		close(pipe_in[0]);
 		if (!is_chunked())
 		{
 			int test = 0;
 			while (data && std::getline(data, line))
 			{
-				write(pipefd[1], line.c_str(), line.length());
+				write(pipe_in[1], line.c_str(), line.length());
 				// std::cout << "Line: " << line << std::endl;
 				test++;
 			}
@@ -154,15 +200,18 @@ Parsing::Parsing(int fd)
 		else
 		{
 			missing_chuncked_data = 0;
-			// std::cout << "data.rdbuf()->in_avail(): " << data.rdbuf()->in_avail() << std::endl;
+			std::cout << "new chuked" << std::endl;
 			unchunk_body(data);
-
 		}
 	}
-	// fclose(data); // dosent work maybe someone wave an idear
-
-	// fclose also closes file descriptor. How to
 }
+// ----------------- SETTER ------------------ //
+
+void	Parsing::set_status_line(std::string new_status)
+{
+	status_line = new_status;
+}
+
 
 // ----------------- GETTERS ------------------ //
 
@@ -206,8 +255,10 @@ std::string Parsing::get_body() const
 	return (body);
 }
 
+
 std::string Parsing::get_port()
 {
+	std::string port;
     if (headers.find("Host") != headers.end())
     {
         std::string host = headers.find("Host")->second;
@@ -224,18 +275,29 @@ int Parsing::get_content_length()
 	return (-1);
 }
 
+std::string		Parsing::get_status_line() const
+{
+	return(status_line);
+}
+
+int		Parsing::get_parsing_position() const
+{
+	return(parsing_position);
+}
+
+
 // --------------------- CHECKERS ---------------------
 
 bool Parsing::is_chunked(void)
 {
     if (headers.find("Content-Length") == headers.end())
     {
-        std::cout << "Chunked branch\n";
-        std::cout << "down\n";
-        for_testing_print_request_struct();
-        std::cout << "\nup\n";
-        std::cout << "~~For debugging purposes.";
-        exit(1);
+        // std::cout << "Chunked branch\n";
+        // std::cout << "down\n";
+        // for_testing_print_request_struct();
+        // std::cout << "\nup\n";
+        // std::cout << "~~For debugging purposes.";
+        // exit(1);
         return (true);
     }
     return (false);
@@ -256,7 +318,7 @@ void Parsing::set_regular_body(int fd)
 	{
 		// do somethings else
 	}
-	size_t written = write(pipefd[1], data.str().c_str(), bytes);
+	size_t written = write(pipe_in[1], data.str().c_str(), bytes);
 	if ((int)written == -1)
 	{
 		// do something
@@ -267,7 +329,7 @@ void Parsing::set_regular_body(int fd)
 	}
 	if ((int)bytes < 4000)
 	{
-		close(pipefd[1]);
+		close(pipe_in[1]);
 		wait(NULL);
 	}
 }
@@ -275,8 +337,10 @@ void Parsing::set_regular_body(int fd)
 void Parsing::set_chunked_body(int fd)
 {
 	char buffer[4001];
+	bzero(buffer, 4001);
 	size_t bytes = recv(fd, buffer, 4000, 0);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
+	std::cout << "." << buffer << "." <<  std::endl;
 	if ((int)bytes == -1)
 	{
 		// do something
@@ -293,25 +357,34 @@ void Parsing::unchunk_body(std::istringstream& data)
 	char buffer[4001];
 	std::string line;
 	size_t written;
+	std::cout << "unchunk_body" << std::endl;
 	do
 	{
 		if (missing_chuncked_data == 0)
 		{
 			// std::cout << "chunked beginn" << "." << line << "." << std::endl;
-			if (ft::is_whitespace(line) == EXIT_SUCCESS)
+			if (ft::is_whitespace(line) == EXIT_SUCCESS && part_of_hex_of_chunked.empty())
 				continue;
-			line.erase(std::remove(line.begin(), line.end(), '\n'), line.end()); // remove the newlines
-			line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
-			missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-			// std::cout << missing_chuncked_data << std::endl;
-			if (missing_chuncked_data == 0)
+			line = part_of_hex_of_chunked + line;
+			part_of_hex_of_chunked.clear();
+			if (line.find('\r') != std::string::npos)
 			{
-				std::getline(data, line);
-				// std::cout << "close pipe" << std::endl;
-				close(pipefd[1]);
-				waitpid(pid_child, NULL, 0);
-				break;
+				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
+				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
+				if (missing_chuncked_data == 0)
+				{
+					std::getline(data, line);
+					if (parsing_position == first_body)
+						status_line = "HTTP/1.1 405 Method Not Allowed";
+					// std::cout << "close pipe" << std::endl;
+					close(pipe_in[1]);
+					waitpid(pid_child, NULL, 0);
+					break;
+				}
 			}
+			else
+				part_of_hex_of_chunked = line;
+			// std::cout << missing_chuncked_data << std::endl;
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
 		}
 		if (missing_chuncked_data > data.str().length())
@@ -319,13 +392,13 @@ void Parsing::unchunk_body(std::istringstream& data)
 			// std::cout << "write whole array" << std::endl;
 			int tmp_size = data.rdbuf()->in_avail();
 			tmp_size = data.readsome(buffer, tmp_size);
-			written = write(pipefd[1], buffer, tmp_size);
+			written = write(pipe_in[1], buffer, tmp_size);
 		}
 		else
 		{
 			// std::cout << "write missing_chuncked_data" << std::endl;
 			data.readsome(buffer, missing_chuncked_data);
-			written = write(pipefd[1], buffer, missing_chuncked_data);
+			written = write(pipe_in[1], buffer, missing_chuncked_data);
 			// write(STDOUT_FILENO, buffer, missing_chuncked_data);
 		}
 		if (static_cast<int>(written) == -1)
@@ -339,24 +412,5 @@ void Parsing::unchunk_body(std::istringstream& data)
 		missing_chuncked_data -= written;
 		// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << " written:" << written << "." << std::endl;
 	} while (data && std::getline(data, line));
-
-	// if(data.good() == false)
-	// {
-	// 	std::cout << "error gnl " << data.rdbuf()->in_avail() << std::endl;
-	// 	if ( (data.rdstate() & std::ifstream::failbit ) != 0 )
-	// 		std::cout << "failbit" << std::endl;
-	// 	if ( (data.rdstate() & std::ifstream::eofbit ) != 0 )
-	// 		std::cout << "eofbit" << std::endl;
-	// 	if ( (data.rdstate() & std::ifstream::badbit ) != 0 )
-	// 		std::cout << "badbit" << std::endl;
-	// 	if ( (data.rdstate() & std::ifstream::goodbit ) != 0 )
-	// 		std::cout << "goodbit" << std::endl;
-	// }
-
-	// if ((int)bytes < 4000)
-	// {
-	// 	close(pipefd[1]);
-	// 	wait(NULL);
-	// }
 }
 

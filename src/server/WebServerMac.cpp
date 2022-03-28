@@ -17,6 +17,7 @@ SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServe
 
 SERVER::WebServer::~WebServer()
 {
+	return;
 }
 
 void SERVER::WebServer::launch(std::vector<int> &ports)
@@ -97,17 +98,28 @@ void SERVER::WebServer::handle_known_client()
 		data.insert(std::pair<int, Parsing>(tmp_socket_fd, request));
 		FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if (itr != data.end())
+	else if (itr->second.get_parsing_position() <= header)
+	{
+		itr->second.fill_header(tmp_socket_fd);
+	}
+	else if (itr->second.get_method() == "POST" && itr != data.end())
 	{
 		Parsing &res = itr->second;
 		if (res.is_chunked())
 		{
+			std::cout << "known chuked" << std::endl;
 			res.set_chunked_body(tmp_socket_fd);
 		}
 		else
 		{
 			res.set_regular_body(tmp_socket_fd);
 		}
+	}
+	else
+	{
+		char tmp[1000];
+		read(tmp_socket_fd, tmp, 1000);
+		// lseek( tmp_socket_fd, 0, SEEK_END);
 	}
 }
 

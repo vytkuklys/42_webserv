@@ -8,6 +8,8 @@ Response::Response(Parsing request, Config data) : Request(request), config(data
     has_access = true;
     set_path(Request.get_path());
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
+	if (file_ext == "php")
+			Request.set_status_line("HTTP/1.1 303 See Other");
     set_status_line();
     set_body();
     set_headers();
@@ -30,8 +32,12 @@ void Response::set_path(std::string const filename)
         if (filename[filename.length() - 1] == '/')
             path += loc->getIndex();
         has_access = is_authorized(loc->getMethod(), Request.get_method());
+		if (has_access == false)
+			Request.set_status_line("HTTP/1.1 403 FORBIDDEN");
     }
     is_path_valid = exists_path(path.c_str());
+	if (is_path_valid == false)
+			Request.set_status_line("HTTP/1.1 404 NOT FOUND");
     if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
     {
         path = config.getErrorPage(port);
@@ -46,14 +52,17 @@ void Response::set_path(std::string const filename)
 
 void Response::set_status_line(void)
 {
-	if (Request.get_method() == "POST")
-		status_line = "HTTP/1.1 303 See Other";
-	else if (!is_path_valid)
-		status_line = "HTTP/1.1 404 NOT FOUND";
-	else if (has_access == false)
-		status_line = "HTTP/1.1 403 FORBIDDEN";
-	else
-		status_line = "HTTP/1.1 200 OK";
+	// if (file_ext == "php")
+	// 	status_line = "HTTP/1.1 303 See Other";
+	// else if (!is_path_valid)
+	// 	status_line = "HTTP/1.1 404 NOT FOUND";
+	// else if (Request.get_method() == "POST")
+	// 	status_line = "HTTP/1.1 405 Method Not Allowed";
+	// else if (has_access == false)
+	// 	status_line = "HTTP/1.1 403 FORBIDDEN";
+	// else
+	// 	status_line = "HTTP/1.1 200 OK";
+	status_line = Request.get_status_line();
 }
 
 void Response::set_content_type(void)
@@ -203,6 +212,7 @@ std::string Response::get_http_response(void)
 	std::map<std::string, std::string>::iterator it;
 
 	response = status_line + "\r\n";
+	std::cout << status_line << std::endl;
 	for (it = headers.begin(); it != headers.end(); ++it)
 	{
 		 response += it->first + it->second + "\r\n";
