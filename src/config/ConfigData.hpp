@@ -3,6 +3,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
 #include <sstream>
 #include <vector>
 
@@ -36,6 +38,7 @@ public:
 	void retrieveValues(std::string const filename, int start, int end);
 	void setData(std::string readLine, std::string find, int level, LocationData &tempClass);
 	void pushToClass(int level, LocationData &tempClass);
+	int	checkingForTrash();
 
 	void setPort(int inputPort);
 	void setServerName(std::string inputServerName);
