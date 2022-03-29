@@ -23,15 +23,15 @@ namespace SERVER
 		int						tmp_socket_fd;
 		fd_set					current_sockets;
 		fd_set					write_sockets;
-		std::map<int,Parsing>	data;
+		std::map<int,Request>	data;
 		Config					config;
 		void					accepter();
 		void					handler();
 		void					responder();
 		void					handle_new_client();
 		void					handle_known_client();
-		void					respond_header(std::stringstream& client, Parsing& info);
-		void					respond_body(std::stringstream& client, Parsing& info);
+		void					respond_header(std::stringstream& client, Request& info);
+		void					respond_body(std::stringstream& client, Request& info);
 		std::string				http_time(const struct tm *timeptr);
 
 	public:

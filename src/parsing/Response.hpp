@@ -23,7 +23,7 @@ class Response
 private:
 		bool is_path_valid;
 		bool has_access;
-		Parsing Request;
+		Request request;
 		Config config;
 		std::string default_error;
 		std::ifstream input_stream;
@@ -36,19 +36,21 @@ private:
 		void set_body(void);
 		void set_headers(void);
 		void set_path(std::string const filename);
+		void set_error_path(void);
 		void set_status_line(void);
 		void set_content_type(void);
 		void set_image_body(void);
 public:
 		std::string get_path(void);
-		Response(Parsing request, Config data);
+		Response(Request req, Config data);
 		std::string get_http_response(void);
 		std::string get_http_time();
+		void	stop_reading(void);
 };
 
 bool is_image_ext(std::string ext);
 bool is_text_ext(std::string ext);
-bool is_authorized(std::string server, std::string request);
+bool is_authorized(std::string server, std::string request, bool listing_status);
 bool exists_path(std::string const filename);
 
 #endif

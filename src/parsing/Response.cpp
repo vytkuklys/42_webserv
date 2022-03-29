@@ -2,25 +2,53 @@
 #include <string.h>
 #include <sys/stat.h>
 
-Response::Response(Parsing request, Config data) : Request(request), config(data)
+Response::Response(Request req, Config data) : request(req), config(data)
 {
     default_error = "./documents/html_errors";
     has_access = true;
-    set_path(Request.get_path());
+	if (request.get_error_status() == true)
+	{
+		set_error_path();
+	}
+	else
+	{
+    	set_path(request.get_path());
+	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-	if (file_ext == "php")
-			Request.set_status_line("HTTP/1.1 303 See Other");
     set_status_line();
     set_body();
     set_headers();
 }
 
+// ----------------- MEMBERS ------------------- //
+void	Response::stop_reading(void)
+{
+	request.set_status_line("HTTP/1.1 500 INTERNAL SERVER ERROR");
+	set_status_line();
+	set_error_path();
+	file_ext = "html";
+	set_body();
+}
+
 // ----------------- SETTERS ------------------- //
+
+void Response::set_error_path(void)
+{
+	std::string port = ft::remove_whitespace(request.get_port());
+	std::string status = request.get_status_line();
+	path = config.getErrorPage(port);
+    if (path.empty())
+        path = default_error;
+	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
+		path.append("/500.html");
+	else if (status == "HTTP/1.1 400 BAD REQUEST")
+		path.append("/400.html");
+}
 
 void Response::set_path(std::string const filename)
 {
     path = filename;
-    std::string port = ft::remove_whitespace(Request.get_port());
+    std::string port = ft::remove_whitespace(request.get_port());
     bool is_listing_on = config.getDirectoryListing(port);
     LocationData * loc = config.get_location(port, filename);
     if (loc != nullptr)
@@ -31,13 +59,13 @@ void Response::set_path(std::string const filename)
             ft::replace(path, loc->getLocation(), loc->getRoot());
         if (filename[filename.length() - 1] == '/')
             path += loc->getIndex();
-        has_access = is_authorized(loc->getMethod(), Request.get_method());
+        has_access = is_authorized(loc->getMethod(), request.get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
-			Request.set_status_line("HTTP/1.1 403 FORBIDDEN");
+			request.set_status_line("HTTP/1.1 403 FORBIDDEN");
     }
     is_path_valid = exists_path(path.c_str());
 	if (is_path_valid == false)
-			Request.set_status_line("HTTP/1.1 404 NOT FOUND");
+			request.set_status_line("HTTP/1.1 404 NOT FOUND");
     if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
     {
         path = config.getErrorPage(port);
@@ -56,19 +84,20 @@ void Response::set_status_line(void)
 	// 	status_line = "HTTP/1.1 303 See Other";
 	// else if (!is_path_valid)
 	// 	status_line = "HTTP/1.1 404 NOT FOUND";
-	// else if (Request.get_method() == "POST")
+	// else if (request.get_method() == "POST")
 	// 	status_line = "HTTP/1.1 405 Method Not Allowed";
 	// else if (has_access == false)
 	// 	status_line = "HTTP/1.1 403 FORBIDDEN";
 	// else
 	// 	status_line = "HTTP/1.1 200 OK";
-	status_line = Request.get_status_line();
+
+	if (is_path_valid == true && has_access == true && file_ext == "php" && path != "./documents/index.php")
+		request.set_status_line("HTTP/1.1 303 See Other");
+	status_line = request.get_status_line();
 }
 
 void Response::set_content_type(void)
 {
-        std::cout << file_ext << std::endl;
-
     if (is_text_ext(file_ext))
     {
         headers["Content-type:"] = "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript")));
@@ -83,7 +112,7 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
     set_content_type();
-	if(Request.get_method() == "POST")
+	if(request.get_method() == "POST")
 		headers["Location:"] = "../index.html";
     headers["Content-length:"] = ft::to_string(body.length());
     headers["Content-security-policy:"] = "upgrade-insecure-requests";
@@ -99,7 +128,8 @@ void Response::set_image_body(void)
 	std::ifstream in(path, std::ios::binary);
 	if (!in.is_open())
 	{
-		std::cout << "failed to open file" << std::endl;
+		stop_reading();
+		return ;
 	}
 	else
 	{
@@ -109,7 +139,9 @@ void Response::set_image_body(void)
 
 		if (in.fail())
 		{
-			std::cout << "failed to get size of file" << std::endl;
+			in.close();
+			stop_reading();
+			return ;
 		}
 		else if (length > 0)
 		{
@@ -135,15 +167,15 @@ void Response::set_body(void)
 	std::string line;
 	if (input_stream.is_open())
 		input_stream.close();
-	if (file_ext == "php" && Request.get_method() == "GET")
+	if (file_ext == "php" && request.get_method() == "GET")
 	{
 		int pipefd[2];
 		int pid;
 		pipe(pipefd);
 		pid = fork();
 		if (pid == -1)
-			std::cout << "error fork" << std::endl;
-		if (pid == 0)
+			stop_reading();
+		else if (pid == 0)
 		{
 			// std::cout << "child" << std::endl;
 			close(pipefd[0]);
@@ -151,11 +183,11 @@ void Response::set_body(void)
 			test[0] = (char *)"php";
 			test[1] = &(path.substr(path.find_last_of("/") + 1))[0];
 			test[2] = NULL;
-			chdir(path.erase(path.find_last_of("/")).c_str());
-			dup2(pipefd[1], STDOUT_FILENO);
+			chdir(path.erase(path.find_last_of("/")).c_str()); //Stop reading
+			dup2(pipefd[1], STDOUT_FILENO); //Stop reading
 			if (execvp("php", test))
 			{
-				perror("execvp");
+				perror("execvp");  //Stop reading
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -171,9 +203,13 @@ void Response::set_body(void)
 			close(pipefd[1]);
 			// std::cout << "parent wait" << std::endl;
 			if (wait(NULL) == -1)
-				std::cout << "error wait" << std::endl;
+				std::cout << "error wait" << std::endl; //Stop reading
 			// std::cout << "child returnd" << std::endl;
 			FILE *data = fdopen(pipefd[0], "r");
+			if (data == NULL)
+			{
+				stop_reading();
+			}
 			while (data && ((len = getline(&buffer, &n, data)) != -1))
 			{
 				// std::cout << buffer << "size=" << n << " len=" << len << std::endl;
@@ -190,7 +226,7 @@ void Response::set_body(void)
 	{
 		set_image_body();
 	}
-	else if (Request.get_method() == "GET")
+	else if (request.get_method() == "GET" || request.get_error_status())
 	{
 		input_stream.open(path.c_str());
 		if (input_stream.is_open())
@@ -212,7 +248,6 @@ std::string Response::get_http_response(void)
 	std::map<std::string, std::string>::iterator it;
 
 	response = status_line + "\r\n";
-	std::cout << status_line << std::endl;
 	for (it = headers.begin(); it != headers.end(); ++it)
 	{
 		 response += it->first + it->second + "\r\n";
@@ -252,7 +287,10 @@ bool exists_path(std::string const path)
 {
 	std::ifstream exists(path.c_str());
 	if (exists.is_open())
+	{
+		exists.close();
 		return (true);
+	}
 	return (false);
 }
 
@@ -268,12 +306,12 @@ bool is_text_ext(std::string ext)
     return (ft::is_found(text, ext, 7));
 }
 
-bool is_authorized(std::string server, std::string request)
+bool is_authorized(std::string server, std::string request, bool listing_status)
 {
 	std::transform(server.begin(), server.end(), server.begin(), ft::to_lower);
 	std::transform(request.begin(), request.end(), request.begin(), ft::to_lower);
 
-    if (server.find(request, 0) == std::string::npos)
+    if (server.find(request, 0) == std::string::npos || listing_status)
         return (false);
     return (true);
 }
