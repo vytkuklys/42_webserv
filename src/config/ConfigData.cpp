@@ -48,22 +48,25 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 int ConfigData::checkingForTrash()
 {
     int size = method.length();
-    char array[size];
+    char array[size + 1];
     
     for(int i = 0; i < size; i++)
 	{
         array[i] = method[i];
 	}
-	//std::cout << "METHOD: ." << method << ". Length: ." << method.length() << "." << std::endl;
-	//std::cout << "ARRAY: ." << array << ". Length: ." << sizeof(array) << "." << std::endl;
+	array[size] = '\0';
+
 	char* splitResult = strtok(array, " ");
 	while (splitResult != NULL)
 	{
 		if (strcmp(splitResult, "post") != 0 && strcmp(splitResult, "delete") != 0 &&
 			strcmp(splitResult, "get") != 0 && strcmp(splitResult, "head") != 0)
-				return (1);
+		{
+			return (1);
+		}
 		splitResult = strtok(NULL, " ");
 	}
+
 	return (0);
 }
 
@@ -91,7 +94,8 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 	if (level == 3)
 	{
 		if ((method.find("post") == npos && method.find("delete") == npos && 
-			method.find("get") == npos && method.find("head") == npos)) // || checkingForTrash() == 1)
+			method.find("get") == npos && method.find("head") == npos) ||
+			checkingForTrash() == 1 || method.length() > 20)
 				std::cout << "Invalid method: '" << method << "'" << std::endl;
 		else
 			tempClass.setMethod(method);
