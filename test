@@ -1,18 +1,52 @@
-Listening on port(s): 8080 8081 8082
-GET / HTTP/1.1
-Host: localhost:8080
-User-Agent: Go-http-client/1.1
-Accept-Encoding: gzip
+Listening on port(s): 8080
 
-respons11html
-HTTP/1.1 200 OK
-POST / HTTP/1.1
+---START LINE 
+GET / HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
 Host: localhost:8080
 User-Agent: Go-http-client/1.1
-Transfer-Encoding: chunked
-Content-Type: test/file
+
+---START LINE 
+GET / HTTP/1.1
+
+---HEADERS 
 Accept-Encoding: gzip
-new chuked
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./documents/index.html == ./documents
+path=./documents/index.html
+HTTP/1.1 200 OK
+
+---START LINE 
+POST / HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+POST / HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Content-Type: test/file
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+POST / HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Content-Type: test/file
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+new chuked
 unchunk_body
 known chuked
 .
@@ -20,10 +54,399 @@ known chuked
 
 .
 unchunk_body
-respons11html
-SCRIPT_FILENAME=./
+./documents/index.html == ./documents
+path=./documents/html_errors/403.html
 HTTP/1.1 405 Method Not Allowed
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
 HEAD / HTTP/1.1
+
+---HEADERS 
 Host: localhost:8080
-User-Agent: Go-http-client/1.1respons11html
-HTTP/1.1 403 FORBIDDEN
+
+---START LINE 
+HEAD / HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+
+---START LINE 
+HEAD / HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+./documents/index.html == ./documents
+path=./documents/html_errors/403.html
+HTTP/1.1 405 Method Not Allowed
+
+---START LINE 
+GET /directory HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+
+---START LINE 
+GET /directory HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/youpi.bad_extension == ./tests/YoupiBanane
+path=./tests/YoupiBanane/youpi.bad_extension
+HTTP/1.1 200 OK
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
+GET /directory/youpi.bad_extension HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+
+---START LINE 
+GET /directory/youpi.bad_extension HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/youpi.bad_extension == ./tests/YoupiBanane
+path=./tests/YoupiBanane/youpi.bad_extension
+HTTP/1.1 200 OK
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
+GET /directory/youpi.bla HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+
+---START LINE 
+GET /directory/youpi.bla HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/youpi.bla HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/youpi.bla HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/youpi.bla HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/youpi.bla == ./tests/YoupiBanane
+path=./tests/YoupiBanane/youpi.bla
+HTTP/1.1 200 OK
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
+GET /directory/oulalala HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/oulalala HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+error exists_path
+./tests/YoupiBanane/oulalala == ./tests/YoupiBanane
+error exists_path
+path=./documents/html_errors/404.html
+HTTP/1.1 404 Not Found
+
+---START LINE 
+GET /directory/nop HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/nop/youpi.bad_extension == ./tests/YoupiBanane
+path=./tests/YoupiBanane/nop/youpi.bad_extension
+HTTP/1.1 200 OK
+
+---START LINE 
+GET /directory/nop/ HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/ HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/ HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/ HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/nop/youpi.bad_extension == ./tests/YoupiBanane
+path=./tests/YoupiBanane/nop/youpi.bad_extension
+HTTP/1.1 200 OK
+
+---START LINE 
+GET /directory/nop/other.pouic HTTP/1.1
+
+---HEADERS 
+
+---START LINE 
+GET /directory/nop/other.pouic HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/nop/other.pouic == ./tests/YoupiBanane
+path=./tests/YoupiBanane/nop/other.pouic
+HTTP/1.1 200 OK
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
+GET /directory/nop/other.pouac HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/other.pouac HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/other.pouac HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/other.pouac HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/nop/other.pouac HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+error exists_path
+./tests/YoupiBanane/nop/other.pouac == ./tests/YoupiBanane
+error exists_path
+path=./documents/html_errors/404.html
+HTTP/1.1 404 Not Found
+
+---START LINE 
+GET /directory/Yeah HTTP/1.1
+
+---HEADERS 
+
+---START LINE 
+GET /directory/Yeah HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/Yeah HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/Yeah HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/Yeah HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/Yeah/youpi.bad_extension == ./tests/YoupiBanane
+error exists_path
+path=./documents/html_errors/404.html
+HTTP/1.1 404 Not Found
+
+---START LINE 
+GET /directory/Yeah/not_happy.bad_extension HTTP/1.1
+
+---HEADERS 
+
+---START LINE 
+GET /directory/Yeah/not_happy.bad_extension HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/Yeah/not_happy.bad_extension HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+GET /directory/Yeah/not_happy.bad_extension HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+./tests/YoupiBanane/Yeah/not_happy.bad_extension == ./tests/YoupiBanane
+path=./tests/YoupiBanane/Yeah/not_happy.bad_extension
+HTTP/1.1 200 OK
+
+---START LINE 
+  
+
+---HEADERS 
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+
+---START LINE 
+PUT /put_test/file_should_exist_after HTTP/1.1
+
+---HEADERS 
+Accept-Encoding: gzip
+Host: localhost:8080
+Transfer-Encoding: chunked
+User-Agent: Go-http-client/1.1
+error exists_path
+./documents/put_test/file_should_exist_after == ./documents
+error exists_path
+path=./documents/html_errors/404.html
+HTTP/1.1 404 Not Found

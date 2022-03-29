@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 #include <sstream>
 #include <strings.h>
-bool Parsing::set_start_line(std::string s)
+bool Request::set_start_line(std::string s)
 {
 	size_t pos = 0;
 	std::string token;
@@ -38,7 +38,7 @@ bool Parsing::set_start_line(std::string s)
 	return (EXIT_SUCCESS);
 }
 
-int Parsing::set_headers(std::string line)
+int Request::set_headers(std::string line)
 {
 	size_t pos;
 	// std::cout << line << std::endl;
@@ -64,7 +64,7 @@ int Parsing::set_headers(std::string line)
 	return (EXIT_SUCCESS);
 }
 
-void Parsing::for_testing_print_request_struct()
+void Request::for_testing_print_request_struct()
 {
 	std::cout << "\n---START LINE \n";
 
@@ -77,56 +77,66 @@ void Parsing::for_testing_print_request_struct()
 	}
 }
 
-Parsing::Parsing(int fd)
+Request::Request(int fd)
 {
 	parsing_position = first_line;
+	set_error_status(false);
 	status_line = "HTTP/1.1 200 OK";
 	fill_header(fd);
+	content_length = get_content_length();
 }
 
-Parsing::~Parsing()
+Request::~Request()
 {
 	return;
 }
 
-void	Parsing::fill_header(int fd)
+void	Request::fill_header(int fd)
 {
 	char buffer[4001];
 	std::string line;
 	size_t bytes = recv(fd, buffer, 4000, 0);
+	//bytes = -1; //test server error
+	//bytes = 0; //test bad request
+	if (static_cast<int>(bytes) == -1)
+	{
+		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+		return ;
+	}
+	else if (static_cast<int>(bytes) == 0)
+	{
+		stop_reading("HTTP/1.1 400 BAD REQUEST", false);
+		return ;
+	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
-	write(1, buffer, bytes);
+	// write(1, buffer, bytes);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
 	// std::cout << "missing_dat: " << "." << data.str().length() << "." << std::endl;
 
-	// bytes += 1; //not nessesary ?
-
 	while ((parsing_position == first_line) && data && std::getline(data, line) && set_start_line(line))
 		;
-	// std::cout << line << std::endl;
 	while ((parsing_position == header) && data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
-	{
-			// std::cout << line << std::endl;
-		// std::cout << line << data <<std::endl;
-	}
-	// std::cout << line << std::endl;
-
-
-	// std::cout << "\n"
-	// 		  << path << "\n";
+		;
+	// if (parsing_position == first_body)
+		for_testing_print_request_struct();
 	std::map<std::string, std::string>::iterator length_location = headers.find("Content-Length");
 	int length = 1;
 	if (length_location != headers.end())
 		length = ft::stoi(length_location->second);
 	if (parsing_position == first_body && method == "POST" && length > 0) // check if it is a post request
 	{
-		// std::cout << method << std::endl;
 		if (pipe(pipe_in) == -1)
-			std::cout << "pipe error" << std::endl;
-		int pid_child = fork();
+		{
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+			return ;
+		}
+		int pid_child = fork(); // 2x pid_child variables
 		if (pid_child == -1)
-			std::cout << "eror fork" << std::endl;
-		if (pid_child == 0)
+		{
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+			return ;
+		}
+		else if (pid_child == 0)
 		{
 			std::vector<char *> env;
 			std::vector<std::string> env_strings;
@@ -141,7 +151,7 @@ void	Parsing::fill_header(int fd)
 			env_strings.push_back("REDIRECT_STATUS=200");
 			env_strings.push_back("SCRIPT_NAME=" + get_path());
 			env_strings.push_back("SCRIPT_FILENAME=." + get_path());
-			std::cout << env_strings.back() << std::endl;
+			// std::cout << env_strings.back() << std::endl;
 			// env_strings.push_back("DOCUMENT_ROOT=");
 			env_strings.push_back("REQUEST_METHOD=" + method);
 			env_strings.push_back("SERVER_PROTOCOL=" + protocol);
@@ -176,26 +186,26 @@ void	Parsing::fill_header(int fd)
 			}
 			env.push_back(NULL);
 			close(pipe_in[1]);
-			dup2(pipe_in[0], STDIN_FILENO);
-			dup2(STDERR_FILENO, STDOUT_FILENO);
+			dup2(pipe_in[0], STDIN_FILENO); //stop reading
+			dup2(STDERR_FILENO, STDOUT_FILENO); //stop reading
 			char * const * nll = NULL;
 			if (execve("/Users/shackbei/goinfre/.brew/bin/php-cgi", nll, &env[0]))
 			{
-				perror("execvp");
+				perror("execvp"); //stop reading
 				exit(EXIT_FAILURE);
 			}
 		}
 		close(pipe_in[0]);
 		if (!is_chunked())
 		{
-			int test = 0;
 			while (data && std::getline(data, line))
 			{
-				write(pipe_in[1], line.c_str(), line.length());
-				// std::cout << "Line: " << line << std::endl;
-				test++;
+				size_t written = write(pipe_in[1], line.c_str(), line.length());
+				if (static_cast<int>(written) == -1)
+					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+				else if (written != line.length())
+					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 			}
-			// std::cout << "loops after reading header in POST: " << test << "\n";
 		}
 		else
 		{
@@ -207,15 +217,20 @@ void	Parsing::fill_header(int fd)
 }
 // ----------------- SETTER ------------------ //
 
-void	Parsing::set_status_line(std::string new_status)
+void	Request::set_status_line(std::string new_status)
 {
 	status_line = new_status;
+}
+
+void	Request::set_error_status(bool status)
+{
+	is_error = status;
 }
 
 
 // ----------------- GETTERS ------------------ //
 
-std::string Parsing::get(std::string key_word)
+std::string Request::get(std::string key_word)
 {
 	std::map<std::string, std::string>::iterator itr;
 	if (key_word == "method")
@@ -234,29 +249,30 @@ std::string Parsing::get(std::string key_word)
 	}
 }
 
-std::map<std::string, std::string> Parsing::get_header() const
+std::map<std::string, std::string> Request::get_header() const
 {
 	return (headers);
 }
-std::string Parsing::get_method() const
+std::string Request::get_method() const
 {
 	return (method);
 }
-std::string Parsing::get_path() const
+
+bool Request::get_error_status() const
+{
+	return (is_error);
+}
+
+std::string Request::get_path() const
 {
 	return (path);
 }
-std::string Parsing::get_protocol() const
+std::string Request::get_protocol() const
 {
 	return (protocol);
 }
-std::string Parsing::get_body() const
-{
-	return (body);
-}
 
-
-std::string Parsing::get_port()
+std::string Request::get_port()
 {
 	std::string port;
     if (headers.find("Host") != headers.end())
@@ -267,7 +283,7 @@ std::string Parsing::get_port()
     return (port);
 }
 
-int Parsing::get_content_length()
+int Request::get_content_length()
 {
 	std::map<std::string, std::string>::iterator tmp = headers.find("Content-Length");
 	if (tmp != headers.end())
@@ -275,12 +291,12 @@ int Parsing::get_content_length()
 	return (-1);
 }
 
-std::string		Parsing::get_status_line() const
+std::string		Request::get_status_line() const
 {
 	return(status_line);
 }
 
-int		Parsing::get_parsing_position() const
+int		Request::get_parsing_position() const
 {
 	return(parsing_position);
 }
@@ -288,15 +304,15 @@ int		Parsing::get_parsing_position() const
 
 // --------------------- CHECKERS ---------------------
 
-bool Parsing::is_chunked(void)
+bool Request::is_chunked(void)
 {
     if (headers.find("Content-Length") == headers.end())
     {
-        std::cout << "Chunked branch\n";
-        std::cout << "down\n";
-        for_testing_print_request_struct();
-        std::cout << "\nup\n";
-        std::cout << "~~For debugging purposes.";
+        // std::cout << "Chunked branch\n";
+        // std::cout << "down\n";
+        // for_testing_print_request_struct();
+        // std::cout << "\nup\n";
+        // std::cout << "~~For debugging purposes.";
         //exit(1);
         return (true);
     }
@@ -305,58 +321,53 @@ bool Parsing::is_chunked(void)
 
 // --------------- OVERLOADS ---------------- //
 
-void Parsing::set_regular_body(int fd)
+void Request::set_regular_body(int fd)
 {
 	char buffer[4001];
 	size_t bytes = recv(fd, buffer, 4000, 0);
+	content_length -= static_cast<int>(bytes);
+	std::cout << ",Len: " << content_length;
+	if (static_cast<int>(bytes) == -1)
+		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true); //What happens with the partially uploaded file?
+	else if (static_cast<int>(bytes) == 0 && content_length != 0)
+		stop_reading("HTTP/1.1 400 BAD REQUEST", true);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
-	if ((int)bytes == -1)
+	if (bytes) // behaviour of the write function with 0 bytes is undefined
 	{
-		// do something
+		size_t written = write(pipe_in[1], data.str().c_str(), bytes);
+		if (static_cast<int>(written) == -1)
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+		else if (written != bytes)
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 	}
-	else if ((int)bytes == 0)
-	{
-		// do somethings else
-	}
-	size_t written = write(pipe_in[1], data.str().c_str(), bytes);
-	if ((int)written == -1)
-	{
-		// do something
-	}
-	else if (written == 0)
-	{
-		// do something else
-	}
-	if ((int)bytes < 4000)
+	if (content_length == 0 && is_error == false)
 	{
 		close(pipe_in[1]);
 		wait(NULL);
 	}
 }
 
-void Parsing::set_chunked_body(int fd)
+void Request::set_chunked_body(int fd)
 {
 	char buffer[4001];
 	bzero(buffer, 4001);
 	size_t bytes = recv(fd, buffer, 4000, 0);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
 	std::cout << "." << buffer << "." <<  std::endl;
-	if ((int)bytes == -1)
+	if (static_cast<int>(bytes) == -1)
+		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+	else if ((int)bytes == 0) // How to check if not enough body was sent in the chunked request? Stop reading
 	{
-		// do something
-	}
-	else if ((int)bytes == 0)
-	{
-		// do somethings else
+		// stop_reading("HTTP/1.1 400 BAD REQUEST", true);
 	}
 	unchunk_body(data);
 }
 
-void Parsing::unchunk_body(std::istringstream& data)
+void Request::unchunk_body(std::istringstream& data)
 {
 	char buffer[4001];
 	std::string line;
-	size_t written;
+	size_t written = 0;
 	std::cout << "unchunk_body" << std::endl;
 	do
 	{
@@ -374,6 +385,7 @@ void Parsing::unchunk_body(std::istringstream& data)
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
+					line.clear();
 					if (parsing_position == first_body)
 						status_line = "HTTP/1.1 405 Method Not Allowed";
 					// std::cout << "close pipe" << std::endl;
@@ -381,36 +393,50 @@ void Parsing::unchunk_body(std::istringstream& data)
 					waitpid(pid_child, NULL, 0);
 					break;
 				}
+				else
+				{
+					parsing_position = body;
+				}
 			}
 			else
 				part_of_hex_of_chunked = line;
 			// std::cout << missing_chuncked_data << std::endl;
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
 		}
+		int read_bytes;
 		if (missing_chuncked_data > data.str().length())
 		{
 			// std::cout << "write whole array" << std::endl;
-			int tmp_size = data.rdbuf()->in_avail();
-			tmp_size = data.readsome(buffer, tmp_size);
-			written = write(pipe_in[1], buffer, tmp_size);
+			read_bytes = data.rdbuf()->in_avail();
+			read_bytes = data.readsome(buffer, read_bytes);
+			if (read_bytes)
+				written = write(pipe_in[1], buffer, read_bytes);
 		}
 		else
 		{
 			// std::cout << "write missing_chuncked_data" << std::endl;
-			data.readsome(buffer, missing_chuncked_data);
-			written = write(pipe_in[1], buffer, missing_chuncked_data);
+			read_bytes = data.readsome(buffer, missing_chuncked_data);
+			if(read_bytes)
+				written = write(pipe_in[1], buffer, missing_chuncked_data);
 			// write(STDOUT_FILENO, buffer, missing_chuncked_data);
 		}
 		if (static_cast<int>(written) == -1)
-		{
-			std::cout << "error write -1" << std::endl;
-		}
-		else if (written == 0)
-		{
-			std::cout << "error write 0" << std::endl;
-		}
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+		else if (static_cast<int>(written) != read_bytes)
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 		missing_chuncked_data -= written;
 		// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << " written:" << written << "." << std::endl;
 	} while (data && std::getline(data, line));
 }
 
+void		Request::stop_reading(std::string status, bool close_fd)
+{
+	set_status_line(status);
+	set_error_status(true);
+	if (close_fd)
+	{
+		close(pipe_in[1]);
+		wait(NULL);
+		// waitpid(pid_child, NULL, 0); //or waitpid?
+	}
+}

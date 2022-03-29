@@ -329,7 +329,6 @@ bool Config::getDirectoryListing(std::string port)
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
-			std::cout << "1";
 	while (it != ite)
 	{
 		if (std::atoi(port.c_str()) == (*it)->getPort())

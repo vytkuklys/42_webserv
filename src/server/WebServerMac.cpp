@@ -78,9 +78,11 @@ void SERVER::WebServer::handler()
 void SERVER::WebServer::handle_new_client()
 {
 	accepter();
-	fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
-	FD_SET(tmp_socket_fd, &current_sockets);
-	// std::cout << "\nhandel_new_client - " << tmp_socket_fd << "\n";
+	if (tmp_socket_fd != -1)
+	{
+		fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
+		FD_SET(tmp_socket_fd, &current_sockets);
+	}
 }
 
 void SERVER::WebServer::accepter()
@@ -91,11 +93,15 @@ void SERVER::WebServer::accepter()
 
 void SERVER::WebServer::handle_known_client()
 {
-	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
+	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
 	if (itr == data.end())
 	{
-		Parsing request(tmp_socket_fd);
-		data.insert(std::pair<int, Parsing>(tmp_socket_fd, request));
+		Request req(tmp_socket_fd);
+		//logic: if an error occurs fd is removed from the read list and added to the write list. Then response is send with an appropriate status code and html file
+		//possible limitation: not emptying the file descriptor
+		if (req.get_error_status())
+			FD_CLR(tmp_socket_fd, &current_sockets);
+		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		FD_SET(tmp_socket_fd, &write_sockets);
 	}
 	else if (itr->second.get_parsing_position() <= header)
@@ -104,15 +110,17 @@ void SERVER::WebServer::handle_known_client()
 	}
 	else if (itr->second.get_method() == "POST" && itr != data.end())
 	{
-		Parsing &res = itr->second;
-		if (res.is_chunked())
+		Request &req = itr->second;
+		if (req.is_chunked())
 		{
 			std::cout << "known chuked" << std::endl;
-			res.set_chunked_body(tmp_socket_fd);
+			req.set_chunked_body(tmp_socket_fd);
 		}
 		else
 		{
-			res.set_regular_body(tmp_socket_fd);
+			req.set_regular_body(tmp_socket_fd);
+			if (req.get_error_status())
+				FD_CLR(tmp_socket_fd, &current_sockets);
 		}
 	}
 	else
@@ -126,26 +134,25 @@ void SERVER::WebServer::handle_known_client()
 void SERVER::WebServer::responder()
 {
 	std::string http_response;
-	std::map<int, Parsing>::iterator itr = data.find(tmp_socket_fd);
+	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
 	{
-		std::cout << "respons" << std::cout;
 		int total;
-		Parsing &info = itr->second; // all header information from client
+		Request &info = itr->second;
 		Response response(info, config);
 		http_response = response.get_http_response();
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
 		while (total > 0)
-		{ // larger responses are not sent at once
+		{
 			int bytes = send(tmp_socket_fd, (const void *)ptr, total, 0);
-			if (bytes == -1)
-				std::cout << "responder\n";
+			if (bytes == -1 || bytes == 0)
+				break ; //HTTP server closes the socket if an error occurs during the sending of a file
 			ptr += bytes;
 			total -= bytes;
 		}
-		FD_CLR(tmp_socket_fd, &current_sockets); // removes fd from fd set
-		FD_CLR(tmp_socket_fd, &write_sockets);	 // removes fd from fd set
+		FD_CLR(tmp_socket_fd, &current_sockets);
+		FD_CLR(tmp_socket_fd, &write_sockets);
 		data.erase(itr);
 		close(tmp_socket_fd);
 	}

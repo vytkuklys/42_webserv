@@ -43,6 +43,30 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 	return *this;
 }
 
+
+
+int ConfigData::checkingForTrash()
+{
+    int size = method.length();
+    char array[size];
+    
+    for(int i = 0; i < size; i++)
+	{
+        array[i] = method[i];
+	}
+	//std::cout << "METHOD: ." << method << ". Length: ." << method.length() << "." << std::endl;
+	//std::cout << "ARRAY: ." << array << ". Length: ." << sizeof(array) << "." << std::endl;
+	char* splitResult = strtok(array, " ");
+	while (splitResult != NULL)
+	{
+		if (strcmp(splitResult, "post") != 0 && strcmp(splitResult, "delete") != 0 &&
+			strcmp(splitResult, "get") != 0 && strcmp(splitResult, "head") != 0)
+				return (1);
+		splitResult = strtok(NULL, " ");
+	}
+	return (0);
+}
+
 void ConfigData::pushToClass(int level, LocationData &tempClass)
 {
 	if (level == 1)
@@ -66,13 +90,8 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 	}
 	if (level == 3)
 	{
-		if (method != "post" && method != "get" &&  method != "delete" &&
-			method != "post get" && method != "get post" &&
-			method != "get delete" && method != "delete get" && 
-			method != "post delete" && method != "delete post" && 
-			method != "post get delete" && method != "post delete get" && 
-			method != "get delete post" && method != "get post delete" && 
-			method != "delete post get" && method != "delete get post")
+		if ((method.find("post") == npos && method.find("delete") == npos && 
+			method.find("get") == npos && method.find("head") == npos)) // || checkingForTrash() == 1)
 				std::cout << "Invalid method: '" << method << "'" << std::endl;
 		else
 			tempClass.setMethod(method);
