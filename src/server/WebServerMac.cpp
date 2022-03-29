@@ -102,19 +102,30 @@ void SERVER::WebServer::handle_known_client()
 		if (req.get_error_status())
 			FD_CLR(tmp_socket_fd, &current_sockets);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
-		FD_SET(tmp_socket_fd, &write_sockets);
+		// if (req.get_parsing_position() == first_body && !req.is_chunked() )
+		// 	FD_SET(tmp_socket_fd, &write_sockets);
+		if (req.get_method() != "POST" && req.get_method() != "PUT")
+			FD_SET(tmp_socket_fd, &write_sockets);
+		if(req.get_parsing_position() == done)
+			FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if (itr->second.get_parsing_position() <= header)
+	else if (itr->second.get_parsing_position() < first_body)
 	{
 		itr->second.fill_header(tmp_socket_fd);
+		if (itr->second.get_parsing_position() == first_body)
+			FD_SET(tmp_socket_fd, &write_sockets);
+		// if(itr->second.get_parsing_position() == done)
+		// 	FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if (itr->second.get_method() == "POST" && itr != data.end())
+	else if ((itr->second.get_method() == "POST" || itr->second.get_method() == "PUT") && itr != data.end())
 	{
 		Request &req = itr->second;
 		if (req.is_chunked())
 		{
 			std::cout << "known chuked" << std::endl;
 			req.set_chunked_body(tmp_socket_fd);
+			if(req.get_parsing_position() == done)
+				FD_SET(tmp_socket_fd, &write_sockets);
 		}
 		else
 		{

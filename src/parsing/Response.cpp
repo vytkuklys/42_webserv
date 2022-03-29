@@ -54,6 +54,10 @@ void Response::set_path(std::string const filename)
     LocationData * loc = config.get_location(port, filename);
     if (loc != nullptr)
 	{
+		// if (loc->getLocation() == "/directory/youpi.bla")
+		// {
+		// 	path = "/put_test/file_should_exist_after";
+		// }
         if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
 		{
             path.insert(0, loc->getRoot());
@@ -101,7 +105,7 @@ void Response::set_status_line(void)
 	// else
 	// 	status_line = "HTTP/1.1 200 OK";
 
-	if (is_path_valid == true && has_access == true && file_ext == "php" && path != "./documents/index.php")
+	if ((((is_path_valid == true && has_access == true && file_ext == "php" && request.get_method() == "POST") || (request.get_method() == "PUT"))) && (path != "./documents/index.php"))
 		request.set_status_line("HTTP/1.1 303 See Other");
 	status_line = request.get_status_line();
 }
@@ -122,7 +126,7 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
     set_content_type();
-	if(request.get_method() == "POST")
+	if(request.get_method() == "POST" || request.get_method() == "PUT")
 		headers["Location:"] = "../index.html";
 	if (request.get_method() != "HEAD")
 		headers["Content-length:"] = ft::to_string(body.length());

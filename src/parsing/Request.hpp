@@ -22,7 +22,8 @@ enum mile_stones{
 	first_line,
 	header,
 	first_body,
-	body
+	body,
+	done
 };
 
 class Request

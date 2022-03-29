@@ -117,20 +117,25 @@ void	Request::fill_header(int fd)
 		;
 	while ((parsing_position == header) && data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
 		;
-	// if (parsing_position == first_body)
+
+	if (parsing_position == first_body)
+	{
+		std::cout << "fd = " << fd << std::endl;
 		for_testing_print_request_struct();
+	}
 	std::map<std::string, std::string>::iterator length_location = headers.find("Content-Length");
 	int length = 1;
 	if (length_location != headers.end())
 		length = ft::stoi(length_location->second);
-	if (parsing_position == first_body && method == "POST" && length > 0) // check if it is a post request
+	if (parsing_position == first_body && (method == "POST" || method == "PUT") && length > 0) // check if it is a post request
 	{
 		if (pipe(pipe_in) == -1)
 		{
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
 			return ;
 		}
-		int pid_child = fork(); // 2x pid_child variables
+		pid_child = fork(); // 2x pid_child variables
+		std::cout << "fork" <<std::endl;
 		if (pid_child == -1)
 		{
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
@@ -150,7 +155,10 @@ void	Request::fill_header(int fd)
 			env_strings.push_back("REQUEST_URI=" + get_path());
 			env_strings.push_back("REDIRECT_STATUS=200");
 			env_strings.push_back("SCRIPT_NAME=" + get_path());
-			env_strings.push_back("SCRIPT_FILENAME=." + get_path());
+			if(method == "POST")
+				env_strings.push_back("SCRIPT_FILENAME=." + get_path());
+			else
+				env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
 			// std::cout << env_strings.back() << std::endl;
 			// env_strings.push_back("DOCUMENT_ROOT=");
 			env_strings.push_back("REQUEST_METHOD=" + method);
@@ -353,7 +361,7 @@ void Request::set_chunked_body(int fd)
 	bzero(buffer, 4001);
 	size_t bytes = recv(fd, buffer, 4000, 0);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
-	std::cout << "." << buffer << "." <<  std::endl;
+	// std::cout << "." << buffer << "." <<  std::endl;
 	if (static_cast<int>(bytes) == -1)
 		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 	else if ((int)bytes == 0) // How to check if not enough body was sent in the chunked request? Stop reading
@@ -382,6 +390,7 @@ void Request::unchunk_body(std::istringstream& data)
 			{
 				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
+				std::cout << "chunk size=" << missing_chuncked_data << std::endl;
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
@@ -389,8 +398,10 @@ void Request::unchunk_body(std::istringstream& data)
 					if (parsing_position == first_body)
 						status_line = "HTTP/1.1 405 Method Not Allowed";
 					// std::cout << "close pipe" << std::endl;
+					std::cout << "done with File" << std::endl;
 					close(pipe_in[1]);
 					waitpid(pid_child, NULL, 0);
+					parsing_position = done;
 					break;
 				}
 				else

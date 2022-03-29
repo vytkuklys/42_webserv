@@ -1,6 +1,6 @@
 #include "ConfigData.hpp"
 
-ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"), 
+ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"),
 errorPage("./documents/html_errors"), BodySize(1), directoryListing("on") {}
 
 ConfigData::~ConfigData(void)
@@ -49,7 +49,7 @@ int ConfigData::checkingForTrash()
 {
     int size = method.length();
     char array[size + 1];
-    
+
     for(int i = 0; i < size; i++)
 	{
         array[i] = method[i];
@@ -60,7 +60,8 @@ int ConfigData::checkingForTrash()
 	while (splitResult != NULL)
 	{
 		if (strcmp(splitResult, "post") != 0 && strcmp(splitResult, "delete") != 0 &&
-			strcmp(splitResult, "get") != 0 && strcmp(splitResult, "head") != 0)
+			strcmp(splitResult, "get") != 0 && strcmp(splitResult, "head") != 0 &&
+			strcmp(splitResult, "put") != 0)
 		{
 			return (1);
 		}
@@ -93,9 +94,9 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 	}
 	if (level == 3)
 	{
-		if ((method.find("post") == npos && method.find("delete") == npos && 
-			method.find("get") == npos && method.find("head") == npos) ||
-			checkingForTrash() == 1 || method.length() > 20)
+		if ((method.find("post") == npos && method.find("delete") == npos &&
+			method.find("get") == npos && method.find("head") == npos &&
+			method.find("put") == npos) || checkingForTrash() == 1 || method.length() > 24)
 				std::cout << "Invalid method: '" << method << "'" << std::endl;
 		else
 			tempClass.setMethod(method);
