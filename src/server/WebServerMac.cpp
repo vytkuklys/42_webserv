@@ -104,15 +104,15 @@ void SERVER::WebServer::handle_known_client()
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		// if (req.get_parsing_position() == first_body && !req.is_chunked() )
 		// 	FD_SET(tmp_socket_fd, &write_sockets);
-		if (req.get_method() != "POST" && req.get_method() != "PUT")
-			FD_SET(tmp_socket_fd, &write_sockets);
+		// if (req.get_method() != "POST" && req.get_method() != "PUT")
+		// 	FD_SET(tmp_socket_fd, &write_sockets);
 		if(req.get_parsing_position() == done)
 			FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if (itr->second.get_parsing_position() < first_body)
+	else if (itr->second.get_parsing_position() <= header)
 	{
 		itr->second.fill_header(tmp_socket_fd);
-		if (itr->second.get_parsing_position() == first_body)
+		if (itr->second.get_parsing_position() == done)
 			FD_SET(tmp_socket_fd, &write_sockets);
 		// if(itr->second.get_parsing_position() == done)
 		// 	FD_SET(tmp_socket_fd, &write_sockets);
@@ -137,9 +137,13 @@ void SERVER::WebServer::handle_known_client()
 	else
 	{
 		char tmp[1000];
-		read(tmp_socket_fd, tmp, 1000);
+		// nessesary for Head;
+		std::cout <<"==========================should not be the case====================" << std::endl;
+		write(1,tmp, read(tmp_socket_fd, tmp, 1000));
 		// lseek( tmp_socket_fd, 0, SEEK_END);
 	}
+	std::cout << "done with know client" << std::endl;
+	std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
 }
 
 void SERVER::WebServer::responder()

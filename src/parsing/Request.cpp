@@ -40,10 +40,12 @@ bool Request::set_start_line(std::string s)
 
 int Request::set_headers(std::string line)
 {
+	std::cout << "set_headers" << "line=" << line << ".= " << std::endl;
 	size_t pos;
 	// std::cout << line << std::endl;
 	if(line.find("\r") == std::string::npos)
 	{
+		std::cout << "doesent fond /r in line" << std::endl;
 		raw_header_line += line;
 		return (EXIT_FAILURE);
 	}
@@ -53,8 +55,13 @@ int Request::set_headers(std::string line)
 		raw_header_line.clear();
 	}
 	line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
+	if(line.find("\r") == std::string::npos)
+	{
+		std::cout << "doesent fond /r in line2" << std::endl;
+	}
 	if (line.empty() || ft::is_whitespace(line) == EXIT_SUCCESS)
 	{
+		std::cout << "emty line in end of header" << std::endl;
 		parsing_position = first_body;
 		return (EXIT_FAILURE);
 	}
@@ -109,14 +116,26 @@ void	Request::fill_header(int fd)
 		return ;
 	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
-	// write(1, buffer, bytes);
+	write(1, buffer, bytes);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
 	// std::cout << "missing_dat: " << "." << data.str().length() << "." << std::endl;
 
-	while ((parsing_position == first_line) && data && std::getline(data, line) && set_start_line(line))
-		;
-	while ((parsing_position == header) && data && std::getline(data, line) && set_headers(line) == EXIT_SUCCESS)
-		;
+	while ((parsing_position == first_line) && data && std::getline(data, line))
+	{
+		if(line.empty())
+			continue;
+		if (set_start_line(line) == EXIT_SUCCESS)
+			break;
+	}
+
+	std::cout << "date=" << data << "bytes" << bytes << std::endl;
+	while ((parsing_position == header) && data && std::getline(data, line))
+	{
+		if(line.empty())
+			continue;
+		if (set_headers(line) == EXIT_FAILURE)
+			break;
+	}
 
 	if (parsing_position == first_body)
 	{
@@ -197,7 +216,7 @@ void	Request::fill_header(int fd)
 			dup2(pipe_in[0], STDIN_FILENO); //stop reading
 			dup2(STDERR_FILENO, STDOUT_FILENO); //stop reading
 			char * const * nll = NULL;
-			if (execve("/Users/shackbei/goinfre/.brew/bin/php-cgi", nll, &env[0]))
+			if (execve("./cgi-bin/php-cgi", nll, &env[0]))
 			{
 				perror("execvp"); //stop reading
 				exit(EXIT_FAILURE);
@@ -221,7 +240,13 @@ void	Request::fill_header(int fd)
 			std::cout << "new chuked" << std::endl;
 			unchunk_body(data);
 		}
+
 	}
+	else if (parsing_position == first_body && method != "POST" && method != "PUT")
+	{
+			parsing_position = done;
+	}
+	std::cout <<" parsing_position= " << parsing_position << std::endl;
 }
 // ----------------- SETTER ------------------ //
 
@@ -366,7 +391,7 @@ void Request::set_chunked_body(int fd)
 		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 	else if ((int)bytes == 0) // How to check if not enough body was sent in the chunked request? Stop reading
 	{
-		// stop_reading("HTTP/1.1 400 BAD REQUEST", true);
+		stop_reading("HTTP/1.1 400 BAD REQUEST", true);
 	}
 	unchunk_body(data);
 }
@@ -436,7 +461,7 @@ void Request::unchunk_body(std::istringstream& data)
 		else if (static_cast<int>(written) != read_bytes)
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 		missing_chuncked_data -= written;
-		// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << " written:" << written << "." << std::endl;
+		std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << " written:" << written << "." << std::endl;
 	} while (data && std::getline(data, line));
 }
 
