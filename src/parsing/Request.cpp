@@ -62,7 +62,7 @@ int Request::set_headers(std::string line)
 	if (line.empty() || ft::is_whitespace(line) == EXIT_SUCCESS)
 	{
 		std::cout << "emty line in end of header" << std::endl;
-		parsing_position = first_body;
+		parsing_position = done_with_header;
 		return (EXIT_FAILURE);
 	}
 	pos = line.find(":");
@@ -116,7 +116,9 @@ void	Request::fill_header(int fd)
 		return ;
 	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
+	std::cout << "==============buffer====================" <<std::endl;
 	write(1, buffer, bytes);
+	std::cout << "==============buffer====================" <<std::endl;
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
 	// std::cout << "missing_dat: " << "." << data.str().length() << "." << std::endl;
 
@@ -137,17 +139,17 @@ void	Request::fill_header(int fd)
 			break;
 	}
 
-	if (parsing_position == first_body)
-	{
-		std::cout << "fd = " << fd << std::endl;
-		for_testing_print_request_struct();
-	}
 	std::map<std::string, std::string>::iterator length_location = headers.find("Content-Length");
 	int length = 1;
 	if (length_location != headers.end())
 		length = ft::stoi(length_location->second);
-	if (parsing_position == first_body && (method == "POST" || method == "PUT") && length > 0) // check if it is a post request
+	if (parsing_position == done_with_header && (method == "POST" || method == "PUT") && length > 0) // check if it is a post request
 	{
+		if (parsing_position == done_with_header)
+		{
+			std::cout << "fd = " << fd << std::endl;
+			for_testing_print_request_struct();
+		}
 		if (pipe(pipe_in) == -1)
 		{
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
@@ -221,6 +223,7 @@ void	Request::fill_header(int fd)
 				perror("execvp"); //stop reading
 				exit(EXIT_FAILURE);
 			}
+			exit(EXIT_FAILURE);
 		}
 		close(pipe_in[0]);
 		if (!is_chunked())
@@ -242,7 +245,7 @@ void	Request::fill_header(int fd)
 		}
 
 	}
-	else if (parsing_position == first_body && method != "POST" && method != "PUT")
+	else if (parsing_position == done_with_header && method != "POST" && method != "PUT")
 	{
 			parsing_position = done;
 	}
@@ -386,7 +389,7 @@ void Request::set_chunked_body(int fd)
 	bzero(buffer, 4001);
 	size_t bytes = recv(fd, buffer, 4000, 0);
 	std::istringstream data(std::string(buffer, bytes), std::ios::binary);
-	// std::cout << "." << buffer << "." <<  std::endl;
+	std::cout << "bytes" << bytes <<  std::endl;
 	if (static_cast<int>(bytes) == -1)
 		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 	else if ((int)bytes == 0) // How to check if not enough body was sent in the chunked request? Stop reading
@@ -401,12 +404,15 @@ void Request::unchunk_body(std::istringstream& data)
 	char buffer[4001];
 	std::string line;
 	size_t written = 0;
-	std::cout << "unchunk_body" << std::endl;
+	std::cout << "unchunk_body " << parsing_position << std::endl;
+	if (parsing_position == done_with_header)
+		parsing_position = first_chunk_size;
 	do
 	{
 		if (missing_chuncked_data == 0)
 		{
 			// std::cout << "chunked beginn" << "." << line << "." << std::endl;
+			// std::cout << data << std::endl;
 			if (ft::is_whitespace(line) == EXIT_SUCCESS && part_of_hex_of_chunked.empty())
 				continue;
 			line = part_of_hex_of_chunked + line;
@@ -420,10 +426,11 @@ void Request::unchunk_body(std::istringstream& data)
 				{
 					std::getline(data, line);
 					line.clear();
-					if (parsing_position == first_body)
+					if (parsing_position == first_chunk_size)
 						status_line = "HTTP/1.1 405 Method Not Allowed";
 					// std::cout << "close pipe" << std::endl;
-					std::cout << "done with File" << std::endl;
+					std::cout << "done with File" << std::endl << std::flush;
+
 					close(pipe_in[1]);
 					waitpid(pid_child, NULL, 0);
 					parsing_position = done;
@@ -456,6 +463,7 @@ void Request::unchunk_body(std::istringstream& data)
 				written = write(pipe_in[1], buffer, missing_chuncked_data);
 			// write(STDOUT_FILENO, buffer, missing_chuncked_data);
 		}
+		std::cout <<"written = " << written << "read_bytes = " << read_bytes << std::endl;
 		if (static_cast<int>(written) == -1)
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 		else if (static_cast<int>(written) != read_bytes)

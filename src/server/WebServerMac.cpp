@@ -96,6 +96,7 @@ void SERVER::WebServer::handle_known_client()
 	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
 	if (itr == data.end())
 	{
+		std::cout << "constructor" << std::endl;
 		Request req(tmp_socket_fd);
 		//logic: if an error occurs fd is removed from the read list and added to the write list. Then response is send with an appropriate status code and html file
 		//possible limitation: not emptying the file descriptor
@@ -109,8 +110,9 @@ void SERVER::WebServer::handle_known_client()
 		if(req.get_parsing_position() == done)
 			FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	else if (itr->second.get_parsing_position() <= header)
+	else if (itr->second.get_parsing_position() < done_with_header)
 	{
+		std::cout << "fill_header" << std::endl;
 		itr->second.fill_header(tmp_socket_fd);
 		if (itr->second.get_parsing_position() == done)
 			FD_SET(tmp_socket_fd, &write_sockets);
@@ -137,9 +139,10 @@ void SERVER::WebServer::handle_known_client()
 	else
 	{
 		char tmp[1000];
+		read(tmp_socket_fd, tmp, 1000);
 		// nessesary for Head;
 		std::cout <<"==========================should not be the case====================" << std::endl;
-		write(1,tmp, read(tmp_socket_fd, tmp, 1000));
+		// write(1,tmp, read(tmp_socket_fd, tmp, 1000));
 		// lseek( tmp_socket_fd, 0, SEEK_END);
 	}
 	std::cout << "done with know client" << std::endl;

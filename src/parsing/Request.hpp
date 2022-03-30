@@ -21,7 +21,8 @@
 enum mile_stones{
 	first_line,
 	header,
-	first_body,
+	done_with_header,
+	first_chunk_size,
 	body,
 	done
 };
