@@ -40,7 +40,7 @@ bool Request::set_start_line(std::string s)
 
 int Request::set_headers(std::string line)
 {
-	std::cout << "set_headers" << "line=" << line << ".= " << std::endl;
+	// std::cout << "set_headers" << "line=" << line << ".= " << std::endl;
 	size_t pos;
 	// std::cout << line << std::endl;
 	if(line.find("\r") == std::string::npos)
@@ -150,8 +150,8 @@ void	Request::fill_header(int fd)
 					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
 					return ;
 				}
-				pid_child = fork(); // 2x pid_child variables
 				std::cout << "fork" <<std::endl;
+				pid_child = fork(); // 2x pid_child variables
 				if (pid_child == -1)
 				{
 					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
