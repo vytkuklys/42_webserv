@@ -40,6 +40,7 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 	this->root = value.root;
 	this->method = value.method;
 	this->index = value.index;
+	this->script = value.script;
 	return *this;
 }
 
@@ -110,6 +111,14 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 			tempClass.setIndex(index);
 		index.erase();
 	}
+	if (level == 5)
+	{
+		if (script.length() == 0 || script.length() > 50)
+			std::cout << "Invalid script: '" << script << "'" << std::endl;
+		else
+			tempClass.setScript(script);
+		script.erase();
+	}
 }
 
 void ConfigData::setData(std::string readLine, std::string find, int level, LocationData &tempClass)
@@ -126,14 +135,25 @@ void ConfigData::setData(std::string readLine, std::string find, int level, Loca
 
 	if (level == 1)
 	{
+		if (readLine[readLine.length() - 1] != '{')
+		{
+			std::cout << "Invalid config file, missing a '{'" << std::endl;
+			exit(-1);
+		}
 		while (readLine[begin + i] != '{')
 		{
 			location.push_back(readLine[begin + i]);
 			i++;
 		}
+		pushToClass(level, tempClass);
 	}
 	else
 	{
+		if (readLine[readLine.length() - 1] != ';')
+		{
+			std::cout << "Invalid config file, missing a ';'" << std::endl;
+			exit(-1);
+		}
 		while (readLine[begin + i] != ';')
 		{
 			if (level == 2)
@@ -142,10 +162,12 @@ void ConfigData::setData(std::string readLine, std::string find, int level, Loca
 				method.push_back(readLine[begin + i]);
 			if (level == 4)
 				index.push_back(readLine[begin + i]);
+			if (level == 5)
+				script.push_back(readLine[begin + i]);
 			i++;
 		}
+		pushToClass(level, tempClass);
 	}
-	pushToClass(level, tempClass);
 }
 
 void ConfigData::retrieveValues(std::string const filename, int start, int end)
@@ -168,6 +190,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 			setData(readLine, "root", 2, *tempClass);
 			setData(readLine, "method", 3, *tempClass);
 			setData(readLine, "indx", 4, *tempClass);
+			setData(readLine, "script", 5, *tempClass);
 		}
 		++whichLine;
 		if (whichLine == end)
@@ -177,7 +200,6 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 		}
 	}
 }
-
 
 
 void ConfigData::setPort(int inputPort) { Port = inputPort; }
@@ -191,7 +213,6 @@ void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 void ConfigData::setDirectoryListing(std::string inputDirectoryListing) { directoryListing = inputDirectoryListing; }
 
 
-
 int ConfigData::getPort(void) { return (Port); }
 
 std::string ConfigData::getServerName(void) { return (serverName); }
@@ -201,7 +222,6 @@ std::string ConfigData::getErrorPage(void) { return (errorPage); }
 int ConfigData::getBodySize(void) { return (BodySize); }
 
 std::string ConfigData::getDirectoryListing(void) { return (directoryListing); }
-
 
 
 std::vector<LocationData *> &ConfigData::getContLocationData(void) { return (ContLocationData); }

@@ -10,6 +10,7 @@ private:
 	std::string root;
 	std::string method;
 	std::string index;
+	std::string script;
 
 public:
 	LocationData(void);
@@ -21,11 +22,13 @@ public:
 	void setRoot(std::string inputRoot);
 	void setMethod(std::string inputMethod);
 	void setIndex(std::string inputIndex);
+	void setScript(std::string inputScript);
 
 	std::string getLocation(void);
 	std::string getRoot(void);
 	std::string getMethod(void);
 	std::string getIndex(void);
+	std::string getScript(void);
 };
 
 #endif

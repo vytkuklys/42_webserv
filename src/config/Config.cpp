@@ -128,9 +128,21 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 		return;
 
 	if (level == 5)
+	{
+		if (readLine[readLine.length() - 1] != '{')
+		{
+			std::cout << "Invalid config file, missing a '{' on line: " << whichLine << std::endl;
+			exit(-1);
+		}
 		tempClass.retrieveValues(filename, whichLine, (whichLine + countServerLength("location", ++whichLocation) - 1));
+	}
 	else
 	{
+		if (readLine[readLine.length() - 1] != ';')
+		{
+			std::cout << "Invalid config file, missing a ';' on line: " << whichLine << std::endl;
+			exit(-1);
+		}
 		begin = static_cast<int>(begin) + find.length();
 		int i = 0;
 

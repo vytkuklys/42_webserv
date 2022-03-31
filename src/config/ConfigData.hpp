@@ -28,6 +28,7 @@ private:
 	std::string root;
 	std::string method;
 	std::string index;
+	std::string script;
 
 public:
 	ConfigData(void);

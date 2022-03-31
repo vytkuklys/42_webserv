@@ -43,7 +43,7 @@ int main (int argc, char **argv)
 	}
 	// Config config(argv[1]);
 	(void)argv;								 // only for faster testing
-	Config config("config_files/test.conf"); // only for faster testing
+	Config config("config_files/newdefault.conf"); // only for faster testing
 
 	// printConfigData(config);
 
