@@ -97,56 +97,19 @@ void SERVER::WebServer::handle_known_client()
 	if (itr == data.end())
 	{
 		std::cout << "constructor" << std::endl;
-		Request req(tmp_socket_fd);
-		//logic: if an error occurs fd is removed from the read list and added to the write list. Then response is send with an appropriate status code and html file
-		//possible limitation: not emptying the file descriptor
-		if (req.get_error_status())
-			FD_CLR(tmp_socket_fd, &current_sockets);
+		Request req;
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
-		// if (req.get_parsing_position() == first_body && !req.is_chunked() )
-		// 	FD_SET(tmp_socket_fd, &write_sockets);
-		// if (req.get_method() != "POST" && req.get_method() != "PUT")
-		// 	FD_SET(tmp_socket_fd, &write_sockets);
-		if(req.get_parsing_position() == done)
-			FD_SET(tmp_socket_fd, &write_sockets);
+		itr = data.find(tmp_socket_fd);
 	}
-	else if (itr->second.get_parsing_position() < done_with_header)
-	{
-		std::cout << "fill_header" << std::endl;
-		itr->second.fill_header(tmp_socket_fd);
-		if (itr->second.get_parsing_position() == done)
-			FD_SET(tmp_socket_fd, &write_sockets);
-		// if(itr->second.get_parsing_position() == done)
-		// 	FD_SET(tmp_socket_fd, &write_sockets);
-	}
-	else if ((itr->second.get_method() == "POST" || itr->second.get_method() == "PUT") && itr != data.end())
-	{
-		Request &req = itr->second;
-		if (req.is_chunked())
-		{
-			std::cout << "known chuked" << std::endl;
-			req.set_chunked_body(tmp_socket_fd);
-			if(req.get_parsing_position() == done)
-				FD_SET(tmp_socket_fd, &write_sockets);
-		}
-		else
-		{
-			req.set_regular_body(tmp_socket_fd);
-			if (req.get_error_status())
-				FD_CLR(tmp_socket_fd, &current_sockets);
-		}
-	}
-	else
-	{
-		char tmp[1000];
-		read(tmp_socket_fd, tmp, 1000);
-		// nessesary for Head;
-		std::cout <<"==========================should not be the case====================" << std::endl;
-		// write(1,tmp, read(tmp_socket_fd, tmp, 1000));
-		// lseek( tmp_socket_fd, 0, SEEK_END);
-	}
+
+	std::cout << "process socket information" << std::endl;
+	itr->second.fill_header(tmp_socket_fd);
+	if (itr->second.get_error_status())
+		FD_CLR(tmp_socket_fd, &current_sockets);
+	if (itr->second.get_parsing_position() == done)
+		FD_SET(tmp_socket_fd, &write_sockets);
 	std::cout << "done with know client" << std::endl;
-	std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
+	// std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
 }
 
 void SERVER::WebServer::responder()

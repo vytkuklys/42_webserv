@@ -44,7 +44,7 @@ class Request
 		std::string							status_line;
 		bool								is_error;
 	public:
-		Request (int fd);
+		Request ();
 		~Request();
 
 		std::string get(std::string key_word);
@@ -59,7 +59,7 @@ class Request
 		bool			get_error_status() const;
 
 		void			set_status_line(std::string new_status);
-		void			set_regular_body(int fd);
+		void			set_regular_body(std::istringstream& data);
 		void			set_chunked_body(int fd);
 
 		void			fill_header(int fd);
