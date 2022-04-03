@@ -78,8 +78,6 @@ void Response::set_path(std::string const filename)
     }
 
     is_path_valid = exists_path(path);
-	// std::cout << path << " == " << loc->getRoot() << std::endl;
-	std::cout << path << ":" << is_path_valid << std::endl;
 	if (is_path_valid == false || (exists_dir(path) == true && loc && path != loc->getRoot()))
 		request.set_status_line("HTTP/1.1 404 Not Found");
 	if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
@@ -92,7 +90,7 @@ void Response::set_path(std::string const filename)
 			request.set_status_line("HTTP/1.1 405 Method Not Allowed");
             path.append("/405.html");
 		}
-        if (!is_path_valid || loc == nullptr)
+        else if (!is_path_valid || loc == nullptr)
             path.append("/404.html");
         else
             path.append("/403.html");

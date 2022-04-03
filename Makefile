@@ -1,6 +1,6 @@
 CC= c++
 NAME = webserv
-FLAGS = -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra -Werror -std=c++98
 SRC = ./src/*.cpp ./src/config/*.cpp ./src/parsing/*.cpp ./src/socket/*.cpp ./src/server/*.cpp ./src/helper/*.cpp
 HEADERS = ./inc/*.hpp ./src/config/*.hpp ./src/parsing/*.hpp ./src/socket/*.hpp ./src/server/*.hpp ./src/helper/*.hpp
 
