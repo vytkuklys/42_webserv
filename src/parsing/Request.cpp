@@ -127,7 +127,7 @@ void	Request::fill_header(int fd)
 			break;
 	}
 
-	std::cout << "date=" << data << "bytes" << bytes << std::endl;
+	// std::cout << "date=" << data << "bytes" << bytes << std::endl;
 	while ((parsing_position == header) && data && std::getline(data, line))
 	{
 		if(line.empty())
@@ -340,6 +340,13 @@ bool Request::is_chunked(void)
     }
     return (false);
 }
+
+bool Request::is_method_valid()
+{
+	const std::string methods[] = {"post", "head", "get", "put", "delete"};
+    return (ft::is_found(methods, this->method, 5));
+}
+
 
 // --------------- OVERLOADS ---------------- //
 

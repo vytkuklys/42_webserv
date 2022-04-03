@@ -1,6 +1,10 @@
 
 #include "ft.hpp"
 #include <iostream>
+#include <algorithm>
+#include <cctype>
+#include <string>
+#include <vector>
 
 std::string ft::to_string(std::size_t number)
 {
@@ -67,9 +71,12 @@ std::string ft::remove_whitespace(std::string line)
 
 bool ft::is_found(std::string const array[], std::string target, int size)
 {
+	std::transform(target.begin(), target.end(), target.begin(), to_lower);
     for (int counter = 0; counter < size; counter++)
     {
-        if (array[counter].compare(target) == 0)
+		std::string item = array[counter];
+		std::transform(item.begin(), item.end(), item.begin(), to_lower);
+        if (item.compare(target) == 0)
         {
             return true;
         }

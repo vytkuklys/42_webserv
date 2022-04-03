@@ -3,7 +3,7 @@
 
 #include <string>
 #include <sstream>
-
+#include <cstdlib>
 namespace ft
 {
     std::string to_string(std::size_t number);

@@ -39,7 +39,9 @@ void Response::set_error_path(void)
 	std::string status = request.get_status_line();
 	path = config.getErrorPage(port);
     if (path.empty())
+	{
         path = default_error;
+	}
 	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
 		path.append("/500.html");
 	else if (status == "HTTP/1.1 400 BAD REQUEST")
@@ -74,15 +76,22 @@ void Response::set_path(std::string const filename)
 		if (has_access == false)
 			request.set_status_line("HTTP/1.1 405 Method Not Allowed");
     }
+
     is_path_valid = exists_path(path);
-	std::cout << path << " == " << loc->getRoot() << std::endl;
-	if ((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false)
-			request.set_status_line("HTTP/1.1 404 Not Found");
-    if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
+	// std::cout << path << " == " << loc->getRoot() << std::endl;
+	std::cout << path << ":" << is_path_valid << std::endl;
+	if (is_path_valid == false || (exists_dir(path) == true && loc && path != loc->getRoot()))
+		request.set_status_line("HTTP/1.1 404 Not Found");
+	if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
     {
         path = config.getErrorPage(port);
         if (path.empty())
             path = default_error;
+		if (request.is_method_valid() == false)
+		{
+			request.set_status_line("HTTP/1.1 405 Method Not Allowed");
+            path.append("/405.html");
+		}
         if (!is_path_valid || loc == nullptr)
             path.append("/404.html");
         else
