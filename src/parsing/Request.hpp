@@ -65,7 +65,7 @@ class Request : public http_header_request
 		void			set_chunked_body(int fd);
 
 		void			fill_header(int fd);
-
+		bool			is_method_valid();
 		bool			is_chunked(void);
 
 	private:

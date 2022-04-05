@@ -41,7 +41,9 @@ void Response::set_error_path(void)
 	std::string status = request->get_status_line();
 	path = config->getErrorPage(port);
     if (path.empty())
+	{
         path = default_error;
+	}
 	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
 		path.append("/500.html");
 	else if (status == "HTTP/1.1 400 BAD REQUEST")
