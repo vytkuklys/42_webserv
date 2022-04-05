@@ -1,22 +1,23 @@
 #include "Response.hpp"
-#include <string.h>
-#include <sys/stat.h>
 
-Response::Response(Request req, Config data) : request(req), config(data)
+
+Response::Response(Request& req, Config& data) : request(&req)
 {
+	config = &data;
     default_error = "./documents/html_errors";
     has_access = true;
-	if (request.get_error_status() == true)
+	if (request->get_error_status() == true)
 	{
 		set_error_path();
 	}
 	else
 	{
-    	set_path(request.get_path());
+	std::cout << "Responder constructor" << std::endl;
+    	set_path(request->get_path());
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
     set_status_line();
-	if (request.get_method() != "HEAD")
+	if (request->get_method() != "HEAD")
 		set_body();
     set_headers();
 }
@@ -24,7 +25,7 @@ Response::Response(Request req, Config data) : request(req), config(data)
 // ----------------- MEMBERS ------------------- //
 void	Response::stop_reading(void)
 {
-	request.set_status_line("HTTP/1.1 500 INTERNAL SERVER ERROR");
+	request->set_status_line("HTTP/1.1 500 INTERNAL SERVER ERROR");
 	set_status_line();
 	set_error_path();
 	file_ext = "html";
@@ -35,9 +36,10 @@ void	Response::stop_reading(void)
 
 void Response::set_error_path(void)
 {
-	std::string port = ft::remove_whitespace(request.get_port());
-	std::string status = request.get_status_line();
-	path = config.getErrorPage(port);
+	std::cout << "set_error_path" << std::endl;
+	std::string port = ft::remove_whitespace(request->get_port());
+	std::string status = request->get_status_line();
+	path = config->getErrorPage(port);
     if (path.empty())
         path = default_error;
 	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
@@ -49,76 +51,77 @@ void Response::set_error_path(void)
 void Response::set_path(std::string const filename)
 {
     path = filename;
-    std::string port = ft::remove_whitespace(request.get_port());
-    bool is_listing_on = config.getDirectoryListing(port);
-    LocationData * loc = config.get_location(port, filename);
+    std::string port = ft::remove_whitespace(request->get_port());
+    bool is_listing_on = config->getDirectoryListing(port);
+    LocationData * loc = config->get_location(port, filename);
+	std::cout << loc->getLocation() << std::endl;
+	std::cout << "set_path" << std::endl;
     if (loc != nullptr)
 	{
-		// if (loc->getLocation() == "/directory/youpi.bla")
-		// {
-		// 	path = "/put_test/file_should_exist_after";
-		// }
-        if (loc->getLocation() == "/" || (path.find_last_of("/") == 0 && path.find_last_of(".") != std::string::npos))
-		{
-            path.insert(0, loc->getRoot());
-		}
-        else
-		{
-            ft::replace(path, loc->getLocation(), loc->getRoot());
-		}
-        if (filename[filename.length() - 1] == '/')
-            path += loc->getIndex();
-		else if(exists_dir(path))
-			path += "/" + loc->getIndex();
-        has_access = is_authorized(loc->getMethod(), request.get_method(), (!is_listing_on && filename == "/index.php"));
-		if (has_access == false)
-			request.set_status_line("HTTP/1.1 405 Method Not Allowed");
-    }
-    is_path_valid = exists_path(path);
-	std::cout << path << " == " << loc->getRoot() << std::endl;
-	if ((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false)
-			request.set_status_line("HTTP/1.1 404 Not Found");
-    if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
-    {
-        path = config.getErrorPage(port);
-        if (path.empty())
-            path = default_error;
-        if (!is_path_valid || loc == nullptr)
-            path.append("/404.html");
-        else
-            path.append("/403.html");
-    }
-	std::cout << "path=" << path << std::endl;
+		std::cout << "path=" << path << std::endl;
+		if((loc->getLocation() == "/" && loc->getLocation().length() == 1))
+			path.insert(0, loc->getRoot());
+		else
+			ft::replace(path, loc->getLocation(), loc->getRoot());
+		std::cout << "path=" << path << std::endl;
 
+		if(exists_dir(path))
+		{
+			if(path[path.length() - 1] != '/')
+				path += "/";
+			path += loc->getIndex();
+		}
+		std::cout << "path=" << path << " loc method =" << loc->getMethod() << " requ method " << request->get_method() <<  std::endl;
+        has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
+		if (has_access == false)
+		{
+			std::cout << "has_access = flase" << std::endl;
+			request->set_status_line("HTTP/1.1 405 Method Not Allowed");
+		}
+		if(request->get_status_line() != "HTTP/1.1 405 Method Not Allowed")
+		{
+			if ((( request->get_method() == "POST") || (request->get_method() == "PUT")))
+			{
+					request->set_status_line("HTTP/1.1 303 See Other");
+			}
+			else
+			{
+				is_path_valid = exists_path(path);
+				std::cout << path << " == " << loc->getRoot() << std::endl;
+				if (((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false))
+				{
+						request->set_status_line("HTTP/1.1 404 Not Found");
+				}
+				if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
+				{
+					path = config->getErrorPage(port);
+					if (path.empty())
+						path = default_error;
+					if (!is_path_valid || loc == nullptr)
+						path.append("/404.html");
+					else
+						path.append("/403.html");
+				}
+				std::cout << "path=" << path << std::endl;
+			}
+		}
+	}
 }
 
 void Response::set_status_line(void)
 {
-	// if (file_ext == "php")
-	// 	status_line = "HTTP/1.1 303 See Other";
-	// else if (!is_path_valid)
-	// 	status_line = "HTTP/1.1 404 NOT FOUND";
-	// else if (request.get_method() == "POST")
-	// 	status_line = "HTTP/1.1 405 Method Not Allowed";
-	// else if (has_access == false)
-	// 	status_line = "HTTP/1.1 403 FORBIDDEN";
-	// else
-	// 	status_line = "HTTP/1.1 200 OK";
-
-	if ((((is_path_valid == true && has_access == true && file_ext == "php" && request.get_method() == "POST") || (request.get_method() == "PUT"))) && (path != "./documents/index.php"))
-		request.set_status_line("HTTP/1.1 303 See Other");
-	status_line = request.get_status_line();
+	status_line = request->get_status_line();
 }
 
 void Response::set_content_type(void)
 {
     if (is_text_ext(file_ext))
     {
-        headers["Content-type:"] = "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript")));
+       set_value("Content-type:", "text/" + ((file_ext != "php" && file_ext != "js" && file_ext != "txt") ? file_ext : (file_ext == "php" ? "html" : (file_ext == "txt" ? "plain" : "javascript"))));
     }
     else if (is_image_ext(file_ext))
     {
-        headers["Content-type:"] = "image/" + ((file_ext != "svg" && file_ext != "jpg") ? file_ext : (file_ext == "svg" ? "svg+xml" : "jpeg"));
+        set_value("Content-type:", "image/" + ((file_ext != "svg" && file_ext != "jpg") ? file_ext : (file_ext == "svg" ? "svg+xml" : "jpeg")));
 
     }
 }
@@ -126,16 +129,17 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
     set_content_type();
-	if(request.get_method() == "POST" || request.get_method() == "PUT")
-		headers["Location:"] = "../index.html";
-	if (request.get_method() != "HEAD")
-		headers["Content-length:"] = ft::to_string(body.length());
-    headers["Content-security-policy:"] = "upgrade-insecure-requests";
-    headers["Connection:"] = "close";
-    headers["Server:"] = "Weebserv/1.0.0 (Unix)";
-    headers["Transfer-Encoding:"] = "identity";
-    headers["Accept-ranges:"] = "bytes";
-    headers["Date:"] = get_http_time();
+	if(request->get_method() == "POST" || request->get_method() == "PUT")
+		set_value("Location:", "../index.html");
+
+	if (request->get_method() != "HEAD")
+		set_value("Content-length:", ft::to_string(body.length()));
+    set_value("Content-security-policy:", "upgrade-insecure-requests");
+    set_value("Connection:", "close");
+    set_value("Server:", "Weebserv/1.0.0 (Unix)");
+    set_value("Transfer-Encoding:", "identity");
+    set_value("Accept-ranges:", "bytes");
+    set_value("Date:", get_http_time());
 }
 
 void Response::set_image_body(void)
@@ -182,7 +186,7 @@ void Response::set_body(void)
 	std::string line;
 	if (input_stream.is_open())
 		input_stream.close();
-	if (file_ext == "php" && request.get_method() == "GET")
+	if (file_ext == "php" && request->get_method() == "GET")
 	{
 		int pipefd[2];
 		int pid;
@@ -241,7 +245,7 @@ void Response::set_body(void)
 	{
 		set_image_body();
 	}
-	else if (request.get_method() == "GET" || request.get_error_status())
+	else if (request->get_method() == "GET" || request->get_error_status())
 	{
 		input_stream.open(path.c_str());
 		if (input_stream.is_open())
@@ -259,16 +263,9 @@ void Response::set_body(void)
 
 std::string Response::get_http_response(void)
 {
-	std::string response;
-	std::map<std::string, std::string>::iterator it;
-
-	response = status_line + "\r\n";
 	std::cout << status_line << std::endl;
-	for (it = headers.begin(); it != headers.end(); ++it)
-	{
-		 response += it->first + it->second + "\r\n";
-	}
-	response += "\r\n";
+	set_first_line(status_line);
+	std::string response = get_http_header();
 	response.append(body);
 	return (response);
 }

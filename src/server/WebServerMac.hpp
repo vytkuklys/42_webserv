@@ -21,10 +21,10 @@ namespace SERVER
 		struct sockaddr_storage tmp_client_saddr;
 		std::vector<int>		listeners;				//vector of filedescriptes of the new created lisner sockets
 		int						tmp_socket_fd;
-		fd_set					current_sockets;
+		fd_set					read_sockets;
 		fd_set					write_sockets;
 		std::map<int,Request>	data;
-		Config					config;
+		Config*					config;
 		void					accepter();
 		void					handler();
 		void					responder();
@@ -35,7 +35,7 @@ namespace SERVER
 		std::string				http_time(const struct tm *timeptr);
 
 	public:
-		WebServer(std::vector<int>& ports, Config config);
+		WebServer(std::vector<int>& ports, Config& config);
 		void launch(std::vector <int> &ports);
 		~WebServer();
 	};

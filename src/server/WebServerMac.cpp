@@ -3,14 +3,15 @@
 #include <unistd.h>
 #include <string.h>
 
-SERVER::WebServer::WebServer(std::vector<int> &ports, Config data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), ports, data.getInterface(), data.getBacklog()), config(data)
+SERVER::WebServer::WebServer(std::vector<int> &ports, Config& data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), ports, data.getInterface(), data.getBacklog())
 {
-	FD_ZERO(&current_sockets); // init fd set
+	config = &data;
+	FD_ZERO(&read_sockets); // init fd set
 	FD_ZERO(&write_sockets);
 	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
 		listeners.push_back((*socket)->get_socket_fd());
-		FD_SET(listeners.back(), &current_sockets); // add listener to the fd set
+		FD_SET(listeners.back(), &read_sockets); // add listener to the fd set
 	}
 	launch(ports);
 }
@@ -41,7 +42,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 
 		timeout.tv_sec = 10;
 		timeout.tv_usec = 0;
-		tmp_read_sockets = current_sockets;
+		tmp_read_sockets = read_sockets;
 		tmp_write_sockets = write_sockets;
 		int len;																				   // tmp copy of fd set, because select function destroys second argument
 		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
@@ -56,7 +57,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 				tmp_socket_fd = i;
 				handler();
 			}
-			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
+			/*else */if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
 				tmp_socket_fd = i;
 				responder();
@@ -81,7 +82,7 @@ void SERVER::WebServer::handle_new_client()
 	if (tmp_socket_fd != -1)
 	{
 		fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
-		FD_SET(tmp_socket_fd, &current_sockets);
+		FD_SET(tmp_socket_fd, &read_sockets);
 	}
 }
 
@@ -97,7 +98,7 @@ void SERVER::WebServer::handle_known_client()
 	if (itr == data.end())
 	{
 		std::cout << "constructor" << std::endl;
-		Request req;
+		Request req(*config);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		itr = data.find(tmp_socket_fd);
 	}
@@ -105,9 +106,12 @@ void SERVER::WebServer::handle_known_client()
 	std::cout << "process socket information" << std::endl;
 	itr->second.fill_header(tmp_socket_fd);
 	if (itr->second.get_error_status())
-		FD_CLR(tmp_socket_fd, &current_sockets);
+		FD_CLR(tmp_socket_fd, &read_sockets);
 	if (itr->second.get_parsing_position() == done)
+	{
+		std::cout << "set fd to write list" << std::endl;
 		FD_SET(tmp_socket_fd, &write_sockets);
+	}
 	std::cout << "done with know client" << std::endl;
 	// std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
 }
@@ -120,7 +124,8 @@ void SERVER::WebServer::responder()
 	{
 		int total;
 		Request &info = itr->second;
-		Response response(info, config);
+		std::cout << "responder" << std::endl;
+		Response response(info, *config);
 		http_response = response.get_http_response();
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
@@ -132,7 +137,7 @@ void SERVER::WebServer::responder()
 			ptr += bytes;
 			total -= bytes;
 		}
-		FD_CLR(tmp_socket_fd, &current_sockets);
+		FD_CLR(tmp_socket_fd, &read_sockets);
 		FD_CLR(tmp_socket_fd, &write_sockets);
 		data.erase(itr);
 		close(tmp_socket_fd);

@@ -421,7 +421,15 @@ LocationData *Config::get_location(std::string port, std::string path)
 			std::string location = (*it2)->getLocation();
 			if (location != "UNKNOWN")
 				locations.push_back(location);
-			if (path == location)
+			int i ;
+			i = location.find_first_of('*');
+			while(static_cast<unsigned long>(i) != std::string::npos)
+			{
+				std::cout << "test " <<  i << std::endl;
+				location.erase(i, 1);
+				i = location.find_first_of('*');
+			}
+			if (path.find(location) == 0 && (location.size() > 1 || path.size() == 1))
 			{
 				return (*it2);
 			}

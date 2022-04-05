@@ -1,5 +1,5 @@
 #include "../inc/Configuration.hpp"
-#include "../inc/Parsing.hpp"
+// #include "../inc/Parsing.hpp"
 #include "../inc/Server.hpp"
 
 void printConfigData(Config config)
@@ -34,6 +34,13 @@ void printConfigData(Config config)
 	}
 }
 
+void ft_printeror(int a)
+{
+	(void)a;
+	std::cout << "broken pipe" << std::endl;
+	exit(SIGPIPE);
+}
+
 int main (int argc, char **argv)
 {
 	if (argc != 2 && 0) // only for faster testing
@@ -41,9 +48,10 @@ int main (int argc, char **argv)
 		std::cout << "Invalid input" << std::endl;
 		return (-1);
 	}
+	signal(SIGPIPE, ft_printeror);
 	// Config config(argv[1]);
 	(void)argv;								 // only for faster testing
-	Config config("config_files/newdefault.conf"); // only for faster testing
+	Config config("config_files/test.conf"); // only for faster testing
 
 	// printConfigData(config);
 

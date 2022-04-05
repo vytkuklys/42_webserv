@@ -1,3 +1,5 @@
+#!./php-cgi
+
 <?php
 	if (isset($_FILES['user_file']) && ($_SERVER['REQUEST_METHOD'] == "POST"))
 		move_uploaded_file($_FILES['user_file']['tmp_name'], '../documents/uploaded/' . $_FILES['user_file']['name']);
