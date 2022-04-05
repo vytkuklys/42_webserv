@@ -98,7 +98,7 @@ void Response::set_path(std::string const filename)
 		}
 		else
 		{
-			set_error_page("/404.html");
+			set_error_page("/405.html");
 		}
 	}
 	else
