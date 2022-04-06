@@ -459,7 +459,6 @@ void Request::unchunk_body(std::istringstream& data)
 			{
 				part_of_hex_of_chunked = line;
 				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
-				return;
 			}
 			// std::cout << missing_chuncked_data << std::endl;
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
