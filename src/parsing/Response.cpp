@@ -12,7 +12,7 @@ Response::Response(Request& req, Config& data) : request(&req)
 	}
 	else
 	{
-	std::cout << "Responder constructor" << std::endl;
+		std::cout << "Responder constructor" << std::endl; 
     	set_path(request->get_path());
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
@@ -56,16 +56,12 @@ void Response::set_path(std::string const filename)
     std::string port = ft::remove_whitespace(request->get_port());
     bool is_listing_on = config->getDirectoryListing(port);
     LocationData * loc = config->get_location(port, filename);
-	std::cout << loc->getLocation() << std::endl;
-	std::cout << "set_path" << std::endl;
     if (loc != nullptr)
 	{
-		std::cout << "path=" << path << std::endl;
 		if((loc->getLocation() == "/" && loc->getLocation().length() == 1))
 			path.insert(0, loc->getRoot());
 		else
 			ft::replace(path, loc->getLocation(), loc->getRoot());
-		std::cout << "path=" << path << std::endl;
 
 		if(exists_dir(path))
 		{
@@ -73,11 +69,9 @@ void Response::set_path(std::string const filename)
 				path += "/";
 			path += loc->getIndex();
 		}
-		std::cout << "path=" << path << " loc method =" << loc->getMethod() << " requ method " << request->get_method() <<  std::endl;
         has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
-			std::cout << "has_access = flase" << std::endl;
 			request->set_status_line("HTTP/1.1 405 Method Not Allowed");
 		}
 		if(request->get_status_line() != "HTTP/1.1 405 Method Not Allowed")
@@ -94,25 +88,37 @@ void Response::set_path(std::string const filename)
 			else
 			{
 				is_path_valid = exists_path(path);
-				std::cout << path << " == " << loc->getRoot() << std::endl;
 				if (((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false))
 				{
 						request->set_status_line("HTTP/1.1 404 Not Found");
 				}
 				if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
 				{
-					path = config->getErrorPage(port);
-					if (path.empty())
-						path = default_error;
 					if (!is_path_valid || loc == nullptr)
-						path.append("/404.html");
+						set_error_page("/404.html");
 					else
-						path.append("/403.html");
+						set_error_page("/403.html");
 				}
-				std::cout << "path=" << path << std::endl;
 			}
 		}
+		else
+		{
+			set_error_page("/405.html");
+		}
 	}
+	else
+	{
+		request->set_status_line("HTTP/1.1 404 Not Found");
+		set_error_page("/404.html");
+	}
+}
+
+void Response::set_error_page(std::string file)
+{
+	path = config->getErrorPage(request->get_port());
+	if (path.empty())
+		path = default_error;
+	path.append(file);
 }
 
 void Response::set_status_line(void)
@@ -260,8 +266,9 @@ void Response::set_body(void)
 	else if (is_image_ext(file_ext))
 	{
 		set_image_body();
+
 	}
-	else if (request->get_method() == "GET" || request->get_error_status())
+	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || request->get_error_status())
 	{
 		input_stream.open(path.c_str());
 		if (input_stream.is_open())
@@ -394,7 +401,13 @@ bool is_authorized(std::string server, std::string request, bool listing_status)
 	std::transform(server.begin(), server.end(), server.begin(), ft::to_lower);
 	std::transform(request.begin(), request.end(), request.begin(), ft::to_lower);
 
-    if (server.find(request, 0) == std::string::npos || listing_status)
+    if (listing_status || server.find(request, 0) == std::string::npos || !is_method_valid(request))
         return (false);
     return (true);
+}
+
+bool is_method_valid(std::string method)
+{
+	const std::string methods[] = {"post", "head", "get", "put", "delete"};
+    return (ft::is_found(methods, method, 5));
 }

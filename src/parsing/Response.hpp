@@ -43,6 +43,7 @@ private:
 		void set_status_line(void);
 		void set_content_type(void);
 		void set_image_body(void);
+		void set_error_page(std::string file);
 public:
 		std::string get_path(void);
 		Response(Request& req, Config& data);
@@ -54,6 +55,7 @@ public:
 bool is_image_ext(std::string ext);
 bool is_text_ext(std::string ext);
 bool is_authorized(std::string server, std::string request, bool listing_status);
+bool is_method_valid(std::string method);
 bool exists_path(std::string const filename);
 bool exists_dir(std::string const path);
 // bool exists_file(std::string const path);

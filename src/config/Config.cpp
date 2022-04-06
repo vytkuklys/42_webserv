@@ -322,6 +322,8 @@ int Config::getInterface(void) { return (_interface); }
 
 std::string Config::getErrorPage(std::string port)
 {
+	if (port.empty())
+		return ("");
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
