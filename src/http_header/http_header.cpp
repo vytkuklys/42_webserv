@@ -49,7 +49,7 @@ std::string http_header::get_http_header(void) const
 	// std::cout << get_first_line() << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it=header_pairs.begin(); it != header_pairs.end(); ++it)
 	{
-		 response += it->first + it->second + "\r\n";
+		 response += it->first + " " + it->second + "\r\n";
 	}
 	response += "\r\n";
 	return (response);

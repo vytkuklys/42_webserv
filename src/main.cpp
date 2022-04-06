@@ -38,7 +38,7 @@ void ft_printeror(int a)
 {
 	(void)a;
 	std::cout << "broken pipe" << std::endl;
-	exit(SIGPIPE);
+	// exit(SIGPIPE);
 }
 
 int main (int argc, char **argv)

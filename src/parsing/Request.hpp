@@ -29,13 +29,17 @@ enum mile_stones{
 	done_with_header,
 	first_chunk_size,
 	body,
-	done
+	send_first,
+	erase_cgi_header,
+	send_body
 };
 
 class Request : public http_header_request
 {
 	private:
 		int									pipe_in[2];
+		FILE*								out_file;
+		int									pipe_out[2];
 		int									content_length;
 		unsigned long						missing_chuncked_data;
 		std::string							part_of_hex_of_chunked;
@@ -59,10 +63,12 @@ class Request : public http_header_request
 		int				get_parsing_position() const;
 		int				get_content_length();
 		bool			get_error_status() const;
+		std::string		get_cgi_return();
 
 		void			set_status_line(std::string new_status);
 		void			set_regular_body(std::istringstream& data);
 		void			set_chunked_body(int fd);
+		void			set_parsing_position(mile_stones new_pos);
 
 		void			fill_header(int fd);
 		bool			is_method_valid();

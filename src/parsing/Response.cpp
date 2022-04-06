@@ -82,9 +82,14 @@ void Response::set_path(std::string const filename)
 		}
 		if(request->get_status_line() != "HTTP/1.1 405 Method Not Allowed")
 		{
-			if ((( request->get_method() == "POST") || (request->get_method() == "PUT")))
+			if (request->get_method() == "PUT")
 			{
 					request->set_status_line("HTTP/1.1 303 See Other");
+			}
+			else if ( request->get_method() == "POST")
+			{
+					request->set_status_line("HTTP/1.1 200 OK");
+
 			}
 			else
 			{
@@ -132,10 +137,19 @@ void Response::set_headers(void)
 {
     set_content_type();
 	if(request->get_method() == "POST" || request->get_method() == "PUT")
+	{
 		set_value("Location:", "../index.html");
 
-	if (request->get_method() != "HEAD")
+	}
+
+	if (request->get_method() == "GET")
 		set_value("Content-length:", ft::to_string(body.length()));
+	else if (request->is_chunked() && status_line != "HTTP/1.1 405 Method Not Allowed")
+	{
+		set_value("content-type:", "text/html; charset=utf-8");
+		set_value("Transfer-Encoding:", "chunked");
+	}
+
     set_value("Content-security-policy:", "upgrade-insecure-requests");
     set_value("Connection:", "close");
     set_value("Server:", "Weebserv/1.0.0 (Unix)");
@@ -265,9 +279,10 @@ void Response::set_body(void)
 
 std::string Response::get_http_response(void)
 {
-	std::cout << status_line << std::endl;
+	// std::cout << status_line << std::endl;
 	set_first_line(status_line);
 	std::string response = get_http_header();
+	std::cout << response << std::endl;
 	response.append(body);
 	return (response);
 }

@@ -39,8 +39,9 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 	while (42)
 	{
 		struct timeval timeout;
+		std::cout << "end?" << std::endl;
 
-		timeout.tv_sec = 10;
+		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
 		tmp_read_sockets = read_sockets;
 		tmp_write_sockets = write_sockets;
@@ -57,7 +58,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 				tmp_socket_fd = i;
 				handler();
 			}
-			/*else */if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
+			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
 				tmp_socket_fd = i;
 				responder();
@@ -107,7 +108,7 @@ void SERVER::WebServer::handle_known_client()
 	itr->second.fill_header(tmp_socket_fd);
 	if (itr->second.get_error_status())
 		FD_CLR(tmp_socket_fd, &read_sockets);
-	if (itr->second.get_parsing_position() == done)
+	if (itr->second.get_parsing_position() == send_first)
 	{
 		std::cout << "set fd to write list" << std::endl;
 		FD_SET(tmp_socket_fd, &write_sockets);
@@ -118,6 +119,8 @@ void SERVER::WebServer::handle_known_client()
 
 void SERVER::WebServer::responder()
 {
+	bool	end_of_chunked = false;
+
 	std::string http_response;
 	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
@@ -125,21 +128,57 @@ void SERVER::WebServer::responder()
 		int total;
 		Request &info = itr->second;
 		std::cout << "responder" << std::endl;
-		Response response(info, *config);
-		http_response = response.get_http_response();
+		if(info.get_parsing_position() <= send_first)
+		{
+			std::cout << "send first" << std::endl;
+			Response response(info, *config);
+			http_response = response.get_http_response();
+			info.set_parsing_position(erase_cgi_header);
+			FD_CLR(tmp_socket_fd, &read_sockets);
+		}
+		else
+		{
+			std::cout << "send body" << std::endl;
+			http_response = info.get_cgi_return();
+			total = http_response.length();
+			std::stringstream stream;
+			stream << std::hex << total;
+			// std::cerr << total << std::endl;
+			// std::cerr << "." << http_response << ".";
+			http_response.insert(0, stream.str() + "\r\n");
+			http_response.append("\r\n");
+			std::cerr << http_response ;
+			if(total == 0)
+			{
+				end_of_chunked = true;
+			}
+		}
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
 		while (total > 0)
 		{
-			int bytes = send(tmp_socket_fd, (const void *)ptr, total, 0);
+			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
+			if (bytes != total)
+				std::cerr << "error send " << bytes << "should" << total<< std::endl;
 			if (bytes == -1 || bytes == 0)
 				break ; //HTTP server closes the socket if an error occurs during the sending of a file
 			ptr += bytes;
 			total -= bytes;
 		}
-		FD_CLR(tmp_socket_fd, &read_sockets);
-		FD_CLR(tmp_socket_fd, &write_sockets);
-		data.erase(itr);
-		close(tmp_socket_fd);
+		if(!info.is_chunked())
+		{
+			std::cout << "close socket" << std::endl;
+			FD_CLR(tmp_socket_fd, &write_sockets);
+			data.erase(itr);
+			close(tmp_socket_fd);
+		}
+		if (end_of_chunked)
+		{
+			std::cout << "close socket" << std::endl;
+			FD_CLR(tmp_socket_fd, &write_sockets);
+			data.erase(itr);
+			close(tmp_socket_fd);
+			return;
+		}
 	}
 }

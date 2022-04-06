@@ -19,15 +19,15 @@ bool Request::set_start_line(std::string s)
 	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
 	if (s[0] == '/' || s[0] == '#')
 		return (EXIT_FAILURE);
-	std::cout << "set_sart_line" << std::endl;
+	// std::cout << "set_sart_line" << std::endl;
 	while ((pos = s.find(" ")) != std::string::npos)
 	{
 		token = s.substr(0, pos);
 		if ((token.length()) > 0 && j == 0)
 		{
-	std::cout << "set_sart_line" << std::endl;
+	// std::cout << "set_sart_line" << std::endl;
 			set_method(token);
-	std::cout << "set_sart_line" << std::endl;
+	// std::cout << "set_sart_line" << std::endl;
 			j++;
 		}
 		else if (token.length() > 0 && j++ == 1)
@@ -139,6 +139,14 @@ void	Request::fill_header(int fd)
 					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
 					return ;
 				}
+				out_file = tmpfile();
+				// if (pipe(pipe_out) == -1)
+				// {
+				// 	close(pipe_in[0]);
+				// 	close(pipe_in[1]);
+				// 	stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+				// 	return ;
+				// }
 				std::cout << "fork" <<std::endl;
 				pid_child = fork();
 				if (pid_child == -1)
@@ -208,9 +216,11 @@ void	Request::fill_header(int fd)
 					}
 					env.push_back(NULL);
 					close(pipe_in[1]);
+					// close(pipe_out[0]);
 					dup2(pipe_in[0], STDIN_FILENO); //stop reading
 					close(pipe_in[0]);
-					// dup2(STDERR_FILENO, STDOUT_FILENO); //stop reading
+					dup2(fileno(out_file), STDOUT_FILENO); //stop reading
+					// close(pipe_out[1]);
 					// char * const * nll = NULL;
 					// chdir("./cgi-bin");
 					if (execve(/*config->get_location(get_port(), get_path())->getScript().c_str()*/ "/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi_tester" , &argv[0], &env[0]))
@@ -224,14 +234,15 @@ void	Request::fill_header(int fd)
 					exit(EXIT_FAILURE);
 				}
 				close(pipe_in[0]);
+				// close(pipe_out[1]);
 			}
 		}
 		else
 		{
-				parsing_position = done;
+				parsing_position = send_first;
 		}
 	}
-	if (parsing_position >= done_with_header && parsing_position != done)
+	if (parsing_position >= done_with_header && parsing_position != send_first)
 	{
 		if (is_chunked())
 			unchunk_body(data);
@@ -251,6 +262,12 @@ void	Request::set_error_status(bool status)
 {
 	is_error = status;
 }
+
+void	Request::set_parsing_position(mile_stones new_pos)
+{
+	parsing_position = new_pos;
+}
+
 
 
 // ----------------- GETTERS ------------------ //
@@ -330,12 +347,33 @@ int		Request::get_parsing_position() const
 	return(parsing_position);
 }
 
+std::string		Request::get_cgi_return()
+{
+	char tmp[4096];
+	int bytes;
+	if ((bytes = fread(tmp, 1, 4096, out_file)) < 4096)
+	{
+		std::cout << "close out_file" << std::endl;
+		fclose(out_file);
+		// close(pipe_out[0]);
+	}
+	if (parsing_position == erase_cgi_header)
+	{
+		std::string tmp1(tmp, bytes);
+		std::cout << tmp1 << std::endl;
+		parsing_position = send_body;
+		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
+	}
+	return(std::string(tmp, bytes));
+}
+
+
 
 // --------------------- CHECKERS ---------------------
 
 bool Request::is_chunked(void)
 {
-    if (get_content_length() == -1)
+    if ((get_method() == "POST" || get_method() == "PUT") && get_content_length() == -1)
     {
         // std::cout << "Chunked branch\n";
         // std::cout << "down\n";
@@ -343,6 +381,7 @@ bool Request::is_chunked(void)
         // std::cout << "\nup\n";
         // std::cout << "~~For debugging purposes.";
         //exit(1);
+		std::cout << "is chunked" << std::endl;
         return (true);
     }
     return (false);
@@ -393,7 +432,8 @@ void Request::unchunk_body(std::istringstream& data)
 			{
 				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-				std::cout << "chunk size=" << missing_chuncked_data << std::endl;
+				std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << std::endl;
+				std::cout << data.rdbuf()->str() << std::endl;
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
@@ -405,8 +445,9 @@ void Request::unchunk_body(std::istringstream& data)
 					int ret;
 					close(pipe_in[1]);
 					waitpid(pid_child, &ret, 0);
+					rewind(out_file);
 					std::cout << "child return = " << ret << std::endl;
-					parsing_position = done;
+					parsing_position = send_first;
 					break;
 				}
 				else
@@ -415,32 +456,40 @@ void Request::unchunk_body(std::istringstream& data)
 				}
 			}
 			else
+			{
 				part_of_hex_of_chunked = line;
+				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
+				return;
+			}
 			// std::cout << missing_chuncked_data << std::endl;
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
 		}
 		int read_bytes;
+		written = 0;
 		if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
 		{
 			// std::cout << "write whole array" << std::endl;
 			read_bytes = data.rdbuf()->in_avail();
-				// std::cout << "read_bytes" << read_bytes << std::endl;
 			read_bytes = data.readsome(buffer, read_bytes);
+				// std::cout << "read_bytes" << read_bytes << std::endl;
 				// std::cout << "read_bytes" << read_bytes << std::endl;
 			if (read_bytes)
 			{
 				written = write(pipe_in[1], buffer, read_bytes);
+				// write(STDERR_FILENO, buffer, read_bytes);
+				// std::cout << "read_bytes" << read_bytes << std::endl;
 				// std::cout << "read_bytes" << read_bytes << std::endl;
 			}
 		}
 		else
 		{
-			// std::cout << "write missing_chuncked_data" << std::endl;
+			std::cout << "write missing_chuncked_data " << missing_chuncked_data << std::endl;
 			read_bytes = data.readsome(buffer, missing_chuncked_data);
 			if(read_bytes)
 				written = write(pipe_in[1], buffer, missing_chuncked_data);
-			// write(STDOUT_FILENO, buffer, missing_chuncked_data);
+			write(STDOUT_FILENO, buffer, missing_chuncked_data);
 		}
+		std::cout << "after chunked" << std::endl;
 		// std::cout <<"written = " << written << "read_bytes = " << read_bytes << std::endl;
 		if (static_cast<int>(written) == -1)
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
