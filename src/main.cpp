@@ -51,10 +51,10 @@ int main (int argc, char **argv)
 	signal(SIGPIPE, ft_printeror);
 	// Config config(argv[1]);
 	(void)argv;								 // only for faster testing
-	Config config("config_files/test.conf"); // only for faster testing
+	Config *config = new Config("config_files/newdefault.conf"); // only for faster testing
 
 	// printConfigData(config);
 
-	SERVER::WebServer webServer(config.getPorts(), config); //could not understand why calling config.getPorts() in webServerMac.cpp causes errors
+	SERVER::WebServer webServer(*config); //could not understand why calling config.getPorts() in webServerMac.cpp causes errors
 	return (0);
 }

@@ -2,8 +2,11 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
-SERVER::WebServer::WebServer(std::vector<int> &ports, Config& data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), ports, data.getInterface(), data.getBacklog())
+bool SERVER::WebServer::is_running = true;
+
+SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), data.getPorts(), data.getInterface(), data.getBacklog())
 {
 	config = &data;
 	FD_ZERO(&read_sockets); // init fd set
@@ -13,7 +16,7 @@ SERVER::WebServer::WebServer(std::vector<int> &ports, Config& data) : SimpleServ
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &read_sockets); // add listener to the fd set
 	}
-	launch(ports);
+	launch(data.getPorts());
 }
 
 SERVER::WebServer::~WebServer()
@@ -36,10 +39,11 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 
 	std::cout << std::endl;
 
-	while (42)
+    signal(SIGINT, shutdown);
+	while (is_running)
 	{
 		struct timeval timeout;
-		std::cout << "end?" << std::endl;
+		// std::cout << "end?" << std::endl;
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
@@ -48,10 +52,12 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		int len;																				   // tmp copy of fd set, because select function destroys second argument
 		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
 		{
+			if (errno == EINTR)
+				break;
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < FD_SETSIZE; i++)
+		for (int i = 0; is_running && i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
@@ -65,6 +71,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			}
 		}
 	}
+	this->clear();
 }
 
 void SERVER::WebServer::handler()
@@ -188,4 +195,46 @@ void SERVER::WebServer::responder()
 			return;
 		}
 	}
+}
+
+void SERVER::WebServer::clear()
+{
+	std::map<int, Request>::iterator itr = data.begin();
+    while (itr != data.cend())
+    {
+		int fd = itr->first;
+		if (FD_ISSET(fd, &write_sockets))
+		{
+			FD_CLR(fd, &write_sockets);
+		}
+		if (FD_ISSET(fd, &read_sockets))
+		{
+			FD_CLR(fd, &read_sockets);
+		}
+		close(fd);
+    }
+	for (std::vector<int>::iterator it = listeners.begin(); it != listeners.end(); it++)
+	{
+		int fd = itr->first;
+
+		if (FD_ISSET(fd, &write_sockets))
+		{
+			FD_CLR(fd, &write_sockets);
+		}
+		if (FD_ISSET(fd, &read_sockets))
+		{
+			FD_CLR(fd, &read_sockets);
+		}
+		close(fd);
+	}
+	data.clear();
+	listeners.clear();
+	delete config;
+	std::cout << "\n" << BOLD(FGRN(" ---- SERVER IS SHUTTING DOWN ---- ")) << std::endl;
+}
+
+void	SERVER::WebServer::shutdown(int signal)
+{
+	(void)signal;
+	is_running = false;
 }

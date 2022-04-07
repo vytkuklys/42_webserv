@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include "SimpleServer.hpp"
 #include <algorithm>
+#include "../../inc/Colors.hpp"
 #include "../../inc/Parsing.hpp"
 #include "../../inc/Configuration.hpp"
 
@@ -25,17 +26,23 @@ namespace SERVER
 		fd_set					write_sockets;
 		std::map<int,Request>	data;
 		Config*					config;
+		struct sigaction		sigact;
 		void					accepter();
 		void					handler();
 		void					responder();
+		void					clear();
 		void					handle_new_client();
 		void					handle_known_client();
 		void					respond_header(std::stringstream& client, Request& info);
 		void					respond_body(std::stringstream& client, Request& info);
 		std::string				http_time(const struct tm *timeptr);
+		static 					WebServer instanse;
+
+		static bool				is_running;
+		static void				shutdown(int a);
 
 	public:
-		WebServer(std::vector<int>& ports, Config& config);
+		WebServer(Config& config);
 		void launch(std::vector <int> &ports);
 		~WebServer();
 	};

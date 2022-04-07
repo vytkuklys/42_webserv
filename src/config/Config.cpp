@@ -306,7 +306,8 @@ std::vector<int> &Config::getPorts(void)
 {
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
-
+	if (ports.size())
+		return (ports);
 	while (it != ite)
 	{
 		ports.push_back((*it)->getPort());
