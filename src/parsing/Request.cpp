@@ -172,15 +172,27 @@ void	Request::fill_header(int fd)
 					}
 					argv.push_back(NULL);
 					std::string tmp;
-					env_strings.resize(20);
-					if ((tmp = get_value("Content-Length")) != "not found")
-					{
-						env_strings.push_back("CONTENT_LENGTH=" + tmp);
-					}
+					env_strings.resize(25);
+					// if ((tmp = get_value("Content-Length")) != "not found")
+					// {
+					// 	env_strings.push_back("CONTENT_LENGTH=" + tmp);
+					// }
 					env_strings.push_back("PATH_INFO=" + get_path());
 					env_strings.push_back("QUERY_STRING=");
 					// env_strings.push_back("REQUEST_URI=" + get_path());
 					env_strings.push_back("REDIRECT_STATUS=200");
+					for(http_header::iterator tmp = http_header::begin(); tmp != http_header::end(); tmp++)
+					{
+						std::string key = tmp->first;
+						std::transform(key.begin(), key.end(),key.begin(), ::toupper);
+						for(std::string::iterator pos = key.begin(); pos != key.end(); pos++)
+						{
+							if(*pos == '-')
+								*pos = '_';
+						}
+						env_strings.push_back("HTTP_" + key + "=" + tmp->second);
+						std::cout << env_strings.back() << std::endl;
+					}
 					// env_strings.push_back("SCRIPT_NAME=" + config->get_location(get_port(), get_path())->getScript());
 					// std::cout << "SCRIPT_FILENAME=." + get_path() << " = " << "SCRIPT_NAME=" + config->get_location(get_port(), get_path())->getScript() << std::endl;
 					// if(get_method() == "POST")
@@ -361,7 +373,7 @@ std::string		Request::get_cgi_return()
 	if (parsing_position == erase_cgi_header)
 	{
 		std::string tmp1(tmp, bytes);
-		std::cout << tmp1 << std::endl;
+		std::cout << "remove header" << tmp1 << std::endl;
 		parsing_position = send_body;
 		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
 	}

@@ -8,6 +8,9 @@
 
 class http_header
 {
+	public:
+		typedef std::map<std::string, std::string>::iterator	iterator;
+
 	private:
 		std::map<std::string, std::string>	header_pairs;
 		std::vector<std::string>			first_http_line;
@@ -24,6 +27,11 @@ class http_header
 		void							set_value(const std::string key, const std::string value);
 		void							set_first_line_element(const size_t pos, const std::string& value);
 		void							set_first_line(std::string line);
+		iterator						begin();
+		iterator						end();
+		std::pair<std::string,std::string> operator()();
+
+
 };
 
 
