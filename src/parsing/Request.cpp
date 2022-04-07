@@ -1,5 +1,5 @@
 #include "Request.hpp"
-
+#include "cstring"
 bool Request::set_start_line(std::string s)
 {
 	size_t pos = 0;
@@ -77,6 +77,7 @@ Request::Request(Config& conf)
 	set_error_status(false);
 	config = &conf;
 	status_line = "HTTP/1.1 200 OK";
+	remove_n = false;
 }
 
 Request::~Request()
@@ -349,7 +350,7 @@ int		Request::get_parsing_position() const
 
 std::string		Request::get_cgi_return()
 {
-	char tmp[4096];
+	char tmp[4097];
 	int bytes;
 	if ((bytes = fread(tmp, 1, 4096, out_file)) < 4096)
 	{
@@ -364,6 +365,8 @@ std::string		Request::get_cgi_return()
 		parsing_position = send_body;
 		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
 	}
+	// if (std::string(tmp, bytes).find("\n") != std::string::npos)
+	// 	std::cerr << std::string(tmp, bytes);
 	return(std::string(tmp, bytes));
 }
 
@@ -412,28 +415,38 @@ void Request::set_regular_body(std::istringstream& data)
 
 void Request::unchunk_body(std::istringstream& data)
 {
-	char buffer[4001];
-	std::string line;
-	size_t written = 0;
+	char			buffer[4001];
+	std::string		line;
+	size_t			written = 0;
+	size_t			avail = 0;
 	std::cout << "unchunk_body " << parsing_position << std::endl;
 	if (parsing_position == done_with_header)
 		parsing_position = first_chunk_size;
 	do
 	{
+		if (remove_n)
+		{
+			remove_n = false;
+			continue;
+			// std::cout << "remove_n" << remove_n << std::endl;
+			// data.ignore(remove_n);
+		}
 		if (missing_chuncked_data == 0)
 		{
-			// std::cout << "chunked beginn" << "." << line << "." << std::endl;
-			// std::cout << data << std::endl;
 			if (ft::is_whitespace(line) == EXIT_SUCCESS && part_of_hex_of_chunked.empty())
+			{
+				std::cout << "continue " << line;
 				continue;
+			}
+			std::cout << "missing_chuncked_data == 0" << std::endl;
 			line = part_of_hex_of_chunked + line;
 			part_of_hex_of_chunked.clear();
 			if (line.find('\r') != std::string::npos)
 			{
+				std::cout << "find r" << std::endl;
 				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
 				std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << std::endl;
-				std::cout << data.rdbuf()->str() << std::endl;
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
@@ -441,7 +454,6 @@ void Request::unchunk_body(std::istringstream& data)
 					if (parsing_position == first_chunk_size)
 						status_line = "HTTP/1.1 405 Method Not Allowed";
 					std::cout << "done with File" << std::endl << std::flush;
-
 					int ret;
 					close(pipe_in[1]);
 					waitpid(pid_child, &ret, 0);
@@ -460,47 +472,55 @@ void Request::unchunk_body(std::istringstream& data)
 				part_of_hex_of_chunked = line;
 				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
 			}
-			// std::cout << missing_chuncked_data << std::endl;
+			if(avail == line.length() + 1)
+			{
+				remove_n = true;
+				std::cout << "remove_n=" << remove_n << std::endl;
+			}
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
 		}
 		int read_bytes;
-		written = 0;
-		if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
+		if(data.rdbuf()->in_avail())
 		{
-			// std::cout << "write whole array" << std::endl;
-			read_bytes = data.rdbuf()->in_avail();
-			read_bytes = data.readsome(buffer, read_bytes);
-				// std::cout << "read_bytes" << read_bytes << std::endl;
-				// std::cout << "read_bytes" << read_bytes << std::endl;
-			if (read_bytes)
+			written = 0;
+			if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
 			{
-				written = write(pipe_in[1], buffer, read_bytes);
-				// write(STDERR_FILENO, buffer, read_bytes);
-				// std::cout << "read_bytes" << read_bytes << std::endl;
-				// std::cout << "read_bytes" << read_bytes << std::endl;
+				// std::cout << "write whole array" << std::endl;
+				read_bytes = data.rdbuf()->in_avail();
+				read_bytes = data.readsome(buffer, read_bytes);
+					// std::cout << "read_bytes" << read_bytes << std::endl;
 			}
-		}
-		else
-		{
-			std::cout << "write missing_chuncked_data " << missing_chuncked_data << std::endl;
-			read_bytes = data.readsome(buffer, missing_chuncked_data);
+			else
+			{
+				std::cout << "write missing_chuncked_data " << missing_chuncked_data << std::endl;
+				read_bytes = data.readsome(buffer, missing_chuncked_data);
+			}
+			if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
+			{
+				std::cout << "why" << std::string(buffer, read_bytes) << std::string(buffer, read_bytes).find("\n") <<" part pf hex nb"<< part_of_hex_of_chunked << "missing_chuncked_data" << missing_chuncked_data << " left in buffer" << data.rdbuf()->in_avail() << std::endl;
+				// std::string tmp = std::string(buffer, read_bytes).erase(std::string(buffer, read_bytes).find("\n"), 1);
+				// std::strcpy(buffer, &tmp[0]);
+				// read_bytes -= 1;
+			}
 			if(read_bytes)
-				written = write(pipe_in[1], buffer, missing_chuncked_data);
-			write(STDOUT_FILENO, buffer, missing_chuncked_data);
+				written = write(pipe_in[1], buffer, read_bytes);
+			if (static_cast<int>(written) == -1)
+				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+			else if (static_cast<int>(written) != read_bytes)
+				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+			missing_chuncked_data -= written;
 		}
-		std::cout << "after chunked" << std::endl;
 		// std::cout <<"written = " << written << "read_bytes = " << read_bytes << std::endl;
-		if (static_cast<int>(written) == -1)
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
-		else if (static_cast<int>(written) != read_bytes)
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
-		missing_chuncked_data -= written;
 		// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << " written:" << written << "." << std::endl;
-	} while (data && std::getline(data, line));
+			std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
+
+	} while (data && (avail = data.rdbuf()->in_avail()) && std::getline(data, line));
+	std::cout << "after chunked" << std::endl;
 }
 
 void		Request::stop_reading(std::string status, bool close_fd)
 {
+	std::cout << "stop_reading" << std::endl;
 	set_status_line(status);
 	set_error_status(true);
 	if (close_fd)

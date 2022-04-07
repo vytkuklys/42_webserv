@@ -49,6 +49,7 @@ class Request : public http_header_request
 		std::string							status_line;
 		bool								is_error;
 		Config								*config;
+		int								remove_n;
 	public:
 		Request (Config& conf);
 		~Request();

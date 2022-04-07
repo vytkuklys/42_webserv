@@ -143,26 +143,33 @@ void SERVER::WebServer::responder()
 			total = http_response.length();
 			std::stringstream stream;
 			stream << std::hex << total;
+			// if(http_response.find("\r\n") != std::string::npos)
+			// 	std::cerr << "why" << std::endl;
 			// std::cerr << total << std::endl;
 			// std::cerr << "." << http_response << ".";
-			http_response.insert(0, stream.str() + "\r\n");
+			// std::cerr << "." << stream.str() << "." << std::endl;
+			// std::cerr << "," << http_response << "," << std::endl;
+			http_response.insert(0, (stream.str() + "\r\n"));
+			// if(http_response.find("\r\n", (stream.str() + "\r\n").length()) != std::string::npos)
+			// 	std::cerr << "why" << http_response.find("\r\n", (stream.str() + "\r\n").length()) << std::endl;
+			std::cerr << http_response;
 			http_response.append("\r\n");
-			std::cerr << http_response ;
 			if(total == 0)
 			{
 				end_of_chunked = true;
 			}
+			stream.clear();
 		}
 		total = http_response.length();
-		const char *ptr = static_cast<const char *>(http_response.c_str());
+		// const char *ptr = static_cast<const char *>(http_response.c_str());
 		while (total > 0)
 		{
-			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
-			if (bytes != total)
-				std::cerr << "error send " << bytes << "should" << total<< std::endl;
+			int bytes = send(tmp_socket_fd, static_cast<const void *>(http_response.c_str()), total, 0);
+			// if (bytes != total)
+			// 	std::cerr << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
 			if (bytes == -1 || bytes == 0)
 				break ; //HTTP server closes the socket if an error occurs during the sending of a file
-			ptr += bytes;
+			// ptr += bytes;
 			total -= bytes;
 		}
 		if(!info.is_chunked())
