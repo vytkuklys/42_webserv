@@ -39,7 +39,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 
 	std::cout << std::endl;
 
-    signal(SIGINT, shutdown);
+    signal(SIGQUIT, shutdown);
 	while (is_running)
 	{
 		struct timeval timeout;
@@ -57,6 +57,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
+
 		for (int i = 0; is_running && i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
@@ -114,7 +115,10 @@ void SERVER::WebServer::handle_known_client()
 	std::cout << "process socket information" << std::endl;
 	itr->second.fill_header(tmp_socket_fd);
 	if (itr->second.get_error_status())
+	{
+		perror("HERE :");
 		FD_CLR(tmp_socket_fd, &read_sockets);
+	}
 	if (itr->second.get_parsing_position() == send_first)
 	{
 		std::cout << "set fd to write list" << std::endl;
