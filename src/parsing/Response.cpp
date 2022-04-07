@@ -12,7 +12,7 @@ Response::Response(Request& req, Config& data) : request(&req)
 	}
 	else
 	{
-		std::cout << "Responder constructor" << std::endl; 
+		std::cout << "Responder constructor" << std::endl;
     	set_path(request->get_path());
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());

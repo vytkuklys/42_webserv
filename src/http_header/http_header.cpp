@@ -95,3 +95,12 @@ std::string	http_header::get_first_line() const
 	ret = (ret.substr(0, ret.length() - 1));
 	return(ret);
 }
+http_header::iterator	http_header::begin()
+{
+	return(header_pairs.begin());
+}
+
+http_header::iterator	http_header::end()
+{
+	return(header_pairs.end());
+}

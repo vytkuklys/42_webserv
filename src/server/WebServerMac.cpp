@@ -152,8 +152,8 @@ void SERVER::WebServer::responder()
 			http_response.insert(0, (stream.str() + "\r\n"));
 			// if(http_response.find("\r\n", (stream.str() + "\r\n").length()) != std::string::npos)
 			// 	std::cerr << "why" << http_response.find("\r\n", (stream.str() + "\r\n").length()) << std::endl;
-			std::cerr << http_response;
 			http_response.append("\r\n");
+			std::cerr << http_response;
 			if(total == 0)
 			{
 				end_of_chunked = true;
