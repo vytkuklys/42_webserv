@@ -57,16 +57,21 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
+		std::cout << BOLD(FCYN(" ---- Loop ---- ")) << "len: " << len << std::endl;
 
 		for (int i = 0; is_running && i < FD_SETSIZE; i++)
 		{
+			// if (i % 3 == 0) <-- For siege stress test :D
+			// 	usleep(4);
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
+				std::cout << BOLD(FMAG(" ---- Read ---- ")) << std::endl;
 				tmp_socket_fd = i;
 				handler();
 			}
 			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
+				std::cout << BOLD(FYEL(" ---- Write ---- ")) << std::endl;
 				tmp_socket_fd = i;
 				responder();
 			}
@@ -93,6 +98,7 @@ void SERVER::WebServer::handle_new_client()
 		fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
 		FD_SET(tmp_socket_fd, &read_sockets);
 	}
+	std::cout << BOLD(FGRN("\n ---- ACCEPTED NEW ---- ")) << std::endl;
 }
 
 void SERVER::WebServer::accepter()
@@ -111,18 +117,18 @@ void SERVER::WebServer::handle_known_client()
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		itr = data.find(tmp_socket_fd);
 	}
-
 	std::cout << "process socket information" << std::endl;
 	itr->second.fill_header(tmp_socket_fd);
 	if (itr->second.get_error_status())
 	{
-		perror("HERE :");
+		perror(BOLD(FRED(" ---- ERROR ---- ")));
 		FD_CLR(tmp_socket_fd, &read_sockets);
 	}
-	if (itr->second.get_parsing_position() == send_first)
+	if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
 	{
 		std::cout << "set fd to write list" << std::endl;
-		FD_SET(tmp_socket_fd, &write_sockets);
+		if (!FD_ISSET(tmp_socket_fd, &write_sockets))
+			FD_SET(tmp_socket_fd, &write_sockets);
 	}
 	std::cout << "done with know client" << std::endl;
 	// std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
@@ -134,11 +140,11 @@ void SERVER::WebServer::responder()
 
 	std::string http_response;
 	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
+	std::cout << BOLD(FGRN(" ---- Response socket: ---- ")) << tmp_socket_fd << std::endl;
 	if (itr != data.end())
 	{
 		int total;
 		Request &info = itr->second;
-		std::cout << "responder" << std::endl;
 		if(info.get_parsing_position() <= send_first)
 		{
 			std::cout << "send first" << std::endl;
@@ -198,6 +204,7 @@ void SERVER::WebServer::responder()
 			close(tmp_socket_fd);
 			return;
 		}
+		std::cout << BOLD(FBLU(" ---- RESPONDED ---- \n")) << std::endl;
 	}
 }
 

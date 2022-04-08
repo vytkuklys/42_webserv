@@ -119,6 +119,21 @@ void ConfigData::pushToClass(int level, LocationData &tempClass)
 			tempClass.setScript(script);
 		script.erase();
 	}
+	if (level == 6)
+	{
+		int bytes = 1;
+		if (ft::stoi(max_size) == 0 || max_size.length() == 0 || max_size[0] == '-')
+		{
+			std::cout << "Invalid client_max_body_size: '" << max_size << "'";
+			std::cout << ", default client_max_body_size: '1B' used instead" << std::endl;
+			tempClass.setMaxBody(bytes);
+		}
+		else
+		{
+			bytes = ft::get_bytes(max_size);
+			tempClass.setMaxBody(bytes);
+		}
+	}
 }
 
 void ConfigData::setData(std::string readLine, std::string find, int level, LocationData &tempClass)
@@ -164,6 +179,8 @@ void ConfigData::setData(std::string readLine, std::string find, int level, Loca
 				index.push_back(readLine[begin + i]);
 			if (level == 5)
 				script.push_back(readLine[begin + i]);
+			if (level == 6)
+				max_size.push_back(readLine[begin + i]);
 			i++;
 		}
 		pushToClass(level, tempClass);
@@ -183,7 +200,10 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 	{
 		if (whichLine == start)
 			if (readLine.find("location") != npos)
+			{
 				tempClass = new LocationData();
+					tempClass->setMaxBody(BodySize);
+			}
 		if (whichLine >= start && whichLine < end)
 		{
 			setData(readLine, "location", 1, *tempClass);
@@ -191,6 +211,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 			setData(readLine, "method", 3, *tempClass);
 			setData(readLine, "indx", 4, *tempClass);
 			setData(readLine, "script", 5, *tempClass);
+			setData(readLine, "max_body_size", 6, *tempClass);
 		}
 		++whichLine;
 		if (whichLine == end)

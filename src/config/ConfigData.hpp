@@ -29,6 +29,7 @@ private:
 	std::string method;
 	std::string index;
 	std::string script;
+	std::string max_size;
 
 public:
 	ConfigData(void);

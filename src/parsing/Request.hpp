@@ -23,6 +23,8 @@
 #include <sys/wait.h>
 #include <strings.h>
 
+#define NOT_SET 0
+
 enum mile_stones{
 	first_line,
 	header,
@@ -50,6 +52,8 @@ class Request : public http_header_request
 		bool								is_error;
 		Config								*config;
 		int									remove_n;
+		int 								max_body;
+
 	public:
 		Request (Config& conf);
 		~Request();
@@ -72,11 +76,11 @@ class Request : public http_header_request
 		void			set_parsing_position(mile_stones new_pos);
 
 		void			fill_header(int fd);
-		bool			is_method_valid();
 		bool			is_chunked(void);
 
 	private:
 		void	for_testing_print_request_struct();
+		bool	is_content_length_valid();
 
 		int		set_headers(std::string line);
 		bool	set_start_line(std::string s);
@@ -85,6 +89,7 @@ class Request : public http_header_request
 		void	unchunk_body(std::istringstream& data);
 
 		void	stop_reading(std::string status, bool close_fd);
+		void	set_max_body(void);
 };
 
 #endif

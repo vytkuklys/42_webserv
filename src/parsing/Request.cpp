@@ -74,6 +74,7 @@ Request::Request(Config& conf)
 {
 	parsing_position = first_line;
 	missing_chuncked_data = 0;
+	max_body = NOT_SET;
 	set_error_status(false);
 	config = &conf;
 	status_line = "HTTP/1.1 200 OK";
@@ -129,8 +130,17 @@ void	Request::fill_header(int fd)
 	if (parsing_position == done_with_header)
 	{
 		content_length = get_content_length();
-		std::cout << "fd = " << fd << std::endl;
-		for_testing_print_request_struct();
+		if (max_body == NOT_SET)
+		{
+			set_max_body();
+			if (is_content_length_valid() == false)
+			{
+				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE", false);
+				return ;
+			}
+		}
+		// std::cout << "fd = " << fd << std::endl;
+		// for_testing_print_request_struct();
 		if (get_method() == "POST" || get_method() == "PUT") // check if it is a post request
 		{
 			if (content_length != 0)
@@ -281,6 +291,21 @@ void	Request::set_parsing_position(mile_stones new_pos)
 	parsing_position = new_pos;
 }
 
+void Request::set_max_body(void)
+{
+	if (max_body == 0)
+	{
+		LocationData * loc = config->get_location(get_port(), get_path());
+		if (loc == nullptr)
+		{
+			max_body = 1;
+		}
+		else
+		{
+			max_body = loc->getMaxBody();
+		}
+	}
+}
 
 
 // ----------------- GETTERS ------------------ //
@@ -491,7 +516,7 @@ void Request::unchunk_body(std::istringstream& data)
 			}
 			// std::cout << "missing_dat: " << "." << missing_chuncked_data << " vs " << data.rdbuf()->in_avail() << "." << std::endl;
 		}
-		int read_bytes;
+		int read_bytes = 0;
 		if(data.rdbuf()->in_avail())
 		{
 			written = 0;
@@ -500,7 +525,6 @@ void Request::unchunk_body(std::istringstream& data)
 				// std::cout << "write whole array" << std::endl;
 				read_bytes = data.rdbuf()->in_avail();
 				read_bytes = data.readsome(buffer, read_bytes);
-					// std::cout << "read_bytes" << read_bytes << std::endl;
 			}
 			else
 			{
@@ -541,4 +565,13 @@ void		Request::stop_reading(std::string status, bool close_fd)
 		wait(NULL);
 		// waitpid(pid_child, NULL, 0); //or waitpid?
 	}
+}
+
+bool Request::is_content_length_valid()
+{
+	if (content_length <= max_body)
+	{
+		return (true);
+	}
+	return (false);
 }
