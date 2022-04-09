@@ -56,7 +56,6 @@ class Request : public http_header_request
 		int									remove_n;
 		int 								max_body;
 		int									chunked_size;
-		int									summe_body_to_cgi;
 		int									count_read_byts_from_file;
 
 	public:
@@ -64,7 +63,7 @@ class Request : public http_header_request
 		Request ();
 		~Request();
 
-		std::string get(std::string key_word);
+		// std::string get(std::string key_word);
 		std::map<std::string, std::string> get_header() const;
 		// std::string		get_method() const;
 		// std::string		get_path() const;

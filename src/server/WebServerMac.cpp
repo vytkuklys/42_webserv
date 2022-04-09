@@ -56,7 +56,7 @@ SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data
 	status_line.insert(std::pair<int, std::string>(410, "Gone"));
 	status_line.insert(std::pair<int, std::string>(411, "Length Required"));
 	status_line.insert(std::pair<int, std::string>(412, "Precondition Failed"));
-	status_line.insert(std::pair<int, std::string>(413, "Payload Too Large"));
+	status_line.insert(std::pair<int, std::string>(413, "Request Entity Too Large"));
 	status_line.insert(std::pair<int, std::string>(414, "URI Too Long"));
 	status_line.insert(std::pair<int, std::string>(415, "Unsupported Media Type"));
 	status_line.insert(std::pair<int, std::string>(416, "Range Not Satisfiable"));
@@ -116,6 +116,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 	std::cout << std::endl;
 
     signal(SIGQUIT, shutdown);
+	int len = 0;
 	while (is_running)
 	{
 		struct timeval timeout;
@@ -124,7 +125,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		timeout.tv_usec = 0;
 		tmp_read_sockets = read_sockets;
 		tmp_write_sockets = write_sockets;
-		int len;																				   // tmp copy of fd set, because select function destroys second argument
 		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
 		{
 			if (errno == EINTR)
@@ -132,7 +132,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		std::cout << BOLD(FCYN(" ---- Loop ---- ")) << "len: " << len << std::endl;
 
 		for (int i = 0; is_running && i < FD_SETSIZE; i++)
 		{
@@ -140,13 +139,11 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			// 	usleep(4);
 			if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
-				std::cout << BOLD(FMAG(" ---- Read ---- ")) << std::endl;
 				tmp_socket_fd = i;
 				handler();
 			}
 			else if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
-				std::cout << BOLD(FYEL(" ---- Write ---- ")) << std::endl;
 				tmp_socket_fd = i;
 				responder();
 			}
@@ -208,14 +205,12 @@ void SERVER::WebServer::handle_known_client()
 	std::cout << "done with know client" << std::endl;
 	// std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
 }
-
 void SERVER::WebServer::responder()
 {
 	bool	end_of_chunked = false;
 
 	std::string http_response;
 	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
-	std::cout << BOLD(FGRN(" ---- Response socket: ---- ")) << tmp_socket_fd << std::endl;
 	if (itr != data.end())
 	{
 		int total;
@@ -238,11 +233,12 @@ void SERVER::WebServer::responder()
 			stream << std::hex << total;
 			http_response.insert(0, std::string(stream.str() + "\r\n"));
 			http_response.append("\r\n");
-			std::cerr << http_response;
+			// std::cerr << http_response;
 			if(total == 0)
 				end_of_chunked = true;
 			stream.clear();
 		}
+
 		total = http_response.length();
 		// std::cout << std::string(http_response, 0, total) << std::endl;
 		const char *ptr = static_cast<const char *>(http_response.c_str());

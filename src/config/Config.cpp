@@ -7,7 +7,7 @@ Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1)
 	_type = SOCK_STREAM;
 	_protocol = 0;
 	_interface = INADDR_ANY;
-	_backlog = 10;
+	_backlog = 1024;
 
 	retrieveValues();
 }

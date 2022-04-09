@@ -73,7 +73,6 @@ Request::Request()
 	parsing_position = read_first_line;
 	missing_chuncked_data = 0;
 	max_body = NOT_SET;
-	chunked_size = NOT_SET;
 
 	set_error_status(false);
 	status_line = "HTTP/1.1 200 OK";
@@ -81,7 +80,7 @@ Request::Request()
 	remove_n = false;
 	is_pipe_open = false;
 	is_forked = false;
-	summe_body_to_cgi = 0;
+	chunked_size = 0;
 	count_read_byts_from_file = 0;
 }
 
@@ -95,8 +94,7 @@ void	Request::fill_header(int fd, Config& conf)
 	char buffer[4001];
 	std::string line;
 	size_t bytes = recv(fd, buffer, 4000, 0);
-	if (done_with_header <= parsing_position)
-		chunked_size += bytes;
+
 	if (static_cast<int>(bytes) == -1)
 	{
 		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
@@ -126,7 +124,7 @@ void	Request::fill_header(int fd, Config& conf)
 	}
 	// std::cout << "fill header" << std::endl;
 
-	std::cout << "date=" << data << "bytes" << bytes << std::endl;
+	// std::cout << "date=" << data << "bytes" << bytes << std::endl;
 	while ((parsing_position == read_header) && data && std::getline(data, line))
 	{
 		if(line.empty())
@@ -144,15 +142,15 @@ void	Request::fill_header(int fd, Config& conf)
 			content_length = get_content_length();
 			for_testing_print_request_struct();
 			set_max_body();
-			if (is_payload_too_large() == false)
+			if (is_payload_too_large() == true)
 			{
-				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE");
+				stop_reading("HTTP/1.1 413 Request Entity Too Large");
 				return ;
 			}
 		}
 		// std::cout << "fd = " << fd << std::endl;
 		// for_testing_print_request_struct();
-		std::cout << get_http_header() << std::endl;
+		// std::cout << get_http_header() << std::endl;
 		if (get_method() == "POST" || get_method() == "PUT") // check if it is a post request
 		{
 			if (content_length != 0)
@@ -165,7 +163,7 @@ void	Request::fill_header(int fd, Config& conf)
 				}
 				is_pipe_open = true;
 				out_file = tmpfile();
-				std::cout << "fork" <<std::endl;
+				// std::cout << "fork" <<std::endl;
 				pid_child = fork();
 				if (pid_child == -1)
 				{
@@ -267,7 +265,7 @@ void	Request::fill_header(int fd, Config& conf)
 						perror("execve"); //stop reading
 						exit(EXIT_FAILURE);
 					}
-					std::cerr  << "script=" << config->getScript().c_str() << std::endl;
+					// std::cerr  << "script=" << config->getScript().c_str() << std::endl;
 					perror("execve"); //stop reading
 					exit(EXIT_FAILURE);
 				}
@@ -284,11 +282,6 @@ void	Request::fill_header(int fd, Config& conf)
 	{
 		if (is_chunked())
 		{
-			if (is_chunked_payload_too_large() == true)
-			{
-				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE");
-				return ;
-			}
 			unchunk_body(data);
 		}
 		else
@@ -414,7 +407,7 @@ bool Request::is_chunked(void)
         // std::cout << "\nup\n";
         // std::cout << "~~For debugging purposes.";
         //exit(1);
-		std::cout << "is chunked" << std::endl;
+		// std::cout << "is chunked" << std::endl;
         return (true);
     }
     return (false);
@@ -434,9 +427,9 @@ bool Request::is_payload_too_large()
 {
 	if (content_length <= max_body)
 	{
-		return (true);
+		return (false);
 	}
-	return (false);
+	return (true);
 }
 
 // --------------- OVERLOADS ---------------- //
@@ -449,7 +442,7 @@ void Request::set_regular_body(std::istringstream& data)
 	bytes = data.readsome(buffer, bytes);
 	if (bytes) // behaviour of the write function with 0 bytes is undefined
 	{
-		std::cout << "Len: " << content_length;
+		// std::cout << "Len: " << content_length;
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
 		{
@@ -478,7 +471,7 @@ void Request::unchunk_body(std::istringstream& data)
 	std::string		line;
 	size_t			written = 0;
 	size_t			avail = 0;
-	std::cout << "unchunk_body " << parsing_position << std::endl;
+	// std::cout << "unchunk_body " << parsing_position << std::endl;
 
 	if (parsing_position == done_with_header)
 		parsing_position = read_first_chunk_size;
@@ -496,7 +489,7 @@ void Request::unchunk_body(std::istringstream& data)
 				std::cout << "continue " << line;
 				continue;
 			}
-			std::cout << "missing_chuncked_data == 0" << std::endl;
+			// std::cout << "missing_chuncked_data == 0" << std::endl;
 			if(avail == line.length())
 			{
 				remove_n = true;
@@ -506,17 +499,17 @@ void Request::unchunk_body(std::istringstream& data)
 			part_of_hex_of_chunked.clear();
 			if (line.find('\r') != std::string::npos) // -1 = \n
 			{
-				std::cout << "find r" << std::endl;
+				// std::cout << "find r" << std::endl;
 				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-				std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
+				// std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
 					line.clear();
 					if (parsing_position == read_first_chunk_size)
 						status_code = 204;
-					else if (is_payload_too_large() == false)
+					else if (is_payload_too_large() == true)
 					{
 						status_code = 413;
 					}
@@ -525,13 +518,11 @@ void Request::unchunk_body(std::istringstream& data)
 					close(pipe_in[1]);
 					is_pipe_open = false;
 					waitpid(pid_child, &ret, 0);
-					std::cout << "chunked_size" << chunked_size << std::endl;
 					is_forked = false;
 					rewind(out_file);
-					std::cout << "child return = " << ret << std::endl;
+					// std::cout << "child return = " << ret << std::endl;
 					parsing_position = send_first;
-					std::cout << "summe_body_to_cgi" << summe_body_to_cgi << std::endl;
-					summe_body_to_cgi = 0;
+					chunked_size = 0;
 					break;
 				}
 				else
@@ -542,7 +533,7 @@ void Request::unchunk_body(std::istringstream& data)
 			else
 			{
 				part_of_hex_of_chunked = line;
-				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
+				// std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
 			}
 		}
 		int read_bytes = 0;
@@ -556,7 +547,7 @@ void Request::unchunk_body(std::istringstream& data)
 			}
 			else
 			{
-				std::cout << "write missing_chuncked_data " << missing_chuncked_data << std::endl;
+				// std::cout << "write missing_chuncked_data " << missing_chuncked_data << std::endl;
 				read_bytes = data.readsome(buffer, missing_chuncked_data);
 			}
 			if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
@@ -574,9 +565,14 @@ void Request::unchunk_body(std::istringstream& data)
 				return ;
 			}
 			missing_chuncked_data -= written;
-			summe_body_to_cgi += written;
+			chunked_size += written;
+			if (is_chunked_payload_too_large() == true)
+			{
+				stop_reading("HTTP/1.1 413 Request Entity Too Large");
+				return ;
+			}
 		}
-		std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
+		// std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
 
 	} while (data && (avail = data.rdbuf()->in_avail()) && std::getline(data, line));
 	std::cout << "after chunked" << std::endl;
