@@ -21,6 +21,7 @@
 #include "../../inc/Helper.hpp"
 #include <string.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 class Response : public http_header_response
 {
@@ -47,7 +48,7 @@ private:
 public:
 		std::string get_path(void);
 		Response(Request& req, Config& data);
-		std::string get_http_response(void);
+		std::string get_http_response(std::map<int,std::string>& status_line);
 		std::string get_http_time();
 		void	stop_reading(void);
 };

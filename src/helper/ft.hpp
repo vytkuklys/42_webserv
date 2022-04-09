@@ -17,5 +17,7 @@ namespace ft
     bool replace(std::string& str, const std::string& from, const std::string& to);
     char to_lower(char c);
 	int	Str_to_Hex_to_Int(std::string s);
+	std::string itos(int i);
+
 }
 #endif

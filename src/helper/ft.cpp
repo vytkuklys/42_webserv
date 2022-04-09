@@ -20,6 +20,13 @@ size_t ft::stoi(std::string s)
 	return (i);
 }
 
+std::string ft::itos(int i)
+{
+	std::stringstream ss;
+	ss << i;
+	return(ss.str());
+}
+
 int	ft::Str_to_Hex_to_Int(std::string s)
 {
 	int ret;

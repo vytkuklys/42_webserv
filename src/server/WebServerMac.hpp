@@ -19,27 +19,28 @@ namespace SERVER
 	class WebServer: public SimpleServer
 	{
 	private:
-		struct sockaddr_storage tmp_client_saddr;
-		std::vector<int>		listeners;				//vector of filedescriptes of the new created lisner sockets
-		int						tmp_socket_fd;
-		fd_set					read_sockets;
-		fd_set					write_sockets;
-		std::map<int,Request>	data;
-		Config*					config;
-		struct sigaction		sigact;
-		void					accepter();
-		void					handler();
-		void					responder();
-		void					clear();
-		void					handle_new_client();
-		void					handle_known_client();
-		void					respond_header(std::stringstream& client, Request& info);
-		void					respond_body(std::stringstream& client, Request& info);
-		std::string				http_time(const struct tm *timeptr);
-		static 					WebServer instanse;
+		struct sockaddr_storage			tmp_client_saddr;
+		std::vector<int>				listeners;				//vector of filedescriptes of the new created lisner sockets
+		int								tmp_socket_fd;
+		fd_set							read_sockets;
+		fd_set							write_sockets;
+		std::map<int,Request>			data;
+		std::map<int,std::string>		status_line;
+		Config*							config;
+		struct sigaction				sigact;
+		void							accepter();
+		void							handler();
+		void							responder();
+		void							clear();
+		void							handle_new_client();
+		void							handle_known_client();
+		void							respond_header(std::stringstream& client, Request& info);
+		void							respond_body(std::stringstream& client, Request& info);
+		std::string						http_time(const struct tm *timeptr);
+		static 							WebServer instanse;
 
-		static bool				is_running;
-		static void				shutdown(int a);
+		static bool						is_running;
+		static void						shutdown(int a);
 
 	public:
 		WebServer(Config& config);

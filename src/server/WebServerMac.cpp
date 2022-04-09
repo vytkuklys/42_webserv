@@ -16,6 +16,81 @@ SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data
 		listeners.push_back((*socket)->get_socket_fd());
 		FD_SET(listeners.back(), &read_sockets); // add listener to the fd set
 	}
+	status_line.insert(std::pair<int, std::string>(100, "Continue"));
+	status_line.insert(std::pair<int, std::string>(101, "Switching Protocols"));
+	status_line.insert(std::pair<int, std::string>(102, "Processing"));
+	status_line.insert(std::pair<int, std::string>(103, "Early Hints"));
+
+	status_line.insert(std::pair<int, std::string>(200, "OK"));
+	status_line.insert(std::pair<int, std::string>(201, "Created"));
+	status_line.insert(std::pair<int, std::string>(202, "Accepted"));
+	status_line.insert(std::pair<int, std::string>(203, "Non-Authoritative Information"));
+	status_line.insert(std::pair<int, std::string>(204, "No Content"));
+	status_line.insert(std::pair<int, std::string>(205, "Reset Content"));
+	status_line.insert(std::pair<int, std::string>(206, "Partial Content"));
+	status_line.insert(std::pair<int, std::string>(207, "Multi-Status"));
+	status_line.insert(std::pair<int, std::string>(208, "Already Reported"));
+	status_line.insert(std::pair<int, std::string>(226, "IM Used"));
+
+	status_line.insert(std::pair<int, std::string>(300, "Multiple Choices"));
+	status_line.insert(std::pair<int, std::string>(301, "Moved Permanently"));
+	status_line.insert(std::pair<int, std::string>(302, "Found (Moved Temporarily)"));
+	status_line.insert(std::pair<int, std::string>(303, "See Other"));
+	status_line.insert(std::pair<int, std::string>(304, "Not Modified"));
+	status_line.insert(std::pair<int, std::string>(305, "Use Proxy"));
+	status_line.insert(std::pair<int, std::string>(306, "(reserviert)"));
+	status_line.insert(std::pair<int, std::string>(307, "Temporary Redirect"));
+	status_line.insert(std::pair<int, std::string>(308, "Permanent Redirect"));
+
+	status_line.insert(std::pair<int, std::string>(400, "Bad Request"));
+	status_line.insert(std::pair<int, std::string>(401, "Unauthorized"));
+	status_line.insert(std::pair<int, std::string>(402, "Payment Required"));
+	status_line.insert(std::pair<int, std::string>(403, "Forbidden"));
+	status_line.insert(std::pair<int, std::string>(404, "Not Found"));
+	status_line.insert(std::pair<int, std::string>(405, "Method Not Allowed"));
+	status_line.insert(std::pair<int, std::string>(406, "Not Acceptable"));
+	status_line.insert(std::pair<int, std::string>(407, "Proxy Authentication Required"));
+	status_line.insert(std::pair<int, std::string>(408, "Request Timeout"));
+	status_line.insert(std::pair<int, std::string>(409, "Conflict"));
+	status_line.insert(std::pair<int, std::string>(410, "Gone"));
+	status_line.insert(std::pair<int, std::string>(411, "Length Required"));
+	status_line.insert(std::pair<int, std::string>(412, "Precondition Failed"));
+	status_line.insert(std::pair<int, std::string>(413, "Payload Too Large"));
+	status_line.insert(std::pair<int, std::string>(414, "URI Too Long"));
+	status_line.insert(std::pair<int, std::string>(415, "Unsupported Media Type"));
+	status_line.insert(std::pair<int, std::string>(416, "Range Not Satisfiable"));
+	status_line.insert(std::pair<int, std::string>(417, "Expectation Failed"));
+
+	status_line.insert(std::pair<int, std::string>(421, "Misdirected Request"));
+	status_line.insert(std::pair<int, std::string>(422, "Unprocessable Entity"));
+	status_line.insert(std::pair<int, std::string>(423, "Locked"));
+	status_line.insert(std::pair<int, std::string>(424, "Failed Dependency	"));
+	status_line.insert(std::pair<int, std::string>(425, "Too Early"));
+	status_line.insert(std::pair<int, std::string>(426, "Upgrade Required"));
+	status_line.insert(std::pair<int, std::string>(428, "Precondition Required"));
+	status_line.insert(std::pair<int, std::string>(429, "Too Many Requests"));
+	status_line.insert(std::pair<int, std::string>(431, "Request Header Fields Too Large"));
+	status_line.insert(std::pair<int, std::string>(451, "Unavailable For Legal Reasons"));
+
+	status_line.insert(std::pair<int, std::string>(418, "I’m a teapot"));
+	status_line.insert(std::pair<int, std::string>(420, "Policy Not Fulfilled"));
+	status_line.insert(std::pair<int, std::string>(444, "No Response"));
+	status_line.insert(std::pair<int, std::string>(449, "The request should be retried after doing the appropriate action"));
+	status_line.insert(std::pair<int, std::string>(499, "Client Closed Request"));
+
+	status_line.insert(std::pair<int, std::string>(500, "Internal Server Error"));
+	status_line.insert(std::pair<int, std::string>(501, "Not Implemented"));
+	status_line.insert(std::pair<int, std::string>(502, "Bad Gateway"));
+	status_line.insert(std::pair<int, std::string>(503, "Service Unavailable"));
+	status_line.insert(std::pair<int, std::string>(504, "Gateway Timeout"));
+	status_line.insert(std::pair<int, std::string>(505, "HTTP Version not supported"));
+	status_line.insert(std::pair<int, std::string>(506, "Variant Also Negotiates"));
+	status_line.insert(std::pair<int, std::string>(507, "Insufficient Storage"));
+	status_line.insert(std::pair<int, std::string>(508, "Loop Detected"));
+	status_line.insert(std::pair<int, std::string>(509, "Bandwidth Limit Exceeded"));
+	status_line.insert(std::pair<int, std::string>(510, "Not Extended"));
+	status_line.insert(std::pair<int, std::string>(511, "Network Authentication Required"));
+
 	launch(data.getPorts());
 }
 
@@ -43,7 +118,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 	while (is_running)
 	{
 		struct timeval timeout;
-		// std::cout << "end?" << std::endl;
 
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
@@ -143,7 +217,7 @@ void SERVER::WebServer::responder()
 		{
 			std::cout << "send first" << std::endl;
 			Response response(info, *config);
-			http_response = response.get_http_response();
+			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
 			FD_CLR(tmp_socket_fd, &read_sockets);
 		}
@@ -154,49 +228,38 @@ void SERVER::WebServer::responder()
 			total = http_response.length();
 			std::stringstream stream;
 			stream << std::hex << total;
-			// if(http_response.find("\r\n") != std::string::npos)
-			// 	std::cerr << "why" << std::endl;
-			// std::cerr << total << std::endl;
-			// std::cerr << "." << http_response << ".";
-			// std::cerr << "." << stream.str() << "." << std::endl;
-			// std::cerr << "," << http_response << "," << std::endl;
 			http_response.insert(0, (stream.str() + "\r\n"));
-			// if(http_response.find("\r\n", (stream.str() + "\r\n").length()) != std::string::npos)
-			// 	std::cerr << "why" << http_response.find("\r\n", (stream.str() + "\r\n").length()) << std::endl;
 			http_response.append("\r\n");
 			std::cerr << http_response;
 			if(total == 0)
-			{
 				end_of_chunked = true;
-			}
 			stream.clear();
 		}
 		total = http_response.length();
-		// const char *ptr = static_cast<const char *>(http_response.c_str());
+		std::cout << std::string(http_response, 0, total) << std::endl;
+		const char *ptr = static_cast<const char *>(http_response.c_str());
 		while (total > 0)
 		{
-			int bytes = send(tmp_socket_fd, static_cast<const void *>(http_response.c_str()), total, 0);
-			// if (bytes != total)
-			// 	std::cerr << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
+			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
+			if (bytes != total)
+				std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
 			if (bytes == -1 || bytes == 0)
+			{
+				std::cout << "break" << std::endl;
 				break ; //HTTP server closes the socket if an error occurs during the sending of a file
-			// ptr += bytes;
-			total -= bytes;
+			}
+			else
+			{
+				ptr += bytes;
+				total -= bytes;
+			}
 		}
-		if(!info.is_chunked())
+		if((info.get_method() != "POST" ) || end_of_chunked || !info.is_chunked())
 		{
 			std::cout << "close socket" << std::endl;
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			data.erase(itr);
 			close(tmp_socket_fd);
-		}
-		if (end_of_chunked)
-		{
-			std::cout << "close socket" << std::endl;
-			FD_CLR(tmp_socket_fd, &write_sockets);
-			data.erase(itr);
-			close(tmp_socket_fd);
-			return;
 		}
 	}
 }
@@ -240,5 +303,6 @@ void SERVER::WebServer::clear()
 void	SERVER::WebServer::shutdown(int signal)
 {
 	(void)signal;
+	std::cerr << std::flush;
 	is_running = false;
 }

@@ -1,6 +1,7 @@
 #!./php-cgi
 
 <?php
+	phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
 	if (isset($_FILES['user_file']) && ($_SERVER['REQUEST_METHOD'] == "POST"))
 		move_uploaded_file($_FILES['user_file']['tmp_name'], '../documents/uploaded/' . $_FILES['user_file']['name']);
 	else
@@ -22,10 +23,29 @@
 		}
 		else
 		{
-			while(($line = fread($fd, 100)))
+			while(($line = fread($fd, 10000)))
 			{
-				fwrite($out, $line, 100);
+				fwrite($out, $line, 10000);
 			}
 		}
+		fclose($out);
 	}
+// ============================
+
+		// $out = fopen('php://stdout', w);
+		// $fd = fopen('../documents/index.html' , 'rb');
+		// if ($fd == false)
+		// {
+		// 	echo "error input\n";
+		// 	phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
+		// }
+		// else
+		// {
+		// 	while(($line = fread($fd, 100)))
+		// 	{
+		// 		fwrite($out, $line, 100);
+		// 	}
+		// }
+		// fclose($out);
+
 ?>

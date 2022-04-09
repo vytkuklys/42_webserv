@@ -72,25 +72,20 @@ void Response::set_path(std::string const filename)
         has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
-			request->set_status_line("HTTP/1.1 405 Method Not Allowed");
+			request->status_code = 405;
 		}
-		if(request->get_status_line() != "HTTP/1.1 405 Method Not Allowed")
+		if(request->status_code < 400)
 		{
 			if (request->get_method() == "PUT")
 			{
-					request->set_status_line("HTTP/1.1 303 See Other");
+					request->status_code = 303;
 			}
-			else if ( request->get_method() == "POST")
-			{
-					request->set_status_line("HTTP/1.1 200 OK");
-
-			}
-			else
+			else if (request->get_method() != "POST")
 			{
 				is_path_valid = exists_path(path);
 				if (((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false))
 				{
-						request->set_status_line("HTTP/1.1 404 Not Found");
+						request->status_code = 404;
 				}
 				if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
 				{
@@ -142,7 +137,7 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
     set_content_type();
-	if(request->get_method() == "POST" || request->get_method() == "PUT")
+	if(request->get_method() == "PUT")
 	{
 		set_value("Location:", "../index.html");
 
@@ -150,7 +145,7 @@ void Response::set_headers(void)
 
 	if (request->get_method() == "GET")
 		set_value("Content-length:", ft::to_string(body.length()));
-	else if (request->is_chunked() && status_line != "HTTP/1.1 405 Method Not Allowed")
+	else if (request->is_chunked() && request->status_code < 400)
 	{
 		set_value("content-type:", "text/html; charset=utf-8");
 		set_value("Transfer-Encoding:", "chunked");
@@ -268,7 +263,7 @@ void Response::set_body(void)
 		set_image_body();
 
 	}
-	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || request->get_error_status())
+	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || (request->get_method() == "POST" && !request->is_chunked()))
 	{
 		input_stream.open(path.c_str());
 		if (input_stream.is_open())
@@ -284,10 +279,11 @@ void Response::set_body(void)
 
 // -----------------GETTERS---------------- //
 
-std::string Response::get_http_response(void)
+std::string Response::get_http_response(std::map<int,std::string>& status_line_map)
 {
 	// std::cout << status_line << std::endl;
-	set_first_line(status_line);
+	set_first_line("HTTP/1.1 " + ft::itos(request->status_code) + " " + status_line_map.find(request->status_code)->second );
+	// set_first_line(status_line);
 	std::string response = get_http_header();
 	std::cout << response << std::endl;
 	response.append(body);

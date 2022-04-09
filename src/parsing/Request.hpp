@@ -24,10 +24,10 @@
 #include <strings.h>
 
 enum mile_stones{
-	first_line,
-	header,
+	read_first_line,
+	read_header,
 	done_with_header,
-	first_chunk_size,
+	read_first_chunk_size,
 	body,
 	send_first,
 	erase_cgi_header,
@@ -39,7 +39,6 @@ class Request : public http_header_request
 	private:
 		int									pipe_in[2];
 		FILE*								out_file;
-		int									pipe_out[2];
 		int									content_length;
 		unsigned long						missing_chuncked_data;
 		std::string							part_of_hex_of_chunked;
@@ -49,8 +48,10 @@ class Request : public http_header_request
 		std::string							status_line;
 		bool								is_error;
 		Config								*config;
-		int									remove_n;
+		bool								remove_n;
+
 	public:
+		int									status_code;
 		Request (Config& conf);
 		~Request();
 
