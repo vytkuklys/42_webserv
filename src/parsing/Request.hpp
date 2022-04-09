@@ -18,6 +18,7 @@
 #include "../../inc/Http_header.hpp"
 #include "../../inc/Helper.hpp"
 #include "../../inc/Configuration.hpp"
+#include "../../inc/Colors.hpp"
 #include <fstream>	  // std::ifstream
 // #include "Response.hpp"
 #include <sys/wait.h>
@@ -41,6 +42,7 @@ class Request : public http_header_request
 	private:
 		int									pipe_in[2];
 		FILE*								out_file;
+		int									content_length;
 		unsigned long						missing_chuncked_data;
 		std::string							part_of_hex_of_chunked;
 		pid_t								pid_child;
@@ -48,11 +50,14 @@ class Request : public http_header_request
 		std::string							raw_header_line;
 		std::string							status_line;
 		bool								is_error;
+		bool								is_pipe_open;
+		bool								is_forked;
 		LocationData						*config;
-		bool								remove_n;
+		int									remove_n;
 		int 								max_body;
-		int									content_length;
-		int									current_content_length;
+		int									chunked_size;
+		int									summe_body_to_cgi;
+		int									count_read_byts_from_file;
 
 	public:
 		int									status_code;
@@ -81,7 +86,8 @@ class Request : public http_header_request
 
 	private:
 		void	for_testing_print_request_struct();
-		bool	is_content_length_valid();
+		bool	is_payload_too_large();
+		bool	is_chunked_payload_too_large();
 
 		int		set_headers(std::string line);
 		bool	set_start_line(std::string s);
@@ -89,8 +95,8 @@ class Request : public http_header_request
 
 		void	unchunk_body(std::istringstream& data);
 
-		void	stop_reading(std::string status, bool close_fd);
-		void	set_max_body(void);
+		void	stop_reading(std::string status);
+		void	set_max_body();
 };
 
 #endif

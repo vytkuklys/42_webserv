@@ -8,6 +8,7 @@ bool SERVER::WebServer::is_running = true;
 
 SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), data.getPorts(), data.getInterface(), data.getBacklog())
 {
+	summe = 0;
 	config = &data;
 	FD_ZERO(&read_sockets); // init fd set
 	FD_ZERO(&write_sockets);
@@ -235,7 +236,7 @@ void SERVER::WebServer::responder()
 			summe += total;
 			std::stringstream stream;
 			stream << std::hex << total;
-			http_response.insert(0, (stream.str() + "\r\n"));
+			http_response.insert(0, std::string(stream.str() + "\r\n"));
 			http_response.append("\r\n");
 			std::cerr << http_response;
 			if(total == 0)
@@ -263,7 +264,7 @@ void SERVER::WebServer::responder()
 		}
 		if((info.get_method() != "POST" ) || end_of_chunked || !info.is_chunked())
 		{
-			std::cout << "close socket summe = " << summe << std::endl;
+			std::cout << "close socket summe = " << summe  << std::endl;
 			summe = 0;
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			data.erase(itr);
