@@ -1,46 +1,44 @@
 #include "Request.hpp"
 #include "cstring"
-bool Request::set_start_line(std::string s)
+bool Request::set_start_line(std::string line)
 {
 	size_t pos = 0;
 	std::string token;
 	int j = 0;
-	if(s.find("\r") == std::string::npos)
+	if(line.find("\r") == std::string::npos)
 	{
-		raw_header_line += s;
+		raw_header_line += line;
 		return (EXIT_FAILURE);
 	}
 	parsing_position = header;
 	if (raw_header_line.empty() == false)
 	{
-		s = raw_header_line + s;
+		line = raw_header_line + line;
 		raw_header_line.clear();
 	}
-	s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
-	if (s[0] == '/' || s[0] == '#')
+	line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+	if (line[0] == '/' || line[0] == '#')
 		return (EXIT_FAILURE);
-	// std::cout << "set_sart_line" << std::endl;
-	while ((pos = s.find(" ")) != std::string::npos)
+	while ((pos = line.find(" ")) != std::string::npos)
 	{
-		token = s.substr(0, pos);
+		token = line.substr(0, pos);
 		if ((token.length()) > 0 && j == 0)
 		{
-	// std::cout << "set_sart_line" << std::endl;
 			set_method(token);
-	// std::cout << "set_sart_line" << std::endl;
 			j++;
 		}
 		else if (token.length() > 0 && j++ == 1)
 			set_path(token);
-		s.erase(0, pos + 1);
+		line.erase(0, pos + 1);
 	}
-	set_protocol(s);
+	set_protocol(line);
 	return (EXIT_SUCCESS);
 }
 
 int Request::set_headers(std::string line)
 {
 	size_t pos;
+
 	if(line.find("\r") == std::string::npos)
 	{
 		raw_header_line += line;
@@ -74,11 +72,16 @@ Request::Request(Config& conf)
 {
 	parsing_position = first_line;
 	missing_chuncked_data = 0;
+
 	max_body = NOT_SET;
+	chunked_size = NOT_SET;
+
 	set_error_status(false);
 	config = &conf;
 	status_line = "HTTP/1.1 200 OK";
 	remove_n = false;
+	is_pipe_open = false;
+	is_forked = false;
 }
 
 Request::~Request()
@@ -91,14 +94,16 @@ void	Request::fill_header(int fd)
 	char buffer[4001];
 	std::string line;
 	size_t bytes = recv(fd, buffer, 4000, 0);
+	if (done_with_header)
+		chunked_size += bytes;
 	if (static_cast<int>(bytes) == -1)
 	{
-		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
 		return ;
 	}
 	else if (static_cast<int>(bytes) == 0)
 	{
-		stop_reading("HTTP/1.1 400 BAD REQUEST", false);
+		stop_reading("HTTP/1.1 400 BAD REQUEST");
 		return ;
 	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
@@ -132,10 +137,11 @@ void	Request::fill_header(int fd)
 		content_length = get_content_length();
 		if (max_body == NOT_SET)
 		{
+			for_testing_print_request_struct();
 			set_max_body();
-			if (is_content_length_valid() == false)
+			if (is_payload_too_large() == false)
 			{
-				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE", false);
+				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE");
 				return ;
 			}
 		}
@@ -147,22 +153,24 @@ void	Request::fill_header(int fd)
 			{
 				if (pipe(pipe_in) == -1)
 				{
-					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
 					return ;
 				}
+				is_pipe_open = true;
 				out_file = tmpfile();
 				// if (pipe(pipe_out) == -1)
 				// {
 				// 	close(pipe_in[0]);
 				// 	close(pipe_in[1]);
-				// 	stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+				// 	stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
 				// 	return ;
 				// }
 				std::cout << "fork" <<std::endl;
 				pid_child = fork();
 				if (pid_child == -1)
 				{
-					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
+					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+					close(pipe_in[0]);
 					return ;
 				}
 				else if (pid_child == 0)
@@ -256,6 +264,7 @@ void	Request::fill_header(int fd)
 					perror("execve"); //stop reading
 					exit(EXIT_FAILURE);
 				}
+				is_forked = true;
 				close(pipe_in[0]);
 				// close(pipe_out[1]);
 			}
@@ -268,7 +277,14 @@ void	Request::fill_header(int fd)
 	if (parsing_position >= done_with_header && parsing_position != send_first)
 	{
 		if (is_chunked())
+		{
+			if (is_chunked_payload_too_large() == true)
+			{
+				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE");
+				return ;
+			}
 			unchunk_body(data);
+		}
 		else
 			set_regular_body(data);
 	}
@@ -427,6 +443,25 @@ bool Request::is_chunked(void)
     return (false);
 }
 
+bool	Request::is_chunked_payload_too_large(void)
+{
+	if (chunked_size > max_body)
+	{
+		std::cout << FRED("Chunked payload: ") << "chunked_size: " << chunked_size << ", max_body: " << max_body << std::endl;
+		return (true);
+	}
+	return (false);
+}
+
+bool Request::is_payload_too_large()
+{
+	if (content_length <= max_body)
+	{
+		return (true);
+	}
+	return (false);
+}
+
 // --------------- OVERLOADS ---------------- //
 
 void Request::set_regular_body(std::istringstream& data)
@@ -439,9 +474,15 @@ void Request::set_regular_body(std::istringstream& data)
 	{
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+		{
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+			return ;
+		}
 		else if (written != bytes)
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+		{
+			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+			return;
+		}
 	}
 	if (content_length == 0 && is_error == false)
 	{
@@ -457,6 +498,7 @@ void Request::unchunk_body(std::istringstream& data)
 	size_t			written = 0;
 	size_t			avail = 0;
 	std::cout << "unchunk_body " << parsing_position << std::endl;
+
 	if (parsing_position == done_with_header)
 		parsing_position = first_chunk_size;
 	do
@@ -493,7 +535,9 @@ void Request::unchunk_body(std::istringstream& data)
 					std::cout << "done with File" << std::endl << std::flush;
 					int ret;
 					close(pipe_in[1]);
+					is_pipe_open = false;
 					waitpid(pid_child, &ret, 0);
+					is_forked = false;
 					rewind(out_file);
 					std::cout << "child return = " << ret << std::endl;
 					parsing_position = send_first;
@@ -541,9 +585,15 @@ void Request::unchunk_body(std::istringstream& data)
 			if(read_bytes)
 				written = write(pipe_in[1], buffer, read_bytes);
 			if (static_cast<int>(written) == -1)
-				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+			{
+				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+				return ;
+			}
 			else if (static_cast<int>(written) != read_bytes)
-				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
+			{
+				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+				return ;
+			}
 			missing_chuncked_data -= written;
 		}
 		// std::cout <<"written = " << written << "read_bytes = " << read_bytes << std::endl;
@@ -554,24 +604,19 @@ void Request::unchunk_body(std::istringstream& data)
 	std::cout << "after chunked" << std::endl;
 }
 
-void		Request::stop_reading(std::string status, bool close_fd)
+void		Request::stop_reading(std::string status)
 {
 	std::cout << "stop_reading" << std::endl;
 	set_status_line(status);
 	set_error_status(true);
-	if (close_fd)
+	if (is_pipe_open)
 	{
 		close(pipe_in[1]);
-		wait(NULL);
-		// waitpid(pid_child, NULL, 0); //or waitpid?
+		is_pipe_open = false;
 	}
-}
-
-bool Request::is_content_length_valid()
-{
-	if (content_length <= max_body)
+	if (is_forked)
 	{
-		return (true);
+		wait(NULL);
+		is_forked = false;
 	}
-	return (false);
 }

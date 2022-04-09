@@ -18,6 +18,7 @@
 #include "../../inc/Http_header.hpp"
 #include "../../inc/Helper.hpp"
 #include "../../inc/Configuration.hpp"
+#include "../../inc/Colors.hpp"
 #include <fstream>	  // std::ifstream
 // #include "Response.hpp"
 #include <sys/wait.h>
@@ -50,9 +51,12 @@ class Request : public http_header_request
 		std::string							raw_header_line;
 		std::string							status_line;
 		bool								is_error;
+		bool								is_pipe_open;
+		bool								is_forked;
 		Config								*config;
 		int									remove_n;
 		int 								max_body;
+		int									chunked_size;
 
 	public:
 		Request (Config& conf);
@@ -76,11 +80,12 @@ class Request : public http_header_request
 		void			set_parsing_position(mile_stones new_pos);
 
 		void			fill_header(int fd);
-		bool			is_chunked(void);
+		bool			is_chunked();
 
 	private:
 		void	for_testing_print_request_struct();
-		bool	is_content_length_valid();
+		bool	is_payload_too_large();
+		bool	is_chunked_payload_too_large();
 
 		int		set_headers(std::string line);
 		bool	set_start_line(std::string s);
@@ -88,8 +93,8 @@ class Request : public http_header_request
 
 		void	unchunk_body(std::istringstream& data);
 
-		void	stop_reading(std::string status, bool close_fd);
-		void	set_max_body(void);
+		void	stop_reading(std::string status);
+		void	set_max_body();
 };
 
 #endif
