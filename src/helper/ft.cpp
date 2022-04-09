@@ -76,8 +76,10 @@ std::string ft::remove_whitespace(std::string line)
     return (line.substr(0, i));
 }
 
-bool ft::is_found(std::string const array[], std::string target, int size)
+int ft::is_found(std::string const array[], std::string target, int size)
 {
+	if (target.empty()) return (0);
+
 	std::transform(target.begin(), target.end(), target.begin(), to_lower);
     for (int counter = 0; counter < size; counter++)
     {
@@ -85,10 +87,10 @@ bool ft::is_found(std::string const array[], std::string target, int size)
 		std::transform(item.begin(), item.end(), item.begin(), to_lower);
         if (item.compare(target) == 0)
         {
-            return true;
+            return counter + 1;
         }
     }
-    return (false);
+    return (0);
 }
 
 std::string ft::removeSpacesAfter(const std::string &inputString)
@@ -114,4 +116,28 @@ char ft::to_lower(char c) {
 	if (c <= 'Z' && c >= 'A')
 		return c - ('Z' - 'z');
 	return c;
+}
+
+int ft::get_bytes(std::string s)
+{
+	const std::string units[] = {"B", "K", "KB", "M", "MB"};
+
+	int i = 0;
+	while (isdigit(s[i++]));
+
+	int unit = ft::is_found(units, s.substr(i - 1, s.length() - 1), 5);
+
+	switch(unit) {
+	case 1:
+		return ft::stoi(s);
+
+	case 2: case 3: 
+		return ft::stoi(s) * 1024;
+
+	case 4: case 5: 
+		return ft::stoi(s) * 1024 * 1024;
+
+	default:
+		return 1;
+	}
 }

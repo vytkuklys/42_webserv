@@ -23,6 +23,8 @@
 #include <sys/wait.h>
 #include <strings.h>
 
+#define NOT_SET 0
+
 enum mile_stones{
 	read_first_line,
 	read_header,
@@ -39,7 +41,6 @@ class Request : public http_header_request
 	private:
 		int									pipe_in[2];
 		FILE*								out_file;
-		int									content_length;
 		unsigned long						missing_chuncked_data;
 		std::string							part_of_hex_of_chunked;
 		pid_t								pid_child;
@@ -47,12 +48,15 @@ class Request : public http_header_request
 		std::string							raw_header_line;
 		std::string							status_line;
 		bool								is_error;
-		Config								*config;
+		LocationData						*config;
 		bool								remove_n;
+		int 								max_body;
+		int									content_length;
+		int									current_content_length;
 
 	public:
 		int									status_code;
-		Request (Config& conf);
+		Request ();
 		~Request();
 
 		std::string get(std::string key_word);
@@ -72,12 +76,12 @@ class Request : public http_header_request
 		void			set_chunked_body(int fd);
 		void			set_parsing_position(mile_stones new_pos);
 
-		void			fill_header(int fd);
-		bool			is_method_valid();
+		void			fill_header(int fd, Config& conf);
 		bool			is_chunked(void);
 
 	private:
 		void	for_testing_print_request_struct();
+		bool	is_content_length_valid();
 
 		int		set_headers(std::string line);
 		bool	set_start_line(std::string s);
@@ -86,6 +90,7 @@ class Request : public http_header_request
 		void	unchunk_body(std::istringstream& data);
 
 		void	stop_reading(std::string status, bool close_fd);
+		void	set_max_body(void);
 };
 
 #endif

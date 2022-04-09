@@ -48,6 +48,8 @@ void Response::set_error_path(void)
 		path.append("/500.html");
 	else if (status == "HTTP/1.1 400 BAD REQUEST")
 		path.append("/400.html");
+	else if (status == "HTTP/1.1 413 PAYLOAD TOO LARGE")
+		path.append("/413.html");
 }
 
 void Response::set_path(std::string const filename)
@@ -136,7 +138,7 @@ void Response::set_content_type(void)
 
 void Response::set_headers(void)
 {
-    set_content_type();
+	set_content_type();
 	if(request->get_method() == "PUT")
 	{
 		set_value("Location:", "../index.html");

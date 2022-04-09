@@ -31,6 +31,7 @@ void LocationData::setIndex(std::string inputIndex) { index = inputIndex; }
 
 void LocationData::setScript(std::string inputScript) { script = inputScript; }
 
+void LocationData::setMaxBody(int value) { max_body = value; }
 
 std::string LocationData::getLocation(void) { return(location); }
 
@@ -41,3 +42,5 @@ std::string LocationData::getMethod(void) { return(method); }
 std::string LocationData::getIndex(void) { return(index); }
 
 std::string LocationData::getScript(void) { return(script); }
+
+int LocationData::getMaxBody(void) { return(max_body); }

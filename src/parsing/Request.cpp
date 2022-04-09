@@ -70,12 +70,13 @@ void Request::for_testing_print_request_struct()
 	std::cout << get_http_header() << std::endl;
 }
 
-Request::Request(Config& conf)
+Request::Request()
 {
 	parsing_position = read_first_line;
 	missing_chuncked_data = 0;
+	current_content_length = 0;
+	max_body = NOT_SET;
 	set_error_status(false);
-	config = &conf;
 	status_line = "HTTP/1.1 200 OK";
 	status_code = 200;
 	remove_n = false;
@@ -86,7 +87,7 @@ Request::~Request()
 	return;
 }
 
-void	Request::fill_header(int fd)
+void	Request::fill_header(int fd, Config& conf)
 {
 	char buffer[4001];
 	std::string line;
@@ -131,9 +132,21 @@ void	Request::fill_header(int fd)
 
 	if (parsing_position == done_with_header)
 	{
-		content_length = get_content_length();
-		std::cout << "fd = " << fd << std::endl;
-		for_testing_print_request_struct();
+		std::cout << "done with header" << std::endl;
+		config = conf.get_location(get_port(), get_path());
+		if (max_body == NOT_SET)
+		{
+			content_length = get_content_length();
+			set_max_body();
+			if (is_content_length_valid() == false)
+			{
+				stop_reading("HTTP/1.1 413 PAYLOAD TOO LARGE", false);
+				return ;
+			}
+		}
+		// std::cout << "fd = " << fd << std::endl;
+		// for_testing_print_request_struct();
+		std::cout << get_http_header() << std::endl;
 		if (get_method() == "POST" || get_method() == "PUT") // check if it is a post request
 		{
 			if (content_length != 0)
@@ -145,13 +158,6 @@ void	Request::fill_header(int fd)
 					return ;
 				}
 				out_file = tmpfile();
-				// if (pipe(pipe_out) == -1)
-				// {
-				// 	close(pipe_in[0]);
-				// 	close(pipe_in[1]);
-				// 	stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", false);
-				// 	return ;
-				// }
 				std::cout << "fork" <<std::endl;
 				pid_child = fork();
 				if (pid_child == -1)
@@ -203,7 +209,7 @@ void	Request::fill_header(int fd)
 					// 	env_strings.push_back("SCRIPT_FILENAME=." + get_path());
 					// else
 
-					if(config->get_location(get_port(), get_path())->getScript() == "./cgi-bin/php-cgi")
+					if(config->getScript() == "./cgi-bin/php-cgi")
 					{
 						env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
 						env_strings.push_back("SCRIPT_NAME=./cgi-bin/cgi.php");
@@ -247,13 +253,13 @@ void	Request::fill_header(int fd)
 					// close(pipe_out[1]);
 					// char * const * nll = NULL;
 					// chdir("./cgi-bin");
-					if (execve(config->get_location(get_port(), get_path())->getScript().c_str(), &argv[0], &env[0]))
+					if (execve(config->getScript().c_str(), &argv[0], &env[0]))
 					{
-						std::cout << "script=" << config->get_location(get_port(), get_path())->getScript().c_str() << std::endl;
+						std::cout << "script=" << config->getScript().c_str() << std::endl;
 						perror("execve"); //stop reading
 						exit(EXIT_FAILURE);
 					}
-					std::cerr  << "script=" << config->get_location(get_port(), get_path())->getScript().c_str() << std::endl;
+					std::cerr  << "script=" << config->getScript().c_str() << std::endl;
 					perror("execve"); //stop reading
 					exit(EXIT_FAILURE);
 				}
@@ -292,6 +298,17 @@ void	Request::set_parsing_position(mile_stones new_pos)
 	parsing_position = new_pos;
 }
 
+void Request::set_max_body(void)
+{
+	if (max_body == 0)
+	{
+		max_body = config->getMaxBody();
+		if(max_body == 0)
+			max_body = 1;
+	}
+}
+
+
 // ----------------- GETTERS ------------------ //
 
 bool Request::get_error_status() const
@@ -325,7 +342,7 @@ std::string		Request::get_cgi_return()
 {
 	char tmp[4097];
 	int bytes;
-	if ((bytes = fread(tmp, 1, 4096, out_file)) < 4096)
+	if ((bytes = fread(tmp, 1, 4096, out_file)) <= 0)
 	{
 		std::cout << "close out_file" << std::endl;
 		fclose(out_file);
@@ -372,7 +389,7 @@ void Request::set_regular_body(std::istringstream& data)
 	bytes = data.readsome(buffer, bytes);
 	if (bytes) // behaviour of the write function with 0 bytes is undefined
 	{
-		std::cout << ",Len: " << content_length;
+		std::cout << "Len: " << content_length;
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
@@ -432,11 +449,16 @@ void Request::unchunk_body(std::istringstream& data)
 					line.clear();
 					if (parsing_position == read_first_chunk_size)
 						status_code = 204;
-					std::cout << "done with File" << std::endl << std::flush;
+					else if (is_content_length_valid() == false)
+					{
+						status_code = 413;
+					}
+					// else
+						rewind(out_file);
+					std::cout << "done with File " << current_content_length << std::endl << std::flush;
 					int ret;
 					close(pipe_in[1]);
 					waitpid(pid_child, &ret, 0);
-					rewind(out_file);
 					std::cout << "child return = " << ret << std::endl;
 					parsing_position = send_first;
 					break;
@@ -452,7 +474,7 @@ void Request::unchunk_body(std::istringstream& data)
 				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
 			}
 		}
-		int read_bytes;
+		int read_bytes = 0;
 		if(data.rdbuf()->in_avail())
 		{
 			written = 0;
@@ -475,6 +497,7 @@ void Request::unchunk_body(std::istringstream& data)
 			else if (static_cast<int>(written) != read_bytes)
 				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR", true);
 			missing_chuncked_data -= written;
+			current_content_length += written;
 		}
 		std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
 
@@ -493,4 +516,14 @@ void		Request::stop_reading(std::string status, bool close_fd)
 		wait(NULL);
 		// waitpid(pid_child, NULL, 0); //or waitpid?
 	}
+}
+
+bool Request::is_content_length_valid()
+{
+	if (content_length <= max_body && current_content_length <= max_body)
+	{
+		return (true);
+	}
+	std::cout << "fail conntent length" << std::endl;
+	return (false);
 }

@@ -38,6 +38,7 @@ namespace SERVER
 		void							respond_body(std::stringstream& client, Request& info);
 		std::string						http_time(const struct tm *timeptr);
 		static 							WebServer instanse;
+		long							summe;
 
 		static bool						is_running;
 		static void						shutdown(int a);

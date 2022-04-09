@@ -88,20 +88,15 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	}
 	if (level == 4)
 	{
+		int bytes = 1;
 		if (ft::stoi(sBodySize) == 0 || sBodySize.length() == 0 || sBodySize[0] == '-')
 		{
 			std::cout << "Invalid client_max_body_size: '" << sBodySize << "'";
-			std::cout << ", default client_max_body_size: '1' used instead" << std::endl;
-			tempClass.setBodySize(1);
+			std::cout << ", default client_max_body_size: '1B' used instead" << std::endl;
+			tempClass.setBodySize(bytes);
 		}
-		else if (ft::stoi(sBodySize) > 100)
-		{
-			std::cout << "client_max_body_size is bigger than 100M";
-			std::cout << ", client_max_body_size set at: '100'" << std::endl;
-			tempClass.setBodySize(100);
-		}
-		else
-			tempClass.setBodySize(ft::stoi(sBodySize));
+		bytes = ft::get_bytes(sBodySize);
+		tempClass.setBodySize(bytes);
 		sBodySize.erase();
 	}
 	if (level == 6)
