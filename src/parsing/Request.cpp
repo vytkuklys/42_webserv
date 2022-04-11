@@ -92,9 +92,9 @@ Request::~Request()
 
 void	Request::fill_header(int fd, Config& conf)
 {
-	char buffer[4001];
+	char buffer[4096];
 	std::string line;
-	size_t bytes = recv(fd, buffer, 4000, 0);
+	size_t bytes = recv(fd, buffer, 4096, 0);
 	if (done_with_header <= parsing_position)
 		chunked_size += bytes;
 	if (static_cast<int>(bytes) == -1)
@@ -254,7 +254,7 @@ void	Request::fill_header(int fd, Config& conf)
 					close(pipe_in[1]);
 					// close(pipe_out[0]);
 					std::cout << "execve" << std::endl;
-					dup2(pipe_in[0], STDIN_FILENO); //stop reading
+					dup2(pipe_in[0], STDIN_FILENO);
 					close(pipe_in[0]);
 					dup2(fileno(out_file), STDOUT_FILENO); //stop reading
 					// dup2(STDERR_FILENO, STDOUT_FILENO); //test
@@ -444,7 +444,7 @@ bool Request::is_payload_too_large()
 void Request::set_regular_body(std::istringstream& data)
 {
 	parsing_position = body;
-	char buffer[4001];
+	char buffer[4096];
 	size_t bytes = data.rdbuf()->in_avail();
 	bytes = data.readsome(buffer, bytes);
 	if (bytes) // behaviour of the write function with 0 bytes is undefined
@@ -458,23 +458,24 @@ void Request::set_regular_body(std::istringstream& data)
 		}
 		else if (written != bytes)
 		{
-			content_length -= written;
 			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
 			return;
 		}
+		content_length -= written;
 	}
 	if (content_length == 0 && is_error == false)
 	{
+		std::cout << "close regular body" << std::endl;
 		close(pipe_in[1]);
-		fclose(out_file);
 		wait(NULL);
+		fclose(out_file);
 		parsing_position = send_first;
 	}
 }
 
 void Request::unchunk_body(std::istringstream& data)
 {
-	char			buffer[4001];
+	char			buffer[4096];
 	std::string		line;
 	size_t			written = 0;
 	size_t			avail = 0;
@@ -584,7 +585,7 @@ void Request::unchunk_body(std::istringstream& data)
 
 void		Request::stop_reading(std::string status)
 {
-	std::cerr << "stop_reading" << std::endl;
+	std::cerr << "stop_reading" << status << std::endl;
 	set_status_line(status);
 	set_error_status(true);
 	if (is_pipe_open)
