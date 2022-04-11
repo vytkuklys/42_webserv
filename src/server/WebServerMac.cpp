@@ -155,7 +155,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					int tmp_time = ft::ft_time_dif(itr->second.get_time_of_change());
 					if (tmp_time > 10 || itr->second.get_method() != "GET")
 					{
-						std::cout "time=" << tmp_time << std::endl
+						std::cout << "time=" << tmp_time << std::endl;
 						data.erase(itr);
 						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);

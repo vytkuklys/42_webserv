@@ -481,7 +481,7 @@ void Request::unchunk_body(std::istringstream& data)
 	std::string		line;
 	size_t			written = 0;
 	size_t			avail = 0;
-	// std::cout << "unchunk_body " << parsing_position << std::endl;
+	std::cout << "unchunk_body " << parsing_position << std::endl;
 
 	if (parsing_position == done_with_header)
 		parsing_position = read_first_chunk_size;
@@ -489,6 +489,7 @@ void Request::unchunk_body(std::istringstream& data)
 	{
 		if (remove_n)
 		{
+			std::cout << "continue " << line;
 			remove_n = false;
 			continue;
 		}
@@ -512,7 +513,7 @@ void Request::unchunk_body(std::istringstream& data)
 				// std::cout << "find r" << std::endl;
 				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); //remove the newlines
 				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-				// std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
+				std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
@@ -530,7 +531,7 @@ void Request::unchunk_body(std::istringstream& data)
 					waitpid(pid_child, &ret, 0);
 					is_forked = false;
 					rewind(out_file);
-					// std::cout << "child return = " << ret << std::endl;
+					std::cout << "child return = " << ret << std::endl;
 					parsing_position = send_first;
 					chunked_size = 0;
 					break;
@@ -543,7 +544,7 @@ void Request::unchunk_body(std::istringstream& data)
 			else
 			{
 				part_of_hex_of_chunked = line;
-				// std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
+				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
 			}
 		}
 		int read_bytes = 0;
@@ -582,7 +583,7 @@ void Request::unchunk_body(std::istringstream& data)
 				return ;
 			}
 		}
-		// std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
+		std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
 
 	} while (data && (avail = data.rdbuf()->in_avail()) && std::getline(data, line));
 	std::cout << "after chunked" << std::endl;
