@@ -41,7 +41,6 @@ private:
 		void set_headers(void);
 		void set_path(std::string const filename);
 		void set_error_path(void);
-		void set_status_line(void);
 		void set_content_type(void);
 		void set_image_body(void);
 		void set_error_page(std::string file);
@@ -50,7 +49,7 @@ public:
 		Response(Request& req, Config& data);
 		std::string get_http_response(std::map<int,std::string>& status_line);
 		std::string get_http_time();
-		void	stop_reading(void);
+		void	stop_writing(void);
 };
 
 bool is_image_ext(std::string ext);

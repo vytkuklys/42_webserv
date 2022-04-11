@@ -75,7 +75,6 @@ Request::Request()
 	max_body = NOT_SET;
 
 	set_error_status(false);
-	status_line = "HTTP/1.1 200 OK";
 	status_code = 200;
 	remove_n = false;
 	is_pipe_open = false;
@@ -98,14 +97,12 @@ void	Request::fill_header(int fd, Config& conf)
 
 	if (static_cast<int>(bytes) == -1)
 	{
-		stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
-		status_code = 500;
+		stop_reading(500);
 		return ;
 	}
 	else if (static_cast<int>(bytes) == 0)
 	{
-		stop_reading("HTTP/1.1 400 BAD REQUEST");
-		status_code = 400;
+		stop_reading(400);
 		return ;
 	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
@@ -145,7 +142,7 @@ void	Request::fill_header(int fd, Config& conf)
 			set_max_body();
 			if (is_payload_too_large() == true)
 			{
-				stop_reading("HTTP/1.1 413 Request Entity Too Large");
+				stop_reading(413);
 				return ;
 			}
 		}
@@ -158,8 +155,7 @@ void	Request::fill_header(int fd, Config& conf)
 			{
 				if (pipe(pipe_in) == -1)
 				{
-					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
-					status_code = 500;
+					stop_reading(500);
 					return ;
 				}
 				is_pipe_open = true;
@@ -168,8 +164,7 @@ void	Request::fill_header(int fd, Config& conf)
 				pid_child = fork();
 				if (pid_child == -1)
 				{
-					stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
-					status_code = 500;
+					stop_reading(500);
 					close(pipe_in[0]);
 					return ;
 				}
@@ -293,9 +288,9 @@ void	Request::fill_header(int fd, Config& conf)
 }
 // ----------------- SETTER ------------------ //
 
-void	Request::set_status_line(std::string new_status)
+void	Request::set_status_code(int code)
 {
-	status_line = new_status;
+	status_code = code;
 }
 
 void	Request::set_error_status(bool status)
@@ -361,9 +356,9 @@ int Request::get_content_length()
 	return (ft::stoi(tmp));
 }
 
-std::string		Request::get_status_line() const
+int		Request::get_status_code() const
 {
-	return(status_line);
+	return(status_code);
 }
 
 int		Request::get_parsing_position() const
@@ -455,12 +450,12 @@ void Request::set_regular_body(std::istringstream& data)
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
 		{
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+			stop_reading(500);
 			return ;
 		}
 		else if (written != bytes)
 		{
-			stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+			stop_reading(500);
 			return;
 		}
 		content_length -= written;
@@ -518,7 +513,7 @@ void Request::unchunk_body(std::istringstream& data)
 				{
 					std::getline(data, line);
 					line.clear();
-					if (parsing_position == read_first_chunk_size)
+					if (parsing_position == read_first_chunk_size) // should it stop reading?
 						status_code = 204;
 					else if (is_payload_too_large() == true)
 					{
@@ -567,19 +562,19 @@ void Request::unchunk_body(std::istringstream& data)
 				written = write(pipe_in[1], buffer, read_bytes);
 			if (static_cast<int>(written) == -1)
 			{
-				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+				stop_reading(500);
 				return ;
 			}
 			else if (static_cast<int>(written) != read_bytes)
 			{
-				stop_reading("HTTP/1.1 500 INTERNAL SERVER ERROR");
+				stop_reading(500);
 				return ;
 			}
 			missing_chuncked_data -= written;
 			chunked_size += written;
 			if (is_chunked_payload_too_large() == true)
 			{
-				stop_reading("HTTP/1.1 413 Request Entity Too Large");
+				stop_reading(413);
 				return ;
 			}
 		}
@@ -589,10 +584,10 @@ void Request::unchunk_body(std::istringstream& data)
 	std::cout << "after chunked" << std::endl;
 }
 
-void		Request::stop_reading(std::string status)
+void		Request::stop_reading(int code)
 {
-	std::cerr << "stop_reading" << status << std::endl;
-	set_status_line(status);
+	std::cerr << "stop_reading, request: " << code << std::endl;
+	status_code = code;
 	set_error_status(true);
 	if (is_pipe_open)
 	{

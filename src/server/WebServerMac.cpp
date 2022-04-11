@@ -133,7 +133,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; is_running && i < FD_SETSIZE; i++)
+		for (int i = 0; len && is_running && i < FD_SETSIZE; i++)
 		{
 			// if (i % 3 == 0) <-- For siege stress test :D
 			// 	usleep(4);
@@ -141,11 +141,13 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			{
 				tmp_socket_fd = i;
 				responder();
+				len--;
 			}
 			else if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
 				tmp_socket_fd = i;
 				handler();
+				len--;
 			}
 			if(FD_ISSET(i, &read_sockets) && std::find(listeners.begin(), listeners.end(), i) == listeners.end())/* && tmp->second.get_parsing_position() == done_with_send*/
 			{

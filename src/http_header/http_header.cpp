@@ -21,8 +21,7 @@ const std::string& http_header::get_value(const std::string& key) const
 
 const std::string& http_header::get_first_line_element(const size_t pos) const
 {
-	// std::cout << "get_first_line_element" << std::endl;
-	if(pos > first_http_line.size())
+	if(pos > first_http_line.size() || first_http_line[pos].empty())
 		return(notf);
 	return(first_http_line[pos]);
 }
@@ -37,7 +36,6 @@ void http_header::set_first_line_element(const size_t pos, const std::string& va
 	if (pos >= first_http_line.size())
 	{
 		first_http_line.resize(pos + 1);
-
 	}
 	first_http_line[pos] = value;
 }
