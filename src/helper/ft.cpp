@@ -131,13 +131,26 @@ int ft::get_bytes(std::string s)
 	case 1:
 		return ft::stoi(s);
 
-	case 2: case 3: 
+	case 2: case 3:
 		return ft::stoi(s) * 1024;
 
-	case 4: case 5: 
+	case 4: case 5:
 		return ft::stoi(s) * 1024 * 1024;
 
 	default:
 		return 1;
 	}
+}
+
+unsigned long	ft::time(void)
+{
+	struct timeval	t;
+
+	gettimeofday(&t, NULL);
+	return ((t.tv_sec));
+}
+
+unsigned long	ft::ft_time_dif(unsigned long value)
+{
+	return (ft::time() - value);
 }

@@ -51,7 +51,7 @@ int main (int argc, char **argv)
 	signal(SIGPIPE, ft_printeror);
 	// Config config(argv[1]);
 	(void)argv;								 // only for faster testing
-	Config *config = new Config("config_files/newdefault.conf"); // only for faster testing
+	Config *config = new Config("./config_files/test.conf"); // only for faster testing
 
 	// printConfigData(config);
 

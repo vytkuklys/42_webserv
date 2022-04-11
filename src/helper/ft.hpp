@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#include <sys/time.h>
 namespace ft
 {
     std::string to_string(std::size_t number);
@@ -19,5 +20,8 @@ namespace ft
 	int	Str_to_Hex_to_Int(std::string s);
 	std::string itos(int i);
 	int get_bytes(std::string s);
+	unsigned long	time(void);
+	unsigned long	ft_time_dif(unsigned long value);
+
 }
 #endif

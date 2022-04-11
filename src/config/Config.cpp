@@ -7,7 +7,7 @@ Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1)
 	_type = SOCK_STREAM;
 	_protocol = 0;
 	_interface = INADDR_ANY;
-	_backlog = 10;
+	_backlog = 1024;
 
 	retrieveValues();
 }
@@ -216,6 +216,8 @@ int Config::errorChecker(void)
 {
 	int i = filename.length();
 
+	if (i < 5)
+		return (-1);
 	if (filename[i - 5] != '.' && filename[i - 4] != 'c' &&
 		filename[i - 3] != 'o' && filename[i - 2] != 'n' &&
 		filename[i - 1] != 'f')

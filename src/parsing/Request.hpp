@@ -34,7 +34,8 @@ enum mile_stones{
 	body,
 	send_first,
 	erase_cgi_header,
-	send_body
+	send_body,
+	done_with_send
 };
 
 class Request : public http_header_request
@@ -56,20 +57,21 @@ class Request : public http_header_request
 		int									remove_n;
 		int 								max_body;
 		int									chunked_size;
-		int									summe_body_to_cgi;
 		int									count_read_byts_from_file;
+		unsigned long						time_of_change;
 
 	public:
 		int									status_code;
 		Request ();
 		~Request();
 
-		std::string get(std::string key_word);
+		// std::string get(std::string key_word);
 		std::map<std::string, std::string> get_header() const;
 		// std::string		get_method() const;
 		// std::string		get_path() const;
 		// std::string		get_protocol() const;
         // std::string		get_port();
+		unsigned long	get_time_of_change();
 		std::string		get_status_line() const;
 		int				get_parsing_position() const;
 		int				get_content_length();

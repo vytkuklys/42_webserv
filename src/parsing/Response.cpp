@@ -36,20 +36,29 @@ void	Response::stop_reading(void)
 
 void Response::set_error_path(void)
 {
-	std::cout << "set_error_path" << std::endl;
 	std::string port = ft::remove_whitespace(request->get_port());
 	std::string status = request->get_status_line();
+
 	path = config->getErrorPage(port);
     if (path.empty())
 	{
         path = default_error;
 	}
 	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
+	{
 		path.append("/500.html");
+		request->status_code = 500;
+	}
 	else if (status == "HTTP/1.1 400 BAD REQUEST")
+	{
 		path.append("/400.html");
-	else if (status == "HTTP/1.1 413 PAYLOAD TOO LARGE")
+		request->status_code = 400;
+	}
+	else if (status == "HTTP/1.1 413 Request Entity Too Large")
+	{
 		path.append("/413.html");
+		request->status_code = 413;
+	}
 }
 
 void Response::set_path(std::string const filename)
@@ -80,14 +89,14 @@ void Response::set_path(std::string const filename)
 		{
 			if (request->get_method() == "PUT")
 			{
-					request->status_code = 303;
+				request->status_code = 303;
 			}
 			else if (request->get_method() != "POST")
 			{
 				is_path_valid = exists_path(path);
 				if (((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false))
 				{
-						request->status_code = 404;
+					request->status_code = 404;
 				}
 				if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
 				{
@@ -145,8 +154,12 @@ void Response::set_headers(void)
 
 	}
 
+	set_value("Connection:", "close");
 	if (request->get_method() == "GET")
+	{
 		set_value("Content-length:", ft::to_string(body.length()));
+		set_value("Connection:", "keep-alive");
+	}
 	else if (request->is_chunked() && request->status_code < 400)
 	{
 		set_value("content-type:", "text/html; charset=utf-8");
@@ -154,9 +167,8 @@ void Response::set_headers(void)
 	}
 
     set_value("Content-security-policy:", "upgrade-insecure-requests");
-    set_value("Connection:", "close");
     set_value("Server:", "Weebserv/1.0.0 (Unix)");
-    set_value("Transfer-Encoding:", "identity");
+    // set_value("Transfer-Encoding:", "identity");
     set_value("Accept-ranges:", "bytes");
     set_value("Date:", get_http_time());
 }
@@ -287,7 +299,7 @@ std::string Response::get_http_response(std::map<int,std::string>& status_line_m
 	set_first_line("HTTP/1.1 " + ft::itos(request->status_code) + " " + status_line_map.find(request->status_code)->second );
 	// set_first_line(status_line);
 	std::string response = get_http_header();
-	std::cout << response << std::endl;
+	// std::cout << response << std::endl;
 	response.append(body);
 	return (response);
 }
