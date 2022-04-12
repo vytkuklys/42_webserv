@@ -135,8 +135,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		}
 		for (int i = 0; len && is_running && i < FD_SETSIZE; i++)
 		{
-			// if (i % 3 == 0) <-- For siege stress test :D
-			// 	usleep(4);
 			if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
 				tmp_socket_fd = i;

@@ -26,14 +26,11 @@
 class Response : public http_header_response
 {
 private:
-		bool			is_path_valid;
-		bool			has_access;
 		Request			*request;
 		Config			*config;
 		std::string		default_error;
 		std::ifstream	input_stream;
 		std::string		body;
-		std::string		status_line;
 		std::string		path;
 		std::string		file_ext;
 
@@ -44,20 +41,21 @@ private:
 		void set_content_type(void);
 		void set_image_body(void);
 		void set_error_page(std::string file);
+		void stop_writing(void);
 public:
-		std::string get_path(void);
 		Response(Request& req, Config& data);
+
+		std::string get_path(void);
 		std::string get_http_response(std::map<int,std::string>& status_line);
 		std::string get_http_time();
-		void	stop_writing(void);
 };
 
 bool is_image_ext(std::string ext);
 bool is_text_ext(std::string ext);
 bool is_authorized(std::string server, std::string request, bool listing_status);
 bool is_method_valid(std::string method);
+bool is_page_not_found(std::string path, std::string root);
 bool exists_path(std::string const filename);
 bool exists_dir(std::string const path);
-// bool exists_file(std::string const path);
 
 #endif
