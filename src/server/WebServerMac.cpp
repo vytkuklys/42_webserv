@@ -342,6 +342,7 @@ void SERVER::WebServer::clear()
 void	SERVER::WebServer::shutdown(int signal)
 {
 	(void)signal;
+	std::cout << "sigquit" << std::endl;
 	std::cerr << std::flush;
 	is_running = false;
 }

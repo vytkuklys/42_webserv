@@ -83,6 +83,7 @@ Request::Request()
 	chunked_size = 0;
 	count_read_byts_from_file = 0;
 	time_of_change = ft::time();
+	pid_child = -1;
 }
 
 Request::~Request()
@@ -123,7 +124,7 @@ void	Request::fill_header(int fd, Config& conf)
 		if (set_start_line(line) == EXIT_SUCCESS)
 			break;
 	}
-	// std::cout << "fill header" << std::endl;
+	std::cout << "fill header fd" << fd << std::endl;
 
 	// std::cout << "date=" << data << "bytes" << bytes << std::endl;
 	while ((parsing_position == read_header) && data && std::getline(data, line))
@@ -270,8 +271,14 @@ void	Request::fill_header(int fd, Config& conf)
 					perror("execve"); //stop reading
 					exit(EXIT_FAILURE);
 				}
+				std::cout << "creat cild with pid" << pid_child << std::endl;
 				is_forked = true;
 				close(pipe_in[0]);
+			}
+			else
+			{
+				status_code = 204;
+				parsing_position = send_first;
 			}
 		}
 		else
@@ -407,9 +414,9 @@ unsigned long	Request::get_time_of_change()
 bool Request::is_chunked(void)
 {
 
-	std::cout << "is_chunked" << std::endl;
     if ((get_method() == "POST" || get_method() == "PUT") && get_content_length() == -1)
     {
+		std::cout << "is_chunked" << std::endl;
         // std::cout << "Chunked branch\n";
         // std::cout << "down\n";
         // for_testing_print_request_struct();
@@ -467,9 +474,12 @@ void Request::set_regular_body(std::istringstream& data)
 	}
 	if (content_length == 0 && is_error == false)
 	{
-		std::cout << "close regular body" << std::endl;
-		close(pipe_in[1]);
-		wait(NULL);
+		if (close(pipe_in[1]) != 0)
+			std::cout << "error close" << std::endl;
+		std::cout << "close regular body pid = " << pid_child << std::endl;
+		waitpid(pid_child, NULL, WUNTRACED);
+		std::cout << "done with waiting" << std::endl;
+
 		fclose(out_file);
 		parsing_position = send_first;
 	}
@@ -517,6 +527,7 @@ void Request::unchunk_body(std::istringstream& data)
 				if (missing_chuncked_data == 0)
 				{
 					std::getline(data, line);
+					std::cout << "test" << std::endl;
 					line.clear();
 					if (parsing_position == read_first_chunk_size)
 						status_code = 204;
@@ -524,13 +535,18 @@ void Request::unchunk_body(std::istringstream& data)
 					{
 						status_code = 413;
 					}
+					std::cout << "test1" << std::endl;
 					// else
 					int ret;
-					close(pipe_in[1]);
+					if (close(pipe_in[1]) != 0)
+						std::cout << "error close" << std::endl;
 					is_pipe_open = false;
-					waitpid(pid_child, &ret, 0);
+					std::cout << "pid_child" << pid_child << std::endl;
+					waitpid(pid_child, &ret, WUNTRACED);
+					std::cout << "test2" << std::endl;
 					is_forked = false;
 					rewind(out_file);
+					std::cout << "test3" << std::endl;
 					std::cout << "child return = " << ret << std::endl;
 					parsing_position = send_first;
 					chunked_size = 0;
@@ -601,7 +617,7 @@ void		Request::stop_reading(std::string status)
 	}
 	if (is_forked)
 	{
-		wait(NULL);
+		waitpid(pid_child, NULL, WUNTRACED);
 		is_forked = false;
 	}
 }

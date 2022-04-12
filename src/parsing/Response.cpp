@@ -83,6 +83,7 @@ void Response::set_path(std::string const filename)
         has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
+			std::cout << "has_access == false" << loc->getLocation() << std::endl;
 			request->status_code = 405;
 		}
 		if(request->status_code < 400)
