@@ -137,8 +137,12 @@ void Response::set_headers(void)
 
 	}
 
-	set_value("Connection:", "close");
-	if (request->get_method() == "GET")
+	if ((request->get_method() == "PUT") || (request->get_method() == "POST")) // more to consider
+	{
+		set_value("Connection:", "close");
+		// set_value("Connection:", "keep-alive");
+	}
+	if ((request->get_method() == "GET"))
 	{
 		set_value("Content-length:", ft::to_string(body.length()));
 		set_value("Connection:", "keep-alive");
@@ -234,8 +238,10 @@ void Response::set_body(void)
 			n = 0;
 			close(pipefd[1]);
 			// std::cout << "parent wait" << std::endl;
-			if (wait(NULL) == -1)
-				std::cout << "error wait" << std::endl; //Stop reading
+			waitpid(pid, NULL, (int)WNOHANG);
+
+			// if (wait(NULL) == -1)
+			// 	std::cout << "error wait" << std::endl; //Stop reading
 			// std::cout << "child returnd" << std::endl;
 			FILE *data = fdopen(pipefd[0], "r");
 			if (data == NULL)

@@ -464,7 +464,9 @@ void Request::set_regular_body(std::istringstream& data)
 	{
 		std::cout << "close regular body" << std::endl;
 		close(pipe_in[1]);
-		wait(NULL);
+		// wait(NULL);
+		waitpid(pid_child, NULL, (int)WNOHANG);
+
 		fclose(out_file);
 		parsing_position = send_first;
 	}
@@ -523,7 +525,7 @@ void Request::unchunk_body(std::istringstream& data)
 					int ret;
 					close(pipe_in[1]);
 					is_pipe_open = false;
-					waitpid(pid_child, &ret, 0);
+					waitpid(pid_child, &ret, (int)WNOHANG);
 					is_forked = false;
 					rewind(out_file);
 					std::cout << "child return = " << ret << std::endl;
@@ -596,7 +598,9 @@ void		Request::stop_reading(int code)
 	}
 	if (is_forked)
 	{
-		wait(NULL);
+		// wait(NULL);
+				waitpid(pid_child, NULL, (int)WNOHANG);
+
 		is_forked = false;
 	}
 }
