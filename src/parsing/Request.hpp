@@ -19,6 +19,7 @@
 #include "../../inc/Helper.hpp"
 #include "../../inc/Configuration.hpp"
 #include "../../inc/Colors.hpp"
+#include "../../inc/Server.hpp"
 #include <fstream>	  // std::ifstream
 // #include "Response.hpp"
 #include <sys/wait.h>
@@ -38,9 +39,15 @@ enum mile_stones{
 	done_with_send
 };
 
+namespace SERVER
+{
+	class WebServer;
+}
+
 class Request : public http_header_request
 {
 	private:
+		SERVER::WebServer					&webserver;
 		int									pipe_in[2];
 		FILE*								out_file;
 		int									content_length;
@@ -61,7 +68,7 @@ class Request : public http_header_request
 		int									status_code;
 
 	public:
-		Request ();
+		Request(SERVER::WebServer &tmp_webserver);
 		~Request();
 
 		// std::string get(std::string key_word);
@@ -76,6 +83,7 @@ class Request : public http_header_request
 		int				get_content_length();
 		bool			get_error_status() const;
 		std::string		get_cgi_return();
+		void			close_pipe_in();
 
 		void			set_status_code(int code);
 		void			set_regular_body(std::istringstream& data);
@@ -84,6 +92,7 @@ class Request : public http_header_request
 
 		void			fill_header(int fd, Config& conf);
 		bool			is_chunked(void);
+		void			wait_for_child();
 
 	private:
 		void	for_testing_print_request_struct();

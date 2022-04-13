@@ -11,8 +11,10 @@
 #include "SimpleServer.hpp"
 #include <algorithm>
 #include "../../inc/Colors.hpp"
+class Request;
 #include "../../inc/Parsing.hpp"
 #include "../../inc/Configuration.hpp"
+
 
 namespace SERVER
 {
@@ -44,6 +46,7 @@ namespace SERVER
 		static void						shutdown(int a);
 
 	public:
+		void							close_all_pipes();
 		WebServer(Config& config);
 		void launch(std::vector <int> &ports);
 		~WebServer();

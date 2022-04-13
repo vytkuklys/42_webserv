@@ -1,5 +1,7 @@
 #include "Request.hpp"
 #include "cstring"
+
+#include <signal.h>
 bool Request::set_start_line(std::string line)
 {
 	size_t pos = 0;
@@ -68,7 +70,7 @@ void Request::for_testing_print_request_struct()
 	std::cout << get_http_header() << std::endl;
 }
 
-Request::Request()
+Request::Request(SERVER::WebServer& tmp_webserver) : webserver(tmp_webserver)
 {
 	parsing_position = read_first_line;
 	missing_chuncked_data = 0;
@@ -83,6 +85,8 @@ Request::Request()
 	count_read_byts_from_file = 0;
 	time_of_change = ft::time();
 	pid_child = -1;
+	pipe_in[0] = -1;
+	pipe_in[1] = -1;
 }
 
 Request::~Request()
@@ -159,6 +163,9 @@ void	Request::fill_header(int fd, Config& conf)
 					stop_reading(500);
 					return ;
 				}
+				// fcntl(pipe_in[0], F_SETFL, O_NONBLOCK);
+				// fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+
 				is_pipe_open = true;
 				out_file = tmpfile();
 				// std::cout << "fork" <<std::endl;
@@ -171,6 +178,7 @@ void	Request::fill_header(int fd, Config& conf)
 				}
 				else if (pid_child == 0)
 				{
+					webserver.close_all_pipes();
 					std::cout << "script name" << config->getScript().c_str() << std::endl;
 					std::vector<char *> env;
 					std::vector<char *> argv;
@@ -213,7 +221,7 @@ void	Request::fill_header(int fd, Config& conf)
 					// 	env_strings.push_back("SCRIPT_FILENAME=." + get_path());
 					// else
 
-					if(config->getScript() == "./cgi-bin/php-cgi")
+					if(config->getScript() == "./cgi-bin/php-cgi-or")
 					{
 						env_strings.push_back("SCRIPT_FILENAME=/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi.php");
 						env_strings.push_back("SCRIPT_NAME=/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi.php");
@@ -247,11 +255,11 @@ void	Request::fill_header(int fd, Config& conf)
 						env.push_back(&(env_strings[i][0]));
 					}
 					env.push_back(NULL);
-					if (close(pipe_in[1]) != 0)
-					{
-						std::cout << "close1" << std::endl;
-						exit(EXIT_FAILURE);
-					}
+					// if (close(pipe_in[1]) != 0)
+					// {
+					// 	std::cout << "close1" << std::endl;
+					// 	exit(EXIT_FAILURE);
+					// }
 					// close(pipe_out[0]);
 					std::cout << "execve" << std::endl;
 					if (dup2(pipe_in[0], STDIN_FILENO) == -1)
@@ -259,6 +267,7 @@ void	Request::fill_header(int fd, Config& conf)
 						std::cout << "close2" << std::endl;
 						exit(EXIT_FAILURE);
 					}
+
 					if (close(pipe_in[0]) != 0)
 					{
 						std::cout << "close3" << std::endl;
@@ -284,9 +293,14 @@ void	Request::fill_header(int fd, Config& conf)
 					perror("execve"); //stop reading
 					exit(EXIT_FAILURE);
 				}
+				std::cout << "pipe_in[1]=" << pipe_in[1] << "fd=" << fd << " pid" << pid_child << std::endl;
 				std::cout << "creat cild with pid" << pid_child << std::endl;
 				is_forked = true;
-				close(pipe_in[0]);
+				if(close(pipe_in[0]) != 0)
+				{
+					std::cout << "close5" << std::endl;
+					exit(EXIT_FAILURE);
+				}
 			}
 			else
 			{
@@ -301,7 +315,7 @@ void	Request::fill_header(int fd, Config& conf)
 	}
 	if (parsing_position >= done_with_header && parsing_position < send_first)
 	{
-		std::cout << "fill_header" << std::endl;
+		std::cout << "fill_header fd=" << fd << " pid" << pid_child << std::endl;
 		if (is_chunked())
 		{
 			unchunk_body(data);
@@ -462,6 +476,19 @@ bool Request::is_payload_too_large()
 }
 
 // --------------- OVERLOADS ---------------- //
+void	displayTimestamp(void)
+{
+	std::time_t t = std::time(NULL);
+  	std::tm *const pTInfo = std::localtime(&t);
+
+	std::cout << std::setfill('0') << "[" <<
+	std::setw(4) << 1900 + pTInfo->tm_year <<
+	std::setw(2) << pTInfo->tm_mon + 1 <<
+	std::setw(2) << pTInfo->tm_mday << "_" <<
+	std::setw(2) << pTInfo->tm_hour <<
+	std::setw(2) << pTInfo->tm_min <<
+	std::setw(2) << pTInfo->tm_sec << "] \n";
+}
 
 void Request::set_regular_body(std::istringstream& data)
 {
@@ -472,6 +499,8 @@ void Request::set_regular_body(std::istringstream& data)
 	if (bytes) // behaviour of the write function with 0 bytes is undefined
 	{
 		// std::cout << "Len: " << content_length;
+		// size_t written = bytes;
+
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
 		{
@@ -480,21 +509,61 @@ void Request::set_regular_body(std::istringstream& data)
 		}
 		else if (written != bytes)
 		{
-			stop_reading(500);
+			// stop_reading(500);
 			return;
 		}
 		content_length -= written;
-	}
-	if (content_length == 0 && is_error == false)
-	{
-		if (close(pipe_in[1]) != 0)
-			std::cout << "error close" << std::endl;
-		std::cout << "close regular body pid = " << pid_child << std::endl;
-		waitpid(pid_child, NULL, 0);
-		std::cout << "done with waiting" << std::endl;
+		std::cout << "content_length" << content_length << std::endl;
 
-		fclose(out_file);
-		parsing_position = send_first;
+		if (content_length == 0 && is_error == false)
+		{
+			displayTimestamp();
+			// sleep(2);
+			if (close(pipe_in[1]) != 0)
+			{
+				std::cout << "close1" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			std::cout << "close regular body pipe_in[1]" << pipe_in[1] << std::endl;
+			// wait(NULL);
+			// waitpid(pid_child, NULL, (int)WNOHANG);
+			// waitpid(-1, NULL, 0);
+			// kill(pid_child, SIGINT);
+			// int	ret;
+			// displayTimestamp();
+			wait_for_child();
+			fclose(out_file);
+			parsing_position = send_first;
+		}
+	}
+}
+
+void Request::wait_for_child()
+{
+	int	ret;
+	std::cout << "waitpid" << pid_child << std::endl;
+	int ret_wa;
+	if (pid_child != -1)
+	{
+		ret_wa = waitpid(pid_child, &ret, 0/*WNOHANG*/);
+		if (ret_wa == -1)
+		{
+			std::cout << "waitpid error" << std::endl;
+		}
+		if (ret_wa == 0)
+		{
+			std::cout << "waitpid fine" << std::endl;
+		}
+		std::cout << "after wait_pid" << ret << std::endl;
+	}
+}
+
+void	Request::close_pipe_in()
+{
+	if(pipe_in[1] != -1)
+	{
+		if (close(pipe_in[1]) == -1)
+			std::cout << "error close";
 	}
 }
 
@@ -556,7 +625,9 @@ void Request::unchunk_body(std::istringstream& data)
 					is_pipe_open = false;
 					std::cout << "pid_child" << pid_child << std::endl;
 					waitpid(pid_child, &ret, 0);
+					// waitpid(-1, &ret, 0);
 					std::cout << "test2" << std::endl;
+					// waitpid(pid_child, &ret, (int)WNOHANG);
 					is_forked = false;
 					rewind(out_file);
 					std::cout << "test3" << std::endl;
@@ -593,7 +664,10 @@ void Request::unchunk_body(std::istringstream& data)
 			if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
 				std::cout << "why" << std::string(buffer, read_bytes) << std::string(buffer, read_bytes).find("\n") <<" part pf hex nb"<< part_of_hex_of_chunked << "missing_chuncked_data" << missing_chuncked_data << " left in buffer" << data.rdbuf()->in_avail() << std::endl;
 			if(read_bytes)
+			{
+				// written = read_bytes;
 				written = write(pipe_in[1], buffer, read_bytes);
+			}
 			if (static_cast<int>(written) == -1)
 			{
 				stop_reading(500);
@@ -634,7 +708,9 @@ void		Request::stop_reading(int code)
 	}
 	if (is_forked)
 	{
-		waitpid(pid_child, NULL, WUNTRACED);
+		// wait(NULL);
+		waitpid(pid_child, NULL, (int)WNOHANG);
+
 		is_forked = false;
 	}
 }

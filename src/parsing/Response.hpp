@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
+class Request;
+
 class Response : public http_header_response
 {
 private:

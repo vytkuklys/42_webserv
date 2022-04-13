@@ -14,7 +14,7 @@
 			exit("Failed to open stream to URL");
 		}
 		$i = rand();
-		$file_name = "../documents/uploaded/uploaded" . $i;
+		$file_name = "/goinfre/shackbei/upploads/test" . $i;
 		$file_error = fopen("/Users/shackbei/Documents/code/Projects/webserv/documents/uploaded/error", 'w');;
 		while(file_exists($file_name))
 		{
@@ -36,24 +36,23 @@
 		// while(!feof($fd))
 		while(1)
 		{
-			fwrite($out, "\n\n===fread========", 16);
+			// fwrite($out, "\n\n===fread========", 16);
 			if(($line = fread($fd, 8192)) === false)
 			{
 				fwrite($file_error, "\n\n===end========", 16);
 				break;
 			}
-			fwrite($out, "\n\n===fwrite========", 16);
+			// fwrite($out, "\n\n===fwrite========", 16);
 			if((fwrite($out, $line, 8192)) === FALSE)
 			{
 				fwrite($file_error, "\n\n===end========", 16);
 				break;
 			}
-			if(strlen($line) < 8192)
+			if(strlen($line) == 0)
 				break;
 		}
-		fwrite($out, "\n\n===end========", 16);
+		// fwrite($out, "\n\n===end========", 16);
 		fclose($out);
-		// fclose($fd);
+		fclose($fd);
 		fclose($file_error);
 	}
-	exit();

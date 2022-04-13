@@ -23,7 +23,7 @@ const std::string& http_header::get_first_line_element(const size_t pos) const
 {
 	if(pos > first_http_line.size() || first_http_line[pos].empty())
 	{
-		std::cout << pos << std::endl;
+		// std::cout << pos << std::endl;
 		return(notf);
 	}
 	return(first_http_line[pos]);
@@ -63,7 +63,7 @@ std::string http_header::get_http_header(void) const
 	std::string response;
 
 	response = get_first_line() + "\r\n";
-	// std::cout << get_first_line() << std::endl;
+	std::cout << get_first_line() << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it=header_pairs.begin(); it != header_pairs.end(); ++it)
 	{
 		 response += it->first + " " + it->second + "\r\n";

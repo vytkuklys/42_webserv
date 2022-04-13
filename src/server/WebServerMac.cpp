@@ -153,9 +153,10 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 				if(itr != data.end() && itr->second.get_parsing_position() == done_with_send)
 				{
 					int tmp_time = ft::ft_time_dif(itr->second.get_time_of_change());
-					if (tmp_time > 10 || itr->second.get_method() != "GET")
+					if (tmp_time > 2 || itr->second.get_method() != "GET")
 					{
 						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
+						itr->second.wait_for_child();
 						data.erase(itr);
 						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);
@@ -190,7 +191,7 @@ void SERVER::WebServer::handle_new_client()
 		fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
 		FD_SET(tmp_socket_fd, &read_sockets);
 		std::cout << "handle_new_client" << std::endl;
-		Request req;
+		Request req(*this);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 	}
 	std::cout << BOLD(FGRN("\n ---- ACCEPTED NEW ---- ")) << " fd " << tmp_socket_fd << std::endl;
@@ -217,7 +218,7 @@ void SERVER::WebServer::handle_known_client()
 	if(itr == data.end())
 	{
 		std::cout << "constructor" << std::endl;
-		Request req;
+		Request req(*this);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		itr = data.find(tmp_socket_fd);
 	}
@@ -300,6 +301,14 @@ void SERVER::WebServer::responder()
 			// close(tmp_socket_fd);
 		}
 		std::cout << BOLD(FBLU(" ---- RESPONDED ---- ")) << "fd " << tmp_socket_fd << std::endl;
+	}
+}
+
+void SERVER::WebServer::close_all_pipes()
+{
+	for (std::map<int,Request>::iterator itr = data.begin(); itr != data.end(); itr++)
+	{
+		itr->second.close_pipe_in();
 	}
 }
 
