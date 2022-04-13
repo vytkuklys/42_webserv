@@ -3,7 +3,7 @@
 
 http_header::http_header() : notf("not found")
 {
-	first_http_line.resize(6);
+	first_http_line.resize(5);
 }
 
 http_header::~http_header()
@@ -21,9 +21,11 @@ const std::string& http_header::get_value(const std::string& key) const
 
 const std::string& http_header::get_first_line_element(const size_t pos) const
 {
-	// std::cout << "get_first_line_element" << std::endl;
-	if(pos > first_http_line.size())
+	if(pos > first_http_line.size() || first_http_line[pos].empty())
+	{
+		std::cout << pos << std::endl;
 		return(notf);
+	}
 	return(first_http_line[pos]);
 }
 
@@ -37,9 +39,23 @@ void http_header::set_first_line_element(const size_t pos, const std::string& va
 	if (pos >= first_http_line.size())
 	{
 		first_http_line.resize(pos + 1);
-
 	}
 	first_http_line[pos] = value;
+}
+
+void http_header::set_first_line(std::string line)
+{
+	size_t i;
+	size_t j;
+	i = 0;
+	j = 0;
+	int x;
+	for(x = 0; (i = line.find(" ", j)) != std::string::npos; ++x)
+	{
+		set_first_line_element(x, line.substr(j, i - j));
+		j = i + 1;
+	}
+	set_first_line_element(x, line.substr(j, line.size()));
 }
 
 std::string http_header::get_http_header(void) const
@@ -68,20 +84,6 @@ std::string http_header::get_port() const
 }
 
 
-void http_header::set_first_line(std::string line)
-{
-	size_t i;
-	size_t j;
-	i = 0;
-	j = 0;
-	int x;
-	for(x = 0; (i = line.find(" ", j)) != std::string::npos; ++x)
-	{
-		set_first_line_element(x, line.substr(j, i - j));
-		j = i + 1;
-	}
-	set_first_line_element(x, line.substr(j, line.size()));
-}
 
 
 std::string	http_header::get_first_line() const
@@ -90,8 +92,12 @@ std::string	http_header::get_first_line() const
 
 	for(size_t i = 0; i < first_http_line.size(); ++i)
 	{
-		ret += get_first_line_element(i);
-		ret += " ";
+		// std::cout << "i" << i << std::endl;
+		if(get_first_line_element(i) != notf)
+		{
+			ret += get_first_line_element(i);
+			ret += " ";
+		}
 	}
 	ret = (ret.substr(0, ret.length() - 1));
 	return(ret);

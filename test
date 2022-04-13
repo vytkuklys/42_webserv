@@ -1,241 +1,193 @@
-Listening on port(s): 8080
- select
-handle_new_client
-[1m[32m
- ---- ACCEPTED NEW ---- [0m[0m fd 4
- select
-process socket information
-fill header fd4
-done with header
 
----START LINE 
-PUT /put_test/ HTTP/1.1   
-Accept */*
-Accept-Encoding gzip, deflate, br
-Connection keep-alive
-Content-Length 99913
-Content-Type image/jpeg
-Host localhost:8080
-Postman-Token b09ee050-2028-42f3-84fd-3bcce79730c7
-User-Agent PostmanRuntime/7.29.0
-
-
-creat cild with pid30209
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
-HTTP_ACCEPT=*/*
-HTTP_ACCEPT_ENCODING=gzip, deflate, br
-HTTP_CONNECTION=keep-alive
-HTTP_CONTENT_LENGTH=99913
-HTTP_CONTENT_TYPE=image/jpeg
-HTTP_HOST=localhost:8080
-HTTP_POSTMAN_TOKEN=b09ee050-2028-42f3-84fd-3bcce79730c7
-HTTP_USER_AGENT=PostmanRuntime/7.29.0
-execve
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
- parsing_position= 4
-done with know client
- select
-process socket information
-fill header fd4
-fill_header
-close regular body pid = 30209
-done with waiting
- parsing_position= 5
-set fd to write list
-done with know client
- select
-send first
-Responder constructor
-error exists_path
-end of response
-[1m[34m ---- RESPONDED ---- [0m[0mfd 4
-time=1
-close socket summe = 0fd=4
- select
-handle_new_client
-[1m[32m
- ---- ACCEPTED NEW ---- [0m[0m fd 4
- select
-process socket information
-fill header fd4
-done with header
-
----START LINE 
-GET /put_test/../index.html HTTP/1.1   
-Accept */*
-Accept-Encoding gzip, deflate, br
-Connection keep-alive
-Host localhost:8080
-Postman-Token b09ee050-2028-42f3-84fd-3bcce79730c7
-Referer http://localhost:8080/put_test/
-User-Agent PostmanRuntime/7.29.0
-
-
- parsing_position= 5
-set fd to write list
-done with know client
- select
-send first
-Responder constructor
-error exists_path
-has_access == false/put_test/*
-end of response
-[1m[34m ---- RESPONDED ---- [0m[0mfd 4
- select
+ ---- ACCEPTED NEW ----  fd 11
 erase fd=4
 constructor
 process socket information
-set fd to write list
+stop_reading, request: 400
+ ---- ERROR ---- : No such file or directory
+set fd to write list fd4
 done with know client
- select
 send first
+Responder constructor
+3
+4
 end of response
-[1m[34m ---- RESPONDED ---- [0m[0mfd 4
-time=0
+ ---- RESPONDED ---- fd 5
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 6
+0
+time=0method0
+not found.
+close socket summe = 0fd=6
+process socket information
+fill_header fd9
+done with header
+
+---START LINE
+3
+4
+GET / HTTP/1.1
+Accept-Encoding gzip
+Host localhost:8080
+User-Agent Go-http-client/1.1
+
+
+ parsing_position= 5
+set fd to write list fd9
+done with know client
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 10
+0
+time=0method0
+not found.
+close socket summe = 0fd=10
+ select5
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 4
+0
+time=0method0
+not found.
 close socket summe = 0fd=4
- select
- select
- select
- select
- select
- select
- select
- select
- select
+erase fd=5
+constructor
+process socket information
+stop_reading, request: 400
+ ---- ERROR ---- : No such file or directory
+set fd to write list fd5
+done with know client
+send first
+Responder constructor
+3
+4
+end of response
+ ---- RESPONDED ---- fd 9
+process socket information
+fill_header fd11
+done with header
+
+---START LINE
+3
+4
+GET / HTTP/1.1
+Accept-Encoding gzip
+Host localhost:8080
+User-Agent Go-http-client/1.1
+
+
+ parsing_position= 5
+set fd to write list fd11
+done with know client
+ select4
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 5
+0
+time=0method0
+not found.
+close socket summe = 0fd=5
+erase fd=9
+constructor
+process socket information
+stop_reading, request: 400
+ ---- ERROR ---- : No such file or directory
+set fd to write list fd9
+done with know client
+send first
+Responder constructor
+3
+4
+end of response
+ ---- RESPONDED ---- fd 11
+ select2
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 9
+0
+time=0method0
+not found.
+close socket summe = 0fd=9
+ select1
+erase fd=11
+constructor
+process socket information
+stop_reading, request: 400
+ ---- ERROR ---- : No such file or directory
+set fd to write list fd11
+done with know client
+ select2
+send first
+0
+0
+0
+0
+0
+0
+0
+0
+4
+0
+0
+end of response
+ ---- RESPONDED ---- fd 11
+0
+time=0method0
+not found.
+close socket summe = 0fd=11

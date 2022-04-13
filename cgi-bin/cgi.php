@@ -13,30 +13,47 @@
 			phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
 			exit("Failed to open stream to URL");
 		}
-		$file_name = "../documents/uploaded/uploaded";
-		$file_error = fopen("../documents/uploaded/error", 'w');;
-		$i = 0;
+		$i = rand();
+		$file_name = "../documents/uploaded/uploaded" . $i;
+		$file_error = fopen("/Users/shackbei/Documents/code/Projects/webserv/documents/uploaded/error", 'w');;
 		while(file_exists($file_name))
 		{
+			fwrite($file_error, $i);
+
 			$file_name = "../documents/uploaded/uploaded" . $i;
 			$i++;
 		}
+		fwrite($file_error, $file_name);
+
 		$out = fopen($file_name, 'w');
-		// fwrite($out, "=====done======\n", 17);
-
-		while(!feof($fd))
+		if ($out === FALSE)
 		{
-			$line = '';
-			// fwrite($out, "\n\n===bege========", 17);
-			if($line = fread($fd, 8192/2) === FALSE)
-				fwrite($file_error, "\n\n===end========", 16);
-			if(fwrite($out, $line, 10000) == false)
-				break;
-			// fwrite($out, "\n\n===done========", 17);
+			echo "error input\n";
+			phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
+			exit("Failed to open out");
 		}
-
-		// fwrite($out, "\n\n===end========", 16);
+		$line = '';
+		// while(!feof($fd))
+		while(1)
+		{
+			fwrite($out, "\n\n===fread========", 16);
+			if(($line = fread($fd, 8192)) === false)
+			{
+				fwrite($file_error, "\n\n===end========", 16);
+				break;
+			}
+			fwrite($out, "\n\n===fwrite========", 16);
+			if((fwrite($out, $line, 8192)) === FALSE)
+			{
+				fwrite($file_error, "\n\n===end========", 16);
+				break;
+			}
+			if(strlen($line) < 8192)
+				break;
+		}
+		fwrite($out, "\n\n===end========", 16);
 		fclose($out);
-		fclose($fd);
+		// fclose($fd);
+		fclose($file_error);
 	}
-?>
+	exit();

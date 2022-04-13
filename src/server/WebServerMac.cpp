@@ -125,7 +125,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		timeout.tv_usec = 0;
 		tmp_read_sockets = read_sockets;
 		tmp_write_sockets = write_sockets;
-		std::cout << " select" << std::endl;
 		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
 		{
 			if (errno == EINTR)
@@ -133,19 +132,20 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; is_running && i < FD_SETSIZE; i++)
+		std::cout << " select" << len << std::endl;
+		for (int i = 0; len && is_running && i < FD_SETSIZE; i++)
 		{
-			// if (i % 3 == 0) <-- For siege stress test :D
-			// 	usleep(4);
 			if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
 			{
 				tmp_socket_fd = i;
 				responder();
+				len--;
 			}
 			else if (FD_ISSET(i, &tmp_read_sockets)) // fd is ready to be read if true
 			{
 				tmp_socket_fd = i;
 				handler();
+				len--;
 			}
 			if(FD_ISSET(i, &read_sockets) && std::find(listeners.begin(), listeners.end(), i) == listeners.end())/* && tmp->second.get_parsing_position() == done_with_send*/
 			{
@@ -155,7 +155,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					int tmp_time = ft::ft_time_dif(itr->second.get_time_of_change());
 					if (tmp_time > 10 || itr->second.get_method() != "GET")
 					{
-						std::cout << "time=" << tmp_time << std::endl;
+						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
 						data.erase(itr);
 						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);
@@ -230,7 +230,7 @@ void SERVER::WebServer::handle_known_client()
 	}
 	if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
 	{
-		std::cout << "set fd to write list" << std::endl;
+		std::cout << "set fd to write list fd" << tmp_socket_fd <<std::endl;
 		if (!FD_ISSET(tmp_socket_fd, &write_sockets))
 			FD_SET(tmp_socket_fd, &write_sockets);
 	}
@@ -290,7 +290,7 @@ void SERVER::WebServer::responder()
 				total -= bytes;
 			}
 		}
-		if((info.get_method() != "POST" ) || end_of_chunked || !info.is_chunked())
+		if(/*(info.get_method() != "POST" ) || */end_of_chunked || !info.is_chunked())
 		{
 			std::cout << "end of response" << std::endl;
 			summe = 0;

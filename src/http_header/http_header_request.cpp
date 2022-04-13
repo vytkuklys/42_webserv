@@ -25,6 +25,7 @@ const std::string		http_header_request::get_protocol() const
 
 void 		http_header_request::set_method(std::string& value)
 {
+
 	set_first_line_element(0, value);
 }
 

@@ -49,7 +49,6 @@ class Request : public http_header_request
 		pid_t								pid_child;
 		mile_stones							parsing_position;
 		std::string							raw_header_line;
-		std::string							status_line;
 		bool								is_error;
 		bool								is_pipe_open;
 		bool								is_forked;
@@ -59,9 +58,9 @@ class Request : public http_header_request
 		int									chunked_size;
 		int									count_read_byts_from_file;
 		unsigned long						time_of_change;
+		int									status_code;
 
 	public:
-		int									status_code;
 		Request ();
 		~Request();
 
@@ -72,13 +71,13 @@ class Request : public http_header_request
 		// std::string		get_protocol() const;
         // std::string		get_port();
 		unsigned long	get_time_of_change();
-		std::string		get_status_line() const;
+		int				get_status_code() const;
 		int				get_parsing_position() const;
 		int				get_content_length();
 		bool			get_error_status() const;
 		std::string		get_cgi_return();
 
-		void			set_status_line(std::string new_status);
+		void			set_status_code(int code);
 		void			set_regular_body(std::istringstream& data);
 		void			set_chunked_body(int fd);
 		void			set_parsing_position(mile_stones new_pos);
@@ -97,7 +96,7 @@ class Request : public http_header_request
 
 		void	unchunk_body(std::istringstream& data);
 
-		void	stop_reading(std::string status);
+		void	stop_reading(int code);
 		void	set_max_body();
 };
 

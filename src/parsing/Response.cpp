@@ -5,7 +5,6 @@ Response::Response(Request& req, Config& data) : request(&req)
 {
 	config = &data;
     default_error = "./documents/html_errors";
-    has_access = true;
 	if (request->get_error_status() == true)
 	{
 		set_error_path();
@@ -16,17 +15,16 @@ Response::Response(Request& req, Config& data) : request(&req)
     	set_path(request->get_path());
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-    set_status_line();
 	if (request->get_method() != "HEAD")
 		set_body();
     set_headers();
 }
 
 // ----------------- MEMBERS ------------------- //
-void	Response::stop_reading(void)
+void	Response::stop_writing(void)
 {
-	request->set_status_line("HTTP/1.1 500 INTERNAL SERVER ERROR");
-	set_status_line();
+	std::cout << "stop_writing, response" << std::endl;
+	request->set_status_code(500);
 	set_error_path();
 	file_ext = "html";
 	set_body();
@@ -37,27 +35,24 @@ void	Response::stop_reading(void)
 void Response::set_error_path(void)
 {
 	std::string port = ft::remove_whitespace(request->get_port());
-	std::string status = request->get_status_line();
+	int status = request->get_status_code();
 
 	path = config->getErrorPage(port);
     if (path.empty())
 	{
         path = default_error;
 	}
-	if (status == "HTTP/1.1 500 INTERNAL SERVER ERROR")
+	if (status == 500)
 	{
 		path.append("/500.html");
-		request->status_code = 500;
 	}
-	else if (status == "HTTP/1.1 400 BAD REQUEST")
+	else if (status == 400)
 	{
 		path.append("/400.html");
-		request->status_code = 400;
 	}
-	else if (status == "HTTP/1.1 413 Request Entity Too Large")
+	else if (status == 413)
 	{
 		path.append("/413.html");
-		request->status_code = 413;
 	}
 }
 
@@ -80,31 +75,24 @@ void Response::set_path(std::string const filename)
 				path += "/";
 			path += loc->getIndex();
 		}
-        has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
+        bool has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
-			std::cout << "has_access == false" << loc->getLocation() << std::endl;
-			request->status_code = 405;
+			request->set_status_code(405);
 		}
-		if(request->status_code < 400)
+		if(request->get_status_code() < 400)
 		{
 			if (request->get_method() == "PUT")
 			{
-				request->status_code = 303;
+				// request->set_status_code(303);
+				request->set_status_code(200); //test
 			}
 			else if (request->get_method() != "POST")
 			{
-				is_path_valid = exists_path(path);
-				if (((exists_dir(path) == true && path != loc->getRoot()) || is_path_valid == false))
+				if (is_page_not_found(path, loc->getRoot()))
 				{
-					request->status_code = 404;
-				}
-				if (!is_path_valid || !has_access || loc == nullptr || (!is_listing_on && filename == "/index.php"))
-				{
-					if (!is_path_valid || loc == nullptr)
-						set_error_page("/404.html");
-					else
-						set_error_page("/403.html");
+					request->set_status_code(404);
+					set_error_page("/404.html");
 				}
 			}
 		}
@@ -115,7 +103,7 @@ void Response::set_path(std::string const filename)
 	}
 	else
 	{
-		request->set_status_line("HTTP/1.1 404 Not Found");
+		request->set_status_code(404);
 		set_error_page("/404.html");
 	}
 }
@@ -126,11 +114,6 @@ void Response::set_error_page(std::string file)
 	if (path.empty())
 		path = default_error;
 	path.append(file);
-}
-
-void Response::set_status_line(void)
-{
-	status_line = request->get_status_line();
 }
 
 void Response::set_content_type(void)
@@ -161,15 +144,14 @@ void Response::set_headers(void)
 		set_value("Content-length:", ft::to_string(body.length()));
 		set_value("Connection:", "keep-alive");
 	}
-	else if (request->is_chunked() && request->status_code < 400)
+	else if (request->is_chunked() && request->get_status_code() < 400)
 	{
 		set_value("content-type:", "text/html; charset=utf-8");
 		set_value("Transfer-Encoding:", "chunked");
 	}
 
     set_value("Content-security-policy:", "upgrade-insecure-requests");
-    set_value("Server:", "Weebserv/1.0.0 (Unix)");
-    // set_value("Transfer-Encoding:", "identity");
+    set_value("Server:", "Webserv");
     set_value("Accept-ranges:", "bytes");
     set_value("Date:", get_http_time());
 }
@@ -179,7 +161,7 @@ void Response::set_image_body(void)
 	std::ifstream in(path, std::ios::binary);
 	if (!in.is_open())
 	{
-		stop_reading();
+		stop_writing();
 		return ;
 	}
 	else
@@ -191,7 +173,7 @@ void Response::set_image_body(void)
 		if (in.fail())
 		{
 			in.close();
-			stop_reading();
+			stop_writing();
 			return ;
 		}
 		else if (length > 0)
@@ -225,7 +207,7 @@ void Response::set_body(void)
 		pipe(pipefd);
 		pid = fork();
 		if (pid == -1)
-			stop_reading();
+			stop_writing();
 		else if (pid == 0)
 		{
 			// std::cout << "child" << std::endl;
@@ -259,7 +241,7 @@ void Response::set_body(void)
 			FILE *data = fdopen(pipefd[0], "r");
 			if (data == NULL)
 			{
-				stop_reading();
+				stop_writing();
 			}
 			while (data && ((len = getline(&buffer, &n, data)) != -1))
 			{
@@ -278,7 +260,7 @@ void Response::set_body(void)
 		set_image_body();
 
 	}
-	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || (request->get_method() == "POST" && !request->is_chunked()))
+	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || request->get_method() == "not found" || (request->get_method() == "POST" && !request->is_chunked()))
 	{
 		input_stream.open(path.c_str());
 		if (input_stream.is_open())
@@ -296,11 +278,8 @@ void Response::set_body(void)
 
 std::string Response::get_http_response(std::map<int,std::string>& status_line_map)
 {
-	// std::cout << status_line << std::endl;
-	set_first_line("HTTP/1.1 " + ft::itos(request->status_code) + " " + status_line_map.find(request->status_code)->second );
-	// set_first_line(status_line);
+	set_first_line("HTTP/1.1 " + ft::itos(request->get_status_code()) + " " + status_line_map.find(request->get_status_code())->second );
 	std::string response = get_http_header();
-	// std::cout << response << std::endl;
 	response.append(body);
 	return (response);
 }
@@ -342,32 +321,6 @@ bool exists_path(std::string const path)
 	}
 	return (false);
 }
-
-// bool exists_file(std::string const path)
-// {
-// 	struct stat s;
-// 	if( stat(path.c_str(), &s) == 0 )
-// 	{
-// 		if( s.st_mode & S_IFDIR )
-// 		{
-// 			return (false);
-// 		}
-// 		else if( s.st_mode & S_IFREG )
-// 		{
-// 			return (true);
-// 		}
-// 		else
-// 		{
-// 			std::cout << "error exists_path" << std::endl;
-// 			return(false);
-// 		}
-// 	}
-// 	else
-// 	{
-// 		std::cout << "error exists_path" << std::endl;
-// 		return(false);
-// 	}
-// }
 
 bool exists_dir(std::string const path)
 {
@@ -421,4 +374,13 @@ bool is_method_valid(std::string method)
 {
 	const std::string methods[] = {"post", "head", "get", "put", "delete"};
     return (ft::is_found(methods, method, 5));
+}
+
+bool is_page_not_found(std::string path, std::string root)
+{
+	bool is_path_valid = exists_path(path);
+	bool is_dir_valid = exists_dir(path);
+	if (((is_dir_valid && path != root) || is_path_valid == false))
+		return (true);
+	return (false);
 }
