@@ -94,6 +94,163 @@ Request::~Request()
 	return;
 }
 
+void	Request::set_up_child()
+{
+	std::cout << "script name" << config->getScript().c_str() << std::endl;
+	//set up argv;
+	std::vector<char *> argv;
+	std::vector<std::string> argv_strings;
+	argv_strings.resize(2);
+	argv_strings.push_back(config->getScript());
+	argv_strings.push_back(get_path());
+	for(size_t i = 0; i < argv_strings.size(); i++)
+		argv.push_back(&(argv_strings[i][0]));
+	argv.push_back(NULL);
+
+	//set up env
+	std::vector<char *> env;
+	std::vector<std::string> env_strings;
+	env_strings.resize(40);
+	std::string tmp;
+	if ((tmp = get_value("Content-Length")) != "not found")
+		env_strings.push_back("CONTENT_LENGTH=" + tmp);
+	env_strings.push_back("PATH_INFO=" + get_path());
+	env_strings.push_back("QUERY_STRING=");
+	env_strings.push_back("REDIRECT_STATUS=200");
+	env_strings.push_back("DOCUMENT_ROOT=" + config->getRoot());
+	env_strings.push_back("REQUEST_METHOD=" + get_method());
+	env_strings.push_back("SERVER_PROTOCOL=" + get_protocol());
+	env_strings.push_back("SERVER_SOFTWARE=webserv");
+	env_strings.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env_strings.push_back("REQUEST_SCHEME=http");
+	for(http_header::iterator tmp = http_header::begin(); tmp != http_header::end(); tmp++)
+	{
+		std::string key = tmp->first;
+		std::transform(key.begin(), key.end(),key.begin(), ::toupper);
+		for(std::string::iterator pos = key.begin(); pos != key.end(); pos++)
+		{
+			if(*pos == '-')
+				*pos = '_';
+		}
+		env_strings.push_back("HTTP_" + key + "=" + tmp->second);
+		std::cout << env_strings.back() << std::endl;
+	}
+	if(config->getScript() == "./cgi-bin/php-cgi-or")
+	{
+		env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
+		env_strings.push_back("SCRIPT_NAME=./cgi-bin/cgi.php");
+	}
+	if ((tmp = get_value("Host")) != "not found")
+	{
+		env_strings.push_back("SERVER_PORT=" + tmp);
+		env_strings.back().erase(std::strlen("SERVER_PORT=") - 1, env_strings.back().find(":"));
+	}
+	env_strings.push_back("SERVER_ADDR=");
+	if ((tmp = get_value("Host")) != "not found")
+	{
+		env_strings.push_back("SERVER_PORT=" + tmp);
+		env_strings.back().erase(env_strings.back().find(":") - 1, env_strings.back().length() - 1);
+	}
+	if ((tmp = get_value("Content-Type")) != "not found")
+	{
+		env_strings.push_back("CONTENT_TYPE=" + tmp);
+	}
+	for(size_t i = 0; i < env_strings.size(); i++)
+		env.push_back(&(env_strings[i][0]));
+	env.push_back(NULL);
+	std::cout << "execve" << std::endl;
+	webserver.close_all_pipes();
+	if (dup2(pipe_in[0], STDIN_FILENO) == -1)
+	{
+		std::cout << "close2" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (close(pipe_in[0]) != 0)
+	{
+		std::cout << "close3" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	pipe_in[0] = -1;
+	if (dup2(fileno(out_file), STDOUT_FILENO) == -1)
+	{
+		std::cout << "close4" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	close(fileno(out_file));
+	// chdir("./cgi-bin");
+	if (execve(config->getScript().c_str(), &argv[0], &env[0]))
+	{
+		std::cout << "script=" << config->getScript().c_str() << std::endl;
+		perror("execve");
+		exit(EXIT_FAILURE);
+	}
+	perror("execve");
+	exit(EXIT_FAILURE);
+}
+
+
+void			Request::set_up_cgi_proces()
+{
+	std::cout << "done with header" << std::endl;
+	if (max_body == NOT_SET)
+	{
+		content_length = get_content_length();
+		for_testing_print_request_struct();
+		set_max_body();
+		if (is_payload_too_large() == true)
+		{
+			std::cerr << "is_payload_too_large" << std::endl;
+			stop_reading(413);
+			return ;
+		}
+	}
+	if (get_method() == "POST" || get_method() == "PUT")
+	{
+		if (content_length != 0)
+		{
+			if (pipe(pipe_in) == -1)
+			{
+				std::cerr << "pipe creating goes wrong" << std::endl;
+				stop_reading(500);
+				return ;
+			}
+			is_pipe_open = true;
+			out_file = tmpfile();
+			pid_child = fork();
+			if (pid_child == -1)
+			{
+				std::cerr << "fork goes wrong" << std::endl;
+				stop_reading(500);
+				close(pipe_in[0]);
+				close(pipe_in[1]);
+				pipe_in[0] = -1;
+				pipe_in[1] = -1;
+				return ;
+			}
+			else if (pid_child == 0)
+				set_up_child();
+			else
+			{
+				std::cout << "creat cild with pid" << pid_child << std::endl;
+				is_forked = true;
+				if(close(pipe_in[0]) != 0)
+				{
+					std::cout << "close5" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				pipe_in[0] = -1;
+			}
+		}
+		else
+		{
+			status_code = 204;
+			parsing_position = send_first;
+		}
+	}
+	else
+		parsing_position = send_first;
+}
+
 void	Request::fill_header(int fd, Config& conf)
 {
 	char buffer[4096];
@@ -133,163 +290,10 @@ void	Request::fill_header(int fd, Config& conf)
 
 	if (parsing_position == done_with_header)
 	{
-		std::cout << "done with header" << std::endl;
 		config = conf.get_location(get_port(), get_path());
-		if (max_body == NOT_SET)
-		{
-			content_length = get_content_length();
-			for_testing_print_request_struct();
-			set_max_body();
-			if (is_payload_too_large() == true)
-			{
-				std::cerr << "is_payload_too_large" << std::endl;
-				stop_reading(413);
-				return ;
-			}
-		}
-		if (get_method() == "POST" || get_method() == "PUT")
-		{
-			if (content_length != 0)
-			{
-				if (pipe(pipe_in) == -1)
-				{
-					std::cerr << "pipe creating goes wrong" << std::endl;
-					stop_reading(500);
-					return ;
-				}
-				is_pipe_open = true;
-				out_file = tmpfile();
-				pid_child = fork();
-				if (pid_child == -1)
-				{
-					std::cerr << "fork goes wrong" << std::endl;
-					stop_reading(500);
-					close(pipe_in[0]);
-					close(pipe_in[1]);
-					pipe_in[0] = -1;
-					pipe_in[1] = -1;
-					return ;
-				}
-				else if (pid_child == 0)
-				{
-					std::cout << "script name" << config->getScript().c_str() << std::endl;
-					std::vector<char *> env;
-					std::vector<char *> argv;
-					std::vector<std::string> env_strings;
-					std::vector<std::string> argv_strings;
-					argv_strings.resize(2);
-					argv_strings.push_back("cgi_tester");
-					argv_strings.push_back(get_path());
-					for(size_t i = 0; i < argv_strings.size(); i++)
-					{
-						argv.push_back(&(argv_strings[i][0]));
-					}
-					argv.push_back(NULL);
-					std::string tmp;
-					env_strings.resize(40);
-					if ((tmp = get_value("Content-Length")) != "not found")
-					{
-						env_strings.push_back("CONTENT_LENGTH=" + tmp);
-					}
-					env_strings.push_back("PATH_INFO=" + get_path());
-					env_strings.push_back("QUERY_STRING=");
-					env_strings.push_back("REDIRECT_STATUS=200");
-					for(http_header::iterator tmp = http_header::begin(); tmp != http_header::end(); tmp++)
-					{
-						std::string key = tmp->first;
-						std::transform(key.begin(), key.end(),key.begin(), ::toupper);
-						for(std::string::iterator pos = key.begin(); pos != key.end(); pos++)
-						{
-							if(*pos == '-')
-								*pos = '_';
-						}
-						env_strings.push_back("HTTP_" + key + "=" + tmp->second);
-						std::cout << env_strings.back() << std::endl;
-					}
-					if(config->getScript() == "./cgi-bin/php-cgi-or")
-					{
-						env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
-						env_strings.push_back("SCRIPT_NAME=./cgi-bin/cgi.php");
-					}
-					env_strings.push_back("DOCUMENT_ROOT=" + config->getRoot());
-					env_strings.push_back("REQUEST_METHOD=" + get_method());
-					env_strings.push_back("SERVER_PROTOCOL=" + get_protocol());
-					env_strings.push_back("SERVER_SOFTWARE=webserv");
-					env_strings.push_back("GATEWAY_INTERFACE=CGI/1.1");
-					env_strings.push_back("REQUEST_SCHEME=http");
-					if ((tmp = get_value("Host")) != "not found")
-					{
-						env_strings.push_back("SERVER_PORT=" + tmp);
-						env_strings.back().erase(std::strlen("SERVER_PORT=") - 1, env_strings.back().find(":"));
-					}
-					env_strings.push_back("SERVER_ADDR=");
-					if ((tmp = get_value("Host")) != "not found")
-					{
-						env_strings.push_back("SERVER_PORT=" + tmp);
-						env_strings.back().erase(env_strings.back().find(":") - 1, env_strings.back().length() - 1);
-					}
-
-					if ((tmp = get_value("Content-Type")) != "not found")
-					{
-						env_strings.push_back("CONTENT_TYPE=" + tmp);
-					}
-
-					for(size_t i = 0; i < env_strings.size(); i++)
-					{
-						env.push_back(&(env_strings[i][0]));
-					}
-					env.push_back(NULL);
-					std::cout << "execve" << std::endl;
-					webserver.close_all_pipes();
-					if (dup2(pipe_in[0], STDIN_FILENO) == -1)
-					{
-						std::cout << "close2" << std::endl;
-						exit(EXIT_FAILURE);
-					}
-
-					if (close(pipe_in[0]) != 0)
-					{
-						std::cout << "close3" << std::endl;
-						exit(EXIT_FAILURE);
-					}
-					pipe_in[0] = -1;
-					if (dup2(fileno(out_file), STDOUT_FILENO) == -1)
-					{
-						std::cout << "close4" << std::endl;
-						exit(EXIT_FAILURE);
-					}
-					close(fileno(out_file));
-					// chdir("./cgi-bin");
-					if (execve(config->getScript().c_str(), &argv[0], &env[0]))
-					{
-						std::cout << "script=" << config->getScript().c_str() << std::endl;
-						perror("execve");
-						exit(EXIT_FAILURE);
-					}
-					perror("execve");
-					exit(EXIT_FAILURE);
-				}
-				std::cout << "pipe_in[1]=" << pipe_in[1] << "fd=" << fd << " pid" << pid_child << std::endl;
-				std::cout << "creat cild with pid" << pid_child << std::endl;
-				is_forked = true;
-				if(close(pipe_in[0]) != 0)
-				{
-					std::cout << "close5" << std::endl;
-					exit(EXIT_FAILURE);
-				}
-				pipe_in[0] = -1;
-			}
-			else
-			{
-				status_code = 204;
-				parsing_position = send_first;
-			}
-		}
-		else
-		{
-			parsing_position = send_first;
-		}
+		set_up_cgi_proces();
 	}
+
 	if (parsing_position >= done_with_header && parsing_position < send_first)
 	{
 		std::cout << "fill_header fd=" << fd << " pid" << pid_child << std::endl;
@@ -493,11 +497,95 @@ void	Request::close_pipe_in()
 	}
 }
 
+bool Request::proces_chunked_size(std::string& line)
+{
+	if (line.find('\r') != std::string::npos)
+	{
+		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+		missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
+		// std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
+		if (missing_chuncked_data == 0)
+		{
+			// std::getline(data, line);
+			// line.clear();
+			if (parsing_position == read_first_chunk_size)
+				status_code = 204;
+			else if (is_payload_too_large() == true)
+			{
+				std::cerr << "is_payload_too_large1" << std::endl;
+				status_code = 413;
+			}
+			int ret;
+			if (close(pipe_in[1]) != 0)
+				std::cout << "error close" << std::endl;
+			pipe_in[1] = -1;
+			is_pipe_open = false;
+			std::cout << "pid_child" << pid_child << std::endl;
+			waitpid(pid_child, &ret, 0);
+			std::cout << "test2" << std::endl;
+			is_forked = false;
+			rewind(out_file);
+			std::cout << "test3" << std::endl;
+			std::cout << "child return = " << ret << std::endl;
+			parsing_position = send_first;
+			chunked_size = 0;
+			return(false);
+		}
+		else
+		{
+			parsing_position = body;
+		}
+	}
+	else
+	{
+		part_of_hex_of_chunked = line;
+		std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
+	}
+	return(true);
+}
+
+bool Request::proces_chunked_body(std::istringstream& data)
+{
+	size_t		written = 0;
+	size_t		read_bytes = 0;
+	char	buffer[4096];
+	if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
+	{
+		read_bytes = data.rdbuf()->in_avail();
+		read_bytes = data.readsome(buffer, read_bytes);
+	}
+	else
+		read_bytes = data.readsome(buffer, missing_chuncked_data);
+	if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
+		std::cout << "why" << std::string(buffer, read_bytes) << std::string(buffer, read_bytes).find("\n") <<" part pf hex nb"<< part_of_hex_of_chunked << "missing_chuncked_data" << missing_chuncked_data << " left in buffer" << data.rdbuf()->in_avail() << std::endl;
+	if(read_bytes)
+		written = write(pipe_in[1], buffer, read_bytes);
+	if (static_cast<int>(written) == -1)
+	{
+		std::cerr << "writte in pipe goes wrong" << std::endl;
+		stop_reading(500);
+		return(false) ;
+	}
+	else if (written != read_bytes)
+	{
+		stop_reading(500);
+		return(false) ;
+	}
+	missing_chuncked_data -= written;
+	chunked_size += written;
+	if (is_chunked_payload_too_large() == true)
+	{
+		std::cerr << "is_chunked_payload_too_large" << std::endl;
+		stop_reading(413);
+		return(false) ;
+	}
+	return(true);
+}
+
 void Request::unchunk_body(std::istringstream& data)
 {
-	char			buffer[4096];
+
 	std::string		line;
-	size_t			written = 0;
 	size_t			avail = 0;
 	std::cout << "unchunk_body " << parsing_position << std::endl;
 
@@ -525,85 +613,14 @@ void Request::unchunk_body(std::istringstream& data)
 			}
 			line = part_of_hex_of_chunked + line;
 			part_of_hex_of_chunked.clear();
-			if (line.find('\r') != std::string::npos)
-			{
-				line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-				missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-				std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
-				if (missing_chuncked_data == 0)
-				{
-					std::getline(data, line);
-					std::cout << "test" << std::endl;
-					line.clear();
-					if (parsing_position == read_first_chunk_size)
-						status_code = 204;
-					else if (is_payload_too_large() == true)
-					{
-						std::cerr << "is_payload_too_large1" << std::endl;
-						status_code = 413;
-					}
-					std::cout << "test1" << std::endl;
-					int ret;
-					if (close(pipe_in[1]) != 0)
-						std::cout << "error close" << std::endl;
-					pipe_in[1] = -1;
-					is_pipe_open = false;
-					std::cout << "pid_child" << pid_child << std::endl;
-					waitpid(pid_child, &ret, 0);
-					std::cout << "test2" << std::endl;
-					is_forked = false;
-					rewind(out_file);
-					std::cout << "test3" << std::endl;
-					std::cout << "child return = " << ret << std::endl;
-					parsing_position = send_first;
-					chunked_size = 0;
-					break;
-				}
-				else
-				{
-					parsing_position = body;
-				}
-			}
-			else
-			{
-				part_of_hex_of_chunked = line;
-				std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
-			}
+			if (proces_chunked_size(line) == false)
+				return;
 		}
-		int read_bytes = 0;
+
 		if(data.rdbuf()->in_avail())
 		{
-			written = 0;
-			if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
-			{
-				read_bytes = data.rdbuf()->in_avail();
-				read_bytes = data.readsome(buffer, read_bytes);
-			}
-			else
-				read_bytes = data.readsome(buffer, missing_chuncked_data);
-			if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
-				std::cout << "why" << std::string(buffer, read_bytes) << std::string(buffer, read_bytes).find("\n") <<" part pf hex nb"<< part_of_hex_of_chunked << "missing_chuncked_data" << missing_chuncked_data << " left in buffer" << data.rdbuf()->in_avail() << std::endl;
-			if(read_bytes)
-				written = write(pipe_in[1], buffer, read_bytes);
-			if (static_cast<int>(written) == -1)
-			{
-				std::cerr << "writte in pipe goes wrong" << std::endl;
-				stop_reading(500);
-				return ;
-			}
-			else if (static_cast<int>(written) != read_bytes)
-			{
-				stop_reading(500);
-				return ;
-			}
-			missing_chuncked_data -= written;
-			chunked_size += written;
-			if (is_chunked_payload_too_large() == true)
-			{
-				std::cerr << "is_chunked_payload_too_large" << std::endl;
-				stop_reading(413);
-				return ;
-			}
+			if (proces_chunked_body(data) == false)
+				return;
 		}
 		std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
 

@@ -15,25 +15,9 @@ void	test(int sig_num)
 
 }
 
-//void	displayTimestamp(void)
-//{
-//	std::time_t t = std::time(NULL);
-//  	std::tm *const pTInfo = std::localtime(&t);
-
-//	std::cerr << std::setfill('0') << "[" <<
-//	std::setw(4) << 1900 + pTInfo->tm_year <<
-//	std::setw(2) << pTInfo->tm_mon + 1 <<
-//	std::setw(2) << pTInfo->tm_mday << "_" <<
-//	std::setw(2) << pTInfo->tm_hour <<
-//	std::setw(2) << pTInfo->tm_min <<
-//	std::setw(2) << pTInfo->tm_sec << "] ";
-//}
-
 int main()
 {
-	// signal(SIGINT, SIG_IGN);
 	signal(1, test);
-	// signal(2, test);
 	signal(3, test);
 	signal(4, test);
 	signal(5, test);
@@ -63,11 +47,10 @@ int main()
 	signal(29, test);
 	signal(30, test);
 	signal(31, test);
-	// write(STDOUT_FILENO, "test\n\n", 6);
 	char test[4001];
 	int ret = 1;
 	FILE* tmp;
-	std::string file("/goinfre/shackbei/upploads/pic0.jpg");
+	std::string file("/goinfre/pic0.jpg");
 	while ((tmp = fopen(file.c_str(), "wx")) == NULL)
 	{
 		file[30]++;
@@ -82,19 +65,11 @@ int main()
 	{
 		ret = 0;
 		ret_wr = 0;
-		dprintf(2, "befor read\n");
-		//displayTimestamp();
 		ret = read(STDIN_FILENO, test, 4000);
-		dprintf(2, "after read\n");
-		// fwrite("test0\n" , 1, 6,tmp);
 		if(ret <= 0)
 			break;
 		ret_wr = fwrite(test , sizeof(char), ret, tmp);
-		// fprintf(tmp, "\nret= %d ret_wr= %d\n", ret, ret_wr);
-		// fwrite("test2\n" , 1, 6,tmp);
-		dprintf(2, "after writing\n");
 	}
 	fclose(tmp);
-	// write(STDOUT_FILENO, "end\n\n", 5);
 	return(0);
 }
