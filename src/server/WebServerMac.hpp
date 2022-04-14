@@ -20,18 +20,18 @@ namespace SERVER
 {
 	class WebServer: public SimpleServer
 	{
-	private:
-		struct sockaddr_storage			tmp_client_saddr;
-		std::vector<int>				listeners;				//vector of filedescriptes of the new created lisner sockets
-		int								tmp_socket_fd;
-		fd_set							read_sockets;
-		fd_set							write_sockets;
-		std::map<int,Request>			data;
-		std::map<int,std::string>		status_line;
-		Config*							config;
-		struct sigaction				sigact;
-		void							accepter();
-		void							handler();
+		private:
+			struct sockaddr_storage			tmp_client_saddr;
+			std::vector<int>				listeners;				//vector of file descripters of the new created listener sockets
+			int								tmp_socket_fd;
+			fd_set							read_sockets;
+			fd_set							write_sockets;
+			std::map<int,Request>			data;
+			std::map<int,std::string>		status_line;
+			Config*							config;
+			struct sigaction				sigact;
+			void							accepter();
+			void							handler();
 		void							responder();
 		void							clear();
 		void							handle_new_client();
@@ -42,16 +42,17 @@ namespace SERVER
 		static 							WebServer instanse;
 		long							summe;
 
-		static bool						is_running;
-		static void						shutdown(int a);
+			static bool						is_running;
+			static void						shutdown(int a);
 
-	public:
-		void							close_all_pipes();
-		WebServer(Config& config);
-		void launch(std::vector <int> &ports);
-		~WebServer();
+		public:
+			void							close_all_pipes();
+			WebServer(Config& config);
+			void launch(std::vector <int> &ports);
+			~WebServer();
 	};
 
 
 }
+
 #endif

@@ -79,9 +79,6 @@ std::string http_header::get_port() const
 	return (port);
 }
 
-
-
-
 std::string	http_header::get_first_line() const
 {
 	std::string ret;

@@ -15,19 +15,19 @@ void	test(int sig_num)
 
 }
 
-void	displayTimestamp(void)
-{
-	std::time_t t = std::time(NULL);
-  	std::tm *const pTInfo = std::localtime(&t);
+//void	displayTimestamp(void)
+//{
+//	std::time_t t = std::time(NULL);
+//  	std::tm *const pTInfo = std::localtime(&t);
 
-	std::cerr << std::setfill('0') << "[" <<
-	std::setw(4) << 1900 + pTInfo->tm_year <<
-	std::setw(2) << pTInfo->tm_mon + 1 <<
-	std::setw(2) << pTInfo->tm_mday << "_" <<
-	std::setw(2) << pTInfo->tm_hour <<
-	std::setw(2) << pTInfo->tm_min <<
-	std::setw(2) << pTInfo->tm_sec << "] ";
-}
+//	std::cerr << std::setfill('0') << "[" <<
+//	std::setw(4) << 1900 + pTInfo->tm_year <<
+//	std::setw(2) << pTInfo->tm_mon + 1 <<
+//	std::setw(2) << pTInfo->tm_mday << "_" <<
+//	std::setw(2) << pTInfo->tm_hour <<
+//	std::setw(2) << pTInfo->tm_min <<
+//	std::setw(2) << pTInfo->tm_sec << "] ";
+//}
 
 int main()
 {
@@ -83,7 +83,7 @@ int main()
 		ret = 0;
 		ret_wr = 0;
 		dprintf(2, "befor read\n");
-		displayTimestamp();
+		//displayTimestamp();
 		ret = read(STDIN_FILENO, test, 4000);
 		dprintf(2, "after read\n");
 		// fwrite("test0\n" , 1, 6,tmp);

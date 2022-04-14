@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 #include <cctype>
-#include <sys/socket.h> // For socket functions
-#include <cstdlib>	  // For exit() and EXIT_FAILURE
-#include <unistd.h>	 // For read
+#include <sys/socket.h>
+#include <cstdlib>
+#include <unistd.h>
 #include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
@@ -20,8 +20,7 @@
 #include "../../inc/Configuration.hpp"
 #include "../../inc/Colors.hpp"
 #include "../../inc/Server.hpp"
-#include <fstream>	  // std::ifstream
-// #include "Response.hpp"
+#include <fstream>
 #include <sys/wait.h>
 #include <strings.h>
 
@@ -71,12 +70,7 @@ class Request : public http_header_request
 		Request(SERVER::WebServer &tmp_webserver);
 		~Request();
 
-		// std::string get(std::string key_word);
 		std::map<std::string, std::string> get_header() const;
-		// std::string		get_method() const;
-		// std::string		get_path() const;
-		// std::string		get_protocol() const;
-        // std::string		get_port();
 		unsigned long	get_time_of_change();
 		int				get_status_code() const;
 		int				get_parsing_position() const;
@@ -95,18 +89,18 @@ class Request : public http_header_request
 		void			wait_for_child();
 
 	private:
-		void	for_testing_print_request_struct();
-		bool	is_payload_too_large();
-		bool	is_chunked_payload_too_large();
+		void			for_testing_print_request_struct();
+		bool			is_payload_too_large();
+		bool			is_chunked_payload_too_large();
 
-		int		set_headers(std::string line);
-		bool	set_start_line(std::string s);
-		void	set_error_status(bool status);
+		int				set_headers(std::string line);
+		bool			set_start_line(std::string s);
+		void			set_error_status(bool status);
 
-		void	unchunk_body(std::istringstream& data);
+		void			unchunk_body(std::istringstream& data);
 
-		void	stop_reading(int code);
-		void	set_max_body();
+		void			stop_reading(int code);
+		void			set_max_body();
 };
 
 #endif

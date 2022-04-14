@@ -5,7 +5,6 @@
 #include "../../inc/Http_header.hpp"
 #include "Request.hpp"
 #include <iostream>
-// #include <ios>
 #include <map>
 #include <fstream>
 #include <string>
@@ -27,32 +26,32 @@ class Request;
 
 class Response : public http_header_response
 {
-private:
-		Request			*request;
-		Config			*config;
-		std::string		default_error;
-		std::ifstream	input_stream;
-		std::string		body;
-		std::string		path;
-		std::string		file_ext;
-
-		void set_body(void);
-		void set_headers(void);
-		void set_path(std::string const filename);
-		void set_error_path(void);
-		void set_content_type(void);
-		void set_image_body(void);
-		void set_text_body(void);
-		void set_php_body(void);
-		void set_error_page(std::string file);
-		void stop_writing(void);
-		void handle_delete_request(void);
-public:
-		Response(Request& req, Config& data);
-
-		std::string get_path(void);
-		std::string get_http_response(std::map<int,std::string>& status_line);
-		std::string get_http_time();
+	private:
+			Request			*request;
+			Config			*config;
+			std::string		default_error;
+			std::ifstream	input_stream;
+			std::string		body;
+			std::string		path;
+			std::string		file_ext;
+	
+			void set_body(void);
+			void set_headers(void);
+			void set_path(std::string const filename);
+			void set_error_path(void);
+			void set_content_type(void);
+			void set_image_body(void);
+			void set_text_body(void);
+			void set_php_body(void);
+			void set_error_page(std::string file);
+			void stop_writing(void);
+			void handle_delete_request(void);
+	public:
+			Response(Request& req, Config& data);
+	
+			std::string get_path(void);
+			std::string get_http_response(std::map<int,std::string>& status_line);
+			std::string get_http_time();
 };
 
 bool is_image_ext(std::string ext);

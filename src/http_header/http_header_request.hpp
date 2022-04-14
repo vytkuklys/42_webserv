@@ -19,4 +19,3 @@ class http_header_request : public http_header
 };
 
 #endif
-

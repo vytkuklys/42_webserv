@@ -10,7 +10,7 @@ SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data
 {
 	summe = 0;
 	config = &data;
-	FD_ZERO(&read_sockets); // init fd set
+	FD_ZERO(&read_sockets);
 	FD_ZERO(&write_sockets);
 	for (std::vector<SOCKET::ListenSocket *>::iterator socket = get_sockets().begin(); socket != get_sockets().end(); ++socket)
 	{
@@ -125,7 +125,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 		timeout.tv_usec = 0;
 		tmp_read_sockets = read_sockets;
 		tmp_write_sockets = write_sockets;
-		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0) // should a timer be set at 5th argument?
+		if ((len = select(FD_SETSIZE, &tmp_read_sockets, &tmp_write_sockets, NULL, &timeout)) < 0)
 		{
 			if (errno == EINTR)
 				break;
@@ -147,7 +147,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 				handler();
 				len--;
 			}
-			if(FD_ISSET(i, &read_sockets) && std::find(listeners.begin(), listeners.end(), i) == listeners.end())/* && tmp->second.get_parsing_position() == done_with_send*/
+			if(FD_ISSET(i, &read_sockets) && std::find(listeners.begin(), listeners.end(), i) == listeners.end())
 			{
 				std::map<int, Request>::iterator itr = data.find(i);
 				if(itr != data.end() && itr->second.get_parsing_position() == done_with_send)
@@ -156,7 +156,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					if (tmp_time > 2 || itr->second.get_method() != "GET")
 					{
 						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
-						// itr->second.wait_for_child();
 						data.erase(itr);
 						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);
@@ -173,11 +172,11 @@ void SERVER::WebServer::handler()
 {
 	std::map<int,Request>::iterator tmp;
 
-	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end()) // check if it is in linsteners vector array
+	if (std::find(listeners.begin(), listeners.end(), tmp_socket_fd) != listeners.end()) // check if it is in listener vector array
 	{
 		handle_new_client();
 	}
-	else // data from an existing connection, receive it
+	else // receive data from an existing connection
 	{
 		handle_known_client();
 	}
@@ -236,8 +235,8 @@ void SERVER::WebServer::handle_known_client()
 			FD_SET(tmp_socket_fd, &write_sockets);
 	}
 	std::cout << "done with know client" << std::endl;
-	// std::cout << "tmp fd =" << tmp_socket_fd << "parsing position" << itr->second.get_parsing_position() << std::endl;
 }
+
 void SERVER::WebServer::responder()
 {
 	bool	end_of_chunked = false;
@@ -254,7 +253,6 @@ void SERVER::WebServer::responder()
 			Response response(info, *config);
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
-			// FD_CLR(tmp_socket_fd, &read_sockets);
 			std::cout << http_response << std::endl;
 		}
 		else
@@ -267,14 +265,12 @@ void SERVER::WebServer::responder()
 			stream << std::hex << total;
 			http_response.insert(0, std::string(stream.str() + "\r\n"));
 			http_response.append("\r\n");
-			// std::cerr << http_response;
 			if(total == 0)
 				end_of_chunked = true;
 			stream.clear();
 		}
 
 		total = http_response.length();
-		// std::cout << std::string(http_response, 0, total) << std::endl;
 		const char *ptr = static_cast<const char *>(http_response.c_str());
 		while (total > 0)
 		{
@@ -292,14 +288,12 @@ void SERVER::WebServer::responder()
 				total -= bytes;
 			}
 		}
-		if(/*(info.get_method() != "POST" ) || */end_of_chunked || !info.is_chunked())
+		if(end_of_chunked || !info.is_chunked())
 		{
 			std::cout << "end of response" << std::endl;
 			summe = 0;
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			info.set_parsing_position(done_with_send);
-			// data.erase(itr);
-			// close(tmp_socket_fd);
 		}
 		std::cout << BOLD(FBLU(" ---- RESPONDED ---- ")) << "fd " << tmp_socket_fd << std::endl;
 	}

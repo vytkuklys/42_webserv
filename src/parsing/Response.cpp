@@ -87,10 +87,7 @@ void Response::set_path(std::string const filename)
 		if(request->get_status_code() < 400)
 		{
 			if (request->get_method() == "PUT")
-			{
-				// request->set_status_code(303);
-				request->set_status_code(201); //test
-			}
+				request->set_status_code(201);
 			else if (request->get_method() != "POST")
 			{
 				if (is_page_not_found(path, loc->getRoot()))
@@ -148,18 +145,13 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
 	set_content_type();
-	// if(request->get_method() == "PUT")
-	// {
-	// 	set_value("Location:", "../index.html");
-
-	// }
 
 	if ((request->get_method() == "GET"))
 	{
 		set_value("Content-length:", ft::to_string(body.length()));
 		set_value("Connection:", "keep-alive");
 	}
-	else /*if ((request->get_method() == "PUT") || (request->get_method() == "POST"))*/ // more to consider
+	else
 	{
 		set_value("Connection:", "close");
 		if (request->is_chunked() && request->get_status_code() < 400)
@@ -167,9 +159,7 @@ void Response::set_headers(void)
 			set_value("content-type:", "text/html; charset=utf-8");
 			set_value("Transfer-Encoding:", "chunked");
 		}
-		// set_value("Connection:", "keep-alive");
 	}
-
 
     set_value("Content-security-policy:", "upgrade-insecure-requests");
     set_value("Server:", "Webserv");
@@ -244,23 +234,21 @@ void Response::set_php_body(void)
 		stop_writing();
 	else if (pid == 0)
 	{
-		// std::cout << "child" << std::endl;
 		close(pipefd[0]);
 		char *test[3];
 		test[0] = (char *)"php";
 		test[1] = &(path.substr(path.find_last_of("/") + 1))[0];
 		test[2] = NULL;
-		chdir(path.erase(path.find_last_of("/")).c_str()); //Stop reading
-		dup2(pipefd[1], STDOUT_FILENO); //Stop reading
+		chdir(path.erase(path.find_last_of("/")).c_str());
+		dup2(pipefd[1], STDOUT_FILENO);
 		if (execvp("php", test))
 		{
-			perror("execvp");  //Stop reading
+			perror("execvp");
 			exit(EXIT_FAILURE);
 		}
 	}
 	else
 	{
-		// std::cout << "parent" << std::endl;
 		int len;
 		char *buffer;
 		size_t n;
@@ -272,13 +260,8 @@ void Response::set_php_body(void)
 			std::cout << "close1" << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		// std::cout << "parent wait" << std::endl;
-		// waitpid(pid, NULL, (int)WNOHANG);
 		waitpid(pid, NULL, 0);
 
-		// if (wait(NULL) == -1)
-		// 	std::cout << "error wait" << std::endl; //Stop reading
-		// std::cout << "child returnd" << std::endl;
 		FILE *data = fdopen(pipefd[0], "r");
 		if (data == NULL)
 		{
@@ -286,14 +269,12 @@ void Response::set_php_body(void)
 		}
 		while (data && ((len = getline(&buffer, &n, data)) != -1))
 		{
-			// std::cout << buffer << "size=" << n << " len=" << len << std::endl;
 			body += buffer;
 			free(buffer);
 			buffer = NULL;
 			n = 0;
 		}
 		fclose(data);
-		// std::cout << "parent end" << std::endl;
 	}
 }
 
@@ -353,7 +334,6 @@ bool exists_path(std::string const path)
 	exists.seekg(0, std::ios::end);
 	if (exists.good())
 	{
-		// exists.close();
 		return (true);
 	}
 	return (false);
