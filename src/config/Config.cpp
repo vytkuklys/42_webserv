@@ -112,6 +112,17 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 		}
 		directoryListing.erase();
 	}
+	if (level == 7)
+	{
+		if (defaultErr.length() == 0 || defaultErr.length() > 100)
+		{
+			std::cout << "Invalid default_err: '" << defaultErr << "'";
+			std::cout << ", default default_err: '/404.html' used instead" << std::endl;
+		}
+		else
+			tempClass.setDefaultErr(defaultErr);
+		defaultErr.erase();
+	}
 }
 
 void Config::setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine)
@@ -156,6 +167,8 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 				sBodySize.push_back(readLine[begin + i]);
 			if (level == 6)
 				directoryListing.push_back(readLine[begin + i]);
+			if (level == 7)
+				defaultErr.push_back(readLine[begin + i]);			
 			i++;
 		}
 		pushToClass(level, tempClass);
@@ -276,6 +289,7 @@ void Config::retrieveValues(void)
 				setData(readLine, "client_max_body_size", 4, *tempClass, whichLine);
 				setData(readLine, "location", 5, *tempClass, whichLine);
 				setData(readLine, "directory_listing", 6, *tempClass, whichLine);
+				setData(readLine, "default_err", 7, *tempClass, whichLine);
 				serverLength--;
 				if (serverLength == 0)
 				{
@@ -330,6 +344,24 @@ std::string Config::getErrorPage(std::string port)
 		if (std::atoi(port.c_str()) == (*it)->getPort())
 		{
 			return ((*it)->getErrorPage());
+		}
+		++it;
+	}
+	return ("");
+}
+
+std::string Config::getDefaultErr(std::string port)
+{
+	if (port.empty())
+		return ("");
+	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
+	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
+
+	while (it != ite)
+	{
+		if (std::atoi(port.c_str()) == (*it)->getPort())
+		{
+			return ((*it)->getDefaultErr());
 		}
 		++it;
 	}

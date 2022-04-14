@@ -226,7 +226,7 @@ void SERVER::WebServer::handle_known_client()
 	if (itr->second.get_error_status())
 	{
 		perror(BOLD(FRED(" ---- ERROR ---- ")));
-		// FD_CLR(tmp_socket_fd, &read_sockets);
+		//FD_CLR(tmp_socket_fd, &read_sockets);
 	}
 	if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
 	{
