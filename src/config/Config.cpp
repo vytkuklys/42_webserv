@@ -334,50 +334,55 @@ int Config::getProtocol(void) { return (_protocol); }
 int Config::getBacklog(void) { return (_backlog); }
 int Config::getInterface(void) { return (_interface); }
 
-std::string Config::getErrorPage(std::string port)
+std::string Config::getErrorPage(std::string host)
 {
-	if (port.empty())
+	if (host.empty())
 		return ("");
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
 	while (it != ite)
 	{
-		if (std::atoi(port.c_str()) == (*it)->getPort())
-		{
+		std::string sPort = ft::to_string((*it)->getPort());
+		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
+		bool is_host = is_host_valid(host, server_name, sPort);
+		if(is_host)
 			return ((*it)->getErrorPage());
-		}
 		++it;
 	}
 	return ("");
 }
 
-std::string Config::getDefaultErr(std::string port)
+std::string Config::getDefaultErr(std::string host)
 {
-	if (port.empty())
+	if (host.empty())
 		return ("");
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
 	while (it != ite)
 	{
-		if (std::atoi(port.c_str()) == (*it)->getPort())
-		{
+		std::string sPort = ft::to_string((*it)->getPort());
+		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
+		bool is_host = is_host_valid(host, server_name, sPort);
+		if(is_host)
 			return ((*it)->getDefaultErr());
-		}
 		++it;
 	}
 	return ("");
 }
 
-bool Config::getDirectoryListing(std::string port)
+bool Config::getDirectoryListing(std::string host)
 {
 	std::vector<ConfigData *>::iterator it = ContConfigData.begin();
 	std::vector<ConfigData *>::iterator ite = ContConfigData.end();
 
 	while (it != ite)
 	{
-		if (std::atoi(port.c_str()) == (*it)->getPort())
+		std::string sPort = ft::to_string((*it)->getPort());
+		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
+		bool is_host = is_host_valid(host, server_name, sPort);
+		if(is_host)
 		{
 			std::string dir = (*it)->getDirectoryListing();
 			if (dir == "on")
@@ -415,7 +420,7 @@ int Config::get_location_index(std::vector<std::string> locations, std::string p
 	return (-1);
 }
 
-LocationData *Config::get_truncated_location(std::vector<std::string> locations, std::string path, std::string port)
+LocationData *Config::get_truncated_location(std::vector<std::string> locations, std::string path, std::string host)
 {
 	int res = get_location_index(locations, path);
 	std::vector<ConfigData *> data = getContConfigData();
@@ -426,8 +431,9 @@ LocationData *Config::get_truncated_location(std::vector<std::string> locations,
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
+		std::string sPort = ft::to_string((*it)->getPort());
 		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
-		bool is_host = is_host_valid(port, server_name);
+		bool is_host = is_host_valid(host, server_name, sPort);
 		while (is_host && it2 != ite2)
 		{
 			if (--res < 0)
@@ -439,7 +445,7 @@ LocationData *Config::get_truncated_location(std::vector<std::string> locations,
 	return (nullptr);
 }
 
-LocationData *Config::get_location(std::string port, std::string path)
+LocationData *Config::get_location(std::string host, std::string path)
 {
 	std::vector<std::string> locations;
 	std::vector<ConfigData *> data = getContConfigData();
@@ -450,7 +456,7 @@ LocationData *Config::get_location(std::string port, std::string path)
 	{
 		std::string sPort = ft::to_string((*it)->getPort());
 		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
-		bool is_host = is_host_valid(port, server_name);
+		bool is_host = is_host_valid(host, server_name, sPort);
 		if (is_host)
 		{
 			exists_host = true;
@@ -480,27 +486,8 @@ LocationData *Config::get_location(std::string port, std::string path)
 			break;
 		++it;
 	}
-	LocationData * location = get_truncated_location(locations, path, port);
+	LocationData * location = get_truncated_location(locations, path, host);
 	return (location);
-}
-
-std::string Config::get_hostname(std::string port)
-{
-	std::string hostname;
-	std::vector<ConfigData *> data = getContConfigData();
-	std::vector<ConfigData *>::iterator it = data.begin();
-	std::vector<ConfigData *>::iterator ite = data.end();
-
-	while (it != ite)
-	{
-		std::string sPort = ft::to_string((*it)->getPort());
-		if (port == sPort)
-		{
-			hostname = (*it)->getServerName();
-			break ;
-		}
-	}
-	return (hostname);
 }
 
 bool Config::getHostStatus(void)
@@ -508,10 +495,8 @@ bool Config::getHostStatus(void)
 	return (exists_host);
 }
 
-bool is_host_valid(std::string host, std::string server_name)
+bool is_host_valid(std::string host, std::string server_name, std::string port)
 {
-	std::string port = host.substr(host.find_last_of(':') + 1, host.length());
-
 	if (host == "localhost:" && host == "127.0.0.1:" && host == "0.0.0.0:")
 	{
 		return (false);
@@ -522,6 +507,6 @@ bool is_host_valid(std::string host, std::string server_name)
 		const std::string hosts[] = {server_name};
 		return (host == server_name);
 	}
-	const std::string hosts[] = {"localhost" + std::string(":") + std::string(port), "127.0.0.1" + std::string(":") + std::string(port), "0.0.0.0" + std::string(":") + std::string(port), server_name};
+	const std::string hosts[] = {"localhost" + std::string(":") + port, "127.0.0.1" + std::string(":") + port, "0.0.0.0" + std::string(":") + port, server_name};
 	return (ft::is_found(hosts, host, 4));
 }

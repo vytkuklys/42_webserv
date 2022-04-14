@@ -37,7 +37,7 @@ private:
 	bool exists_host;
 
 	int get_location_index(std::vector<std::string> locations, std::string paths);
-	LocationData * get_truncated_location(std::vector<std::string> locations, std::string path, std::string port);
+	LocationData * get_truncated_location(std::vector<std::string> locations, std::string path, std::string host);
 
 public:
 	Config(std::string inArgv1);
@@ -60,12 +60,11 @@ public:
 	int getProtocol(void);
 	int getInterface(void);
 	bool getHostStatus(void);
-	std::string getErrorPage(std::string port);
-	std::string getDefaultErr(std::string port);
+	std::string getErrorPage(std::string host);
+	std::string getDefaultErr(std::string host);
 	bool getDirectoryListing(std::string port);
-	LocationData * get_location(std::string port, std::string path);
-	std::string get_hostname(std::string port);
+	LocationData * get_location(std::string host, std::string path);
 };
-bool is_host_valid(std::string host, std::string server_name);
+bool is_host_valid(std::string host, std::string server_name, std::string port);
 
 #endif

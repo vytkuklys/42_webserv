@@ -290,7 +290,7 @@ void	Request::fill_header(int fd, Config& conf)
 
 	if (parsing_position == done_with_header)
 	{
-		config = conf.get_location(get_port(), get_path());
+		config = conf.get_location(get_hostname(), get_path());
 		set_up_cgi_proces();
 	}
 

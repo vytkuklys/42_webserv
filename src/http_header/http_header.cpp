@@ -100,11 +100,11 @@ std::string http_header::get_port() const
 
 std::string http_header::get_hostname() const
 {
-	std::string hostname;
+	std::string hostname = "";
 	if (header_pairs.find("Host") != header_pairs.end())
 	{
 		std::string host = header_pairs.find("Host")->second;
-		hostname = host.substr(0, host.find_last_of(':'));
+		hostname = host;
 	}
 	return (hostname);
 }

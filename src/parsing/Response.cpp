@@ -43,11 +43,8 @@ void	Response::stop_writing(void)
 
 void Response::set_error_path(void)
 {
-	std::string port = ft::remove_whitespace(request->get_port());
 	int status = request->get_status_code();
-
-	path = config->getErrorPage(port);
-
+	path = config->getErrorPage(request->get_hostname());
     if (path.empty())
 	{
         path = default_error;
@@ -69,12 +66,11 @@ void Response::set_error_path(void)
 void Response::set_path(std::string const filename)
 {
     path = filename;
-    std::string port = ft::remove_whitespace(request->get_port());
-    std::string host = request->get_hostname() + std::string(":") + ft::remove_whitespace(request->get_port());
-    bool is_listing_on = config->getDirectoryListing(port);
+    std::string host = request->get_hostname();
+    bool is_listing_on = config->getDirectoryListing(host);
     LocationData * loc = config->get_location(host, filename);
 	bool is_host = config->getHostStatus();
-	default_err = config->getDefaultErr(port);
+	default_err = config->getDefaultErr(host);
     if (is_host == false)
 	{
 		request->set_status_code(400);
@@ -125,7 +121,7 @@ void Response::set_path(std::string const filename)
 
 void Response::set_error_page(std::string file)
 {
-	path = config->getErrorPage(request->get_port());
+	path = config->getErrorPage(request->get_hostname());
 	if (path.empty())
 		path = default_error;
 	path.append(file);
