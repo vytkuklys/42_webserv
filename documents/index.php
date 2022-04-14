@@ -42,6 +42,8 @@
                         echo '<td class="padding-left"><img src='.$img.'><a href='.$filename.'>', $filename, '</a></td>';
                         echo '<td>'.formatBytes(filesize($filename)).'</td>';
                         echo '<td>'.date("F d Y H:i:s", filemtime($filename)).'</td>';
+                        if (substr($filename, 0, 7) == "delete/")
+                            echo '<td class="delete-tr"><button data-filename="'.$filename.'" class="delete-btn">Delete</button></td>';
                         echo "</tr>";
                     }
                 }
@@ -77,6 +79,17 @@
                 const hidden = document.querySelectorAll(`.${name}`);
                 hidden.forEach(hidden_it =>{
                     hidden_it.classList.toggle('hidden');
+                })
+            })
+        })
+        const delete_btn = document.querySelectorAll('.delete-btn');
+        delete_btn.forEach(item => {
+            item.addEventListener('click', (e) =>{
+                e.target.parentNode.parentNode.classList.add('hidden');
+                const url = `http://${location.host}/${e.target.getAttribute("data-filename")}`;
+                fetch(url, {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json', 'Host': `${location.host}`},
                 })
             })
         })

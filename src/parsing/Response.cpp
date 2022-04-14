@@ -13,6 +13,10 @@ Response::Response(Request& req, Config& data) : request(&req)
 	{
 		std::cout << "Responder constructor" << std::endl;
     	set_path(request->get_path());
+		if (request->get_method() == "DELETE")
+		{
+			handle_delete_request();
+		}
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
 	if (request->get_method() != "HEAD")
@@ -116,6 +120,18 @@ void Response::set_error_page(std::string file)
 	path.append(file);
 }
 
+void Response::handle_delete_request(void)
+{
+	if (request->get_status_code() != 200 || get_path().find("delete/") == std::string::npos)
+	{
+		return ;
+	}
+	if( std::remove( get_path().c_str()) != 0 )
+	{
+		set_error_page("404.html");
+	}
+}
+
 void Response::set_content_type(void)
 {
     if (is_text_ext(file_ext))
@@ -202,87 +218,96 @@ void Response::set_image_body(void)
 
 void Response::set_body(void)
 {
-	std::string line;
 	if (input_stream.is_open())
 		input_stream.close();
 	if (file_ext == "php" && request->get_method() == "GET")
 	{
-		int pipefd[2];
-		int pid;
-		pipe(pipefd);
-		pid = fork();
-		if (pid == -1)
-			stop_writing();
-		else if (pid == 0)
-		{
-			// std::cout << "child" << std::endl;
-			close(pipefd[0]);
-			char *test[3];
-			test[0] = (char *)"php";
-			test[1] = &(path.substr(path.find_last_of("/") + 1))[0];
-			test[2] = NULL;
-			chdir(path.erase(path.find_last_of("/")).c_str()); //Stop reading
-			dup2(pipefd[1], STDOUT_FILENO); //Stop reading
-			if (execvp("php", test))
-			{
-				perror("execvp");  //Stop reading
-				exit(EXIT_FAILURE);
-			}
-		}
-		else
-		{
-			// std::cout << "parent" << std::endl;
-			int len;
-			char *buffer;
-			size_t n;
-			buffer = NULL;
-			len = 0;
-			n = 0;
-			if (close(pipefd[1]) != 0)
-			{
-				std::cout << "close1" << std::endl;
-				exit(EXIT_FAILURE);
-			}
-			// std::cout << "parent wait" << std::endl;
-			// waitpid(pid, NULL, (int)WNOHANG);
-			waitpid(pid, NULL, 0);
-
-			// if (wait(NULL) == -1)
-			// 	std::cout << "error wait" << std::endl; //Stop reading
-			// std::cout << "child returnd" << std::endl;
-			FILE *data = fdopen(pipefd[0], "r");
-			if (data == NULL)
-			{
-				stop_writing();
-			}
-			while (data && ((len = getline(&buffer, &n, data)) != -1))
-			{
-				// std::cout << buffer << "size=" << n << " len=" << len << std::endl;
-				body += buffer;
-				free(buffer);
-				buffer = NULL;
-				n = 0;
-			}
-			fclose(data);
-			// std::cout << "parent end" << std::endl;
-		}
+		set_php_body();
 	}
 	else if (is_image_ext(file_ext))
 	{
 		set_image_body();
-
 	}
 	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || request->get_method() == "not found" || (request->get_method() == "POST" && !request->is_chunked()))
 	{
-		input_stream.open(path.c_str());
-		if (input_stream.is_open())
+		set_text_body();
+	}
+}
+
+void Response::set_php_body(void)
+{
+	int pipefd[2];
+	int pid;
+	pipe(pipefd);
+	pid = fork();
+	if (pid == -1)
+		stop_writing();
+	else if (pid == 0)
+	{
+		// std::cout << "child" << std::endl;
+		close(pipefd[0]);
+		char *test[3];
+		test[0] = (char *)"php";
+		test[1] = &(path.substr(path.find_last_of("/") + 1))[0];
+		test[2] = NULL;
+		chdir(path.erase(path.find_last_of("/")).c_str()); //Stop reading
+		dup2(pipefd[1], STDOUT_FILENO); //Stop reading
+		if (execvp("php", test))
 		{
-			while (std::getline(input_stream, line))
-			{
-				body += line.c_str();
-			}
-			input_stream.close();
+			perror("execvp");  //Stop reading
+			exit(EXIT_FAILURE);
 		}
+	}
+	else
+	{
+		// std::cout << "parent" << std::endl;
+		int len;
+		char *buffer;
+		size_t n;
+		buffer = NULL;
+		len = 0;
+		n = 0;
+		if (close(pipefd[1]) != 0)
+		{
+			std::cout << "close1" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		// std::cout << "parent wait" << std::endl;
+		// waitpid(pid, NULL, (int)WNOHANG);
+		waitpid(pid, NULL, 0);
+
+		// if (wait(NULL) == -1)
+		// 	std::cout << "error wait" << std::endl; //Stop reading
+		// std::cout << "child returnd" << std::endl;
+		FILE *data = fdopen(pipefd[0], "r");
+		if (data == NULL)
+		{
+			stop_writing();
+		}
+		while (data && ((len = getline(&buffer, &n, data)) != -1))
+		{
+			// std::cout << buffer << "size=" << n << " len=" << len << std::endl;
+			body += buffer;
+			free(buffer);
+			buffer = NULL;
+			n = 0;
+		}
+		fclose(data);
+		// std::cout << "parent end" << std::endl;
+	}
+}
+
+void Response::set_text_body(void)
+{
+	std::string line;
+	input_stream.open(path.c_str());
+	if (input_stream.is_open())
+	{
+		while (std::getline(input_stream, line))
+		{
+			body += line.c_str();
+		}
+		input_stream.close();
 	}
 }
 

@@ -72,6 +72,10 @@ table {
     margin-top: 2.5rem;
 }
 
+tr{
+    position: relative;
+}
+
 tr>th {
     font-size: 1.15rem;
     text-transform: uppercase;
@@ -130,4 +134,30 @@ li a:hover {
 
 .current{
     color: rgb(0, 195, 255);
+}
+
+.delete-btn{
+    width: initial;
+    margin: initial;
+    display: initial;
+    background-color: tomato;
+    color: beige;
+    font-weight: 700;
+    border: none;
+    border-radius: .25rem;
+    padding: .25rem .5rem;
+    cursor: pointer;
+    transition: all .15s ease-in;
+    border: 1px solid tomato;
+}
+
+.delete-btn:hover{
+    background-color: rgb(241, 245, 245);
+    color: tomato;
+}
+
+.delete-tr{
+    position: absolute;
+    left: 91%;
+    top: .5rem;
 }

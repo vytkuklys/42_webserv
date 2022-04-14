@@ -156,7 +156,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					if (tmp_time > 2 || itr->second.get_method() != "GET")
 					{
 						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
-						itr->second.wait_for_child();
+						// itr->second.wait_for_child();
 						data.erase(itr);
 						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);
@@ -255,6 +255,7 @@ void SERVER::WebServer::responder()
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
 			// FD_CLR(tmp_socket_fd, &read_sockets);
+			std::cout << http_response << std::endl;
 		}
 		else
 		{
