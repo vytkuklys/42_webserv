@@ -148,11 +148,11 @@ void Response::set_content_type(void)
 void Response::set_headers(void)
 {
 	set_content_type();
-	if(request->get_method() == "PUT")
-	{
-		set_value("Location:", "../index.html");
+	// if(request->get_method() == "PUT")
+	// {
+	// 	set_value("Location:", "../index.html");
 
-	}
+	// }
 
 	if ((request->get_method() == "GET"))
 	{

@@ -102,12 +102,13 @@ void	Request::fill_header(int fd, Config& conf)
 
 	if (static_cast<int>(bytes) == -1)
 	{
+		std::cerr << "recv" << std::endl;
 		stop_reading(500);
 		return ;
 	}
 	else if (static_cast<int>(bytes) == 0)
 	{
-		stop_reading(400);
+		// stop_reading(400);
 		return ;
 	}
 	// std::cout << "bysts=" << bytes << "\nbuffer\n" << buffer << std::endl;
@@ -147,6 +148,7 @@ void	Request::fill_header(int fd, Config& conf)
 			set_max_body();
 			if (is_payload_too_large() == true)
 			{
+				std::cerr << "is_payload_too_large" << std::endl;
 				stop_reading(413);
 				return ;
 			}
@@ -160,6 +162,7 @@ void	Request::fill_header(int fd, Config& conf)
 			{
 				if (pipe(pipe_in) == -1)
 				{
+					std::cerr << "pipe creating goes wrong" << std::endl;
 					stop_reading(500);
 					return ;
 				}
@@ -172,13 +175,16 @@ void	Request::fill_header(int fd, Config& conf)
 				pid_child = fork();
 				if (pid_child == -1)
 				{
+					std::cerr << "fork goes wrong" << std::endl;
 					stop_reading(500);
 					close(pipe_in[0]);
+					close(pipe_in[1]);
+					pipe_in[0] = -1;
+					pipe_in[1] = -1;
 					return ;
 				}
 				else if (pid_child == 0)
 				{
-					webserver.close_all_pipes();
 					std::cout << "script name" << config->getScript().c_str() << std::endl;
 					std::vector<char *> env;
 					std::vector<char *> argv;
@@ -227,7 +233,7 @@ void	Request::fill_header(int fd, Config& conf)
 						env_strings.push_back("SCRIPT_NAME=/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi.php");
 					}
 					// std::cout << env_strings.back() << std::endl;
-					// env_strings.push_back("DOCUMENT_ROOT=");
+					env_strings.push_back("DOCUMENT_ROOT=" + config->getRoot());
 					env_strings.push_back("REQUEST_METHOD=" + get_method());
 					env_strings.push_back("SERVER_PROTOCOL=" + get_protocol());
 					env_strings.push_back("SERVER_SOFTWARE=webserv");
@@ -262,6 +268,7 @@ void	Request::fill_header(int fd, Config& conf)
 					// }
 					// close(pipe_out[0]);
 					std::cout << "execve" << std::endl;
+					webserver.close_all_pipes();
 					if (dup2(pipe_in[0], STDIN_FILENO) == -1)
 					{
 						std::cout << "close2" << std::endl;
@@ -273,15 +280,13 @@ void	Request::fill_header(int fd, Config& conf)
 						std::cout << "close3" << std::endl;
 						exit(EXIT_FAILURE);
 					}
+					pipe_in[0] = -1;
 					if (dup2(fileno(out_file), STDOUT_FILENO) == -1) //stop reading
 					{
 						std::cout << "close4" << std::endl;
 						exit(EXIT_FAILURE);
 					}
 					close(fileno(out_file));
-					// dup2(STDERR_FILENO, STDOUT_FILENO); //test
-					// close(pipe_out[1]);
-					// char * const * nll = NULL;
 					// chdir("./cgi-bin");
 					if (execve(config->getScript().c_str(), &argv[0], &env[0]))
 					{
@@ -301,6 +306,7 @@ void	Request::fill_header(int fd, Config& conf)
 					std::cout << "close5" << std::endl;
 					exit(EXIT_FAILURE);
 				}
+				pipe_in[0] = -1;
 			}
 			else
 			{
@@ -504,6 +510,7 @@ void Request::set_regular_body(std::istringstream& data)
 		size_t written = write(pipe_in[1], buffer, bytes);
 		if (static_cast<int>(written) == -1)
 		{
+			std::cerr << "write in pipe goes wrong" << std::endl;
 			stop_reading(500);
 			return ;
 		}
@@ -524,6 +531,8 @@ void Request::set_regular_body(std::istringstream& data)
 				std::cout << "close1" << std::endl;
 				exit(EXIT_FAILURE);
 			}
+			pipe_in[1] = -1;
+			is_pipe_open = false;
 			std::cout << "close regular body pipe_in[1]" << pipe_in[1] << std::endl;
 			// wait(NULL);
 			// waitpid(pid_child, NULL, (int)WNOHANG);
@@ -564,6 +573,7 @@ void	Request::close_pipe_in()
 	{
 		if (close(pipe_in[1]) == -1)
 			std::cout << "error close";
+		pipe_in[1] = -1;
 	}
 }
 
@@ -615,6 +625,7 @@ void Request::unchunk_body(std::istringstream& data)
 						status_code = 204;
 					else if (is_payload_too_large() == true)
 					{
+						std::cerr << "is_payload_too_large1" << std::endl;
 						status_code = 413;
 					}
 					std::cout << "test1" << std::endl;
@@ -622,6 +633,7 @@ void Request::unchunk_body(std::istringstream& data)
 					int ret;
 					if (close(pipe_in[1]) != 0)
 						std::cout << "error close" << std::endl;
+					pipe_in[1] = -1;
 					is_pipe_open = false;
 					std::cout << "pid_child" << pid_child << std::endl;
 					waitpid(pid_child, &ret, 0);
@@ -670,6 +682,7 @@ void Request::unchunk_body(std::istringstream& data)
 			}
 			if (static_cast<int>(written) == -1)
 			{
+				std::cerr << "writte in pipe goes wrong" << std::endl;
 				stop_reading(500);
 				return ;
 			}
@@ -682,6 +695,7 @@ void Request::unchunk_body(std::istringstream& data)
 			chunked_size += written;
 			if (is_chunked_payload_too_large() == true)
 			{
+				std::cerr << "is_chunked_payload_too_large" << std::endl;
 				stop_reading(413);
 				return ;
 			}
@@ -704,12 +718,14 @@ void		Request::stop_reading(int code)
 			std::cout << "close6" << std::endl;
 			exit(EXIT_FAILURE);
 		}
+		pipe_in[1] = -1;
 		is_pipe_open = false;
 	}
 	if (is_forked)
 	{
 		// wait(NULL);
-		waitpid(pid_child, NULL, (int)WNOHANG);
+		// waitpid(pid_child, NULL, (int)WNOHANG);
+		waitpid(pid_child, NULL, 0);
 
 		is_forked = false;
 	}
