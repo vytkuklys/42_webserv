@@ -10,6 +10,10 @@ Response::Response(Request& req, Config& data) : request(&req)
 	{
 		set_error_path();
 	}
+	else if (::is_redirection(request->get_path()))
+	{
+		set_redirection_status(true);
+	}
 	else
 	{
 		std::cout << "Responder constructor" << std::endl;
@@ -408,6 +412,15 @@ bool is_page_not_found(std::string path, std::string root)
 	bool is_path_valid = exists_path(path);
 	bool is_dir_valid = exists_dir(path);
 	if (((is_dir_valid && path != root) || is_path_valid == false))
+		return (true);
+	return (false);
+}
+
+bool is_redirection(std::string path)
+{
+	if (path.length() < 12)
+		return (false);
+	if (path.substr(0, 12) == "/redirection")
 		return (true);
 	return (false);
 }

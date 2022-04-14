@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "../../inc/Colors.hpp"
 
 class http_header
 {
@@ -15,6 +16,7 @@ class http_header
 		std::map<std::string, std::string>	header_pairs;
 		std::vector<std::string>			first_http_line;
 		const	std::string					notf;
+		bool								redirection;
 	public:
 
 		http_header();
@@ -25,10 +27,12 @@ class http_header
 		std::string						get_port() const;
 		std::string 					get_hostname() const;
 		std::string						get_first_line() const;
+		bool							get_redirection_status(void) const;
 		
 		void							set_value(const std::string key, const std::string value);
 		void							set_first_line_element(const size_t pos, const std::string& value);
 		void							set_first_line(std::string line);
+		void							set_redirection_status(const bool status);
 
 		iterator						begin();
 		iterator						end();

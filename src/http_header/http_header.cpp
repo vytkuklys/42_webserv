@@ -4,9 +4,20 @@
 http_header::http_header() : notf("not found")
 {
 	first_http_line.resize(5);
+	redirection = false;
 }
 
 http_header::~http_header(){}
+
+bool http_header::get_redirection_status(void) const
+{
+	return (redirection);
+}
+
+void http_header::set_redirection_status(const bool status)
+{
+	redirection = status;
+}
 
 const std::string& http_header::get_value(const std::string& key) const
 {
@@ -58,6 +69,12 @@ std::string http_header::get_http_header(void) const
 {
 	std::string response;
 
+	if (get_redirection_status())
+	{
+		response = "HTTP/1.1 301 Moved Permanently\r\n";
+		response += "Location: /\r\n\r\n";
+		return (response);
+	}
 	response = get_first_line() + "\r\n";
 	std::cout << get_first_line() << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it=header_pairs.begin(); it != header_pairs.end(); ++it)

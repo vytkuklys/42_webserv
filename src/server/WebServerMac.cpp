@@ -253,6 +253,7 @@ void SERVER::WebServer::responder()
 			Response response(info, *config);
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
+			// std::cout << http_response << std::endl;
 		}
 		else
 		{

@@ -35,7 +35,6 @@ class Response : public http_header_response
 			std::string		path;
 			std::string		default_err;
 			std::string		file_ext;
-	
 			void set_body(void);
 			void set_headers(void);
 			void set_path(std::string const filename);
@@ -55,6 +54,7 @@ class Response : public http_header_response
 			std::string get_http_time();
 };
 
+bool is_redirection(std::string path);
 bool is_image_ext(std::string ext);
 bool is_text_ext(std::string ext);
 bool is_authorized(std::string server, std::string request, bool listing_status);
