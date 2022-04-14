@@ -153,7 +153,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 				if(itr != data.end() && itr->second.get_parsing_position() == done_with_send)
 				{
 					int tmp_time = ft::ft_time_dif(itr->second.get_time_of_change());
-					if (tmp_time > 2 || itr->second.get_method() != "GET")
+					if (tmp_time > 10 || itr->second.get_method() != "GET")
 					{
 						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
 						data.erase(itr);
@@ -253,7 +253,6 @@ void SERVER::WebServer::responder()
 			Response response(info, *config);
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
-			std::cout << http_response << std::endl;
 		}
 		else
 		{
@@ -346,7 +345,7 @@ void SERVER::WebServer::clear()
 void	SERVER::WebServer::shutdown(int signal)
 {
 	(void)signal;
-	std::cout << "sigquit" << std::endl;
+	std::cout << "signal stops working after responding to a client" << std::endl;
 	std::cerr << std::flush;
 	is_running = false;
 }

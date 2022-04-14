@@ -44,8 +44,6 @@ ConfigData &ConfigData::operator=(ConfigData const &value)
 	return *this;
 }
 
-
-
 int ConfigData::checkingForTrash()
 {
     int size = method.length();

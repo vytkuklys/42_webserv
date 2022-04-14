@@ -18,6 +18,5 @@ int main (int argc, char **argv)
 	Config *config = new Config(argv[1]);
 
 	SERVER::WebServer webServer(*config);
-	delete config;
 	return (0);
 }

@@ -33,6 +33,8 @@ private:
 	int _interface;
 	int _backlog;
 
+	bool exists_host;
+
 	int get_location_index(std::vector<std::string> locations, std::string paths);
 	LocationData * get_truncated_location(std::vector<std::string> locations, std::string path, std::string port);
 
@@ -51,14 +53,17 @@ public:
 
 	std::vector<int> &getPorts(void);
 	std::vector<ConfigData *> &getContConfigData(void);
-	int getDomain(void);
 	int getType(void);
-	int getProtocol(void);
+	int getDomain(void);
 	int getBacklog(void);
+	int getProtocol(void);
 	int getInterface(void);
+	bool getHostStatus(void);
 	std::string getErrorPage(std::string port);
 	bool getDirectoryListing(std::string port);
 	LocationData * get_location(std::string port, std::string path);
+	std::string get_hostname(std::string port);
 };
+bool is_host_valid(std::string host, std::string server_name);
 
 #endif

@@ -8,6 +8,7 @@ Config::Config(std::string inArgv1) : filename(inArgv1), npos(-1)
 	_protocol = 0;
 	_interface = INADDR_ANY;
 	_backlog = 1024;
+	exists_host = false;
 
 	retrieveValues();
 }
@@ -50,6 +51,7 @@ Config &Config::operator=(Config const &value)
 	this->_protocol = value._protocol;
 	this->_interface = value._interface;
 	this->_backlog = value._backlog;
+	this->exists_host = value.exists_host;
 	return *this;
 }
 
@@ -392,7 +394,9 @@ LocationData *Config::get_truncated_location(std::vector<std::string> locations,
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
-		while (it2 != ite2 && port == ft::to_string((*it)->getPort()))
+		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
+		bool is_host = is_host_valid(port, server_name);
+		while (is_host && it2 != ite2)
 		{
 			if (--res < 0)
 				return (*it2);
@@ -413,10 +417,16 @@ LocationData *Config::get_location(std::string port, std::string path)
 	while (it != ite)
 	{
 		std::string sPort = ft::to_string((*it)->getPort());
+		std::string server_name = (*it)->getServerName() + std::string(":") + sPort;
+		bool is_host = is_host_valid(port, server_name);
+		if (is_host)
+		{
+			exists_host = true;
+		}
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
 		std::vector<LocationData *>::iterator ite2 = locationData.end();
-		while (sPort == port && it2 != ite2)
+		while (is_host && it2 != ite2)
 		{
 			std::string location = (*it2)->getLocation();
 			if (location != "UNKNOWN")
@@ -434,10 +444,52 @@ LocationData *Config::get_location(std::string port, std::string path)
 			}
 			++it2;
 		}
-		if (sPort == port)
+		if (is_host)
 			break;
 		++it;
 	}
 	LocationData * location = get_truncated_location(locations, path, port);
 	return (location);
+}
+
+std::string Config::get_hostname(std::string port)
+{
+	std::string hostname;
+	std::vector<ConfigData *> data = getContConfigData();
+	std::vector<ConfigData *>::iterator it = data.begin();
+	std::vector<ConfigData *>::iterator ite = data.end();
+
+	while (it != ite)
+	{
+		std::string sPort = ft::to_string((*it)->getPort());
+		if (port == sPort)
+		{
+			hostname = (*it)->getServerName();
+			break ;
+		}
+	}
+	return (hostname);
+}
+
+bool Config::getHostStatus(void)
+{
+	return (exists_host);
+}
+
+bool is_host_valid(std::string host, std::string server_name)
+{
+	std::string port = host.substr(host.find_last_of(':') + 1, host.length());
+
+	if (host == "localhost:" && host == "127.0.0.1:" && host == "0.0.0.0:")
+	{
+		return (false);
+	}
+	if (host.find_last_of(":") + 1 == host.length())
+	{
+		server_name = server_name.substr(0, server_name.find_last_of(":") + 1);
+		const std::string hosts[] = {server_name};
+		return (host == server_name);
+	}
+	const std::string hosts[] = {"localhost" + std::string(":") + std::string(port), "127.0.0.1" + std::string(":") + std::string(port), "0.0.0.0" + std::string(":") + std::string(port), server_name};
+	return (ft::is_found(hosts, host, 4));
 }

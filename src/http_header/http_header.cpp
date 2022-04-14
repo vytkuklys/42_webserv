@@ -70,13 +70,26 @@ std::string http_header::get_http_header(void) const
 
 std::string http_header::get_port() const
 {
-	std::string port;
+	std::string port = "";
 	if (header_pairs.find("Host") != header_pairs.end())
 	{
 		std::string host = header_pairs.find("Host")->second;
+		if (host.find_last_of(':') == std::string::npos)
+			return (port);
 		port = host.substr(host.find_last_of(':') + 1, host.length());
 	}
 	return (port);
+}
+
+std::string http_header::get_hostname() const
+{
+	std::string hostname;
+	if (header_pairs.find("Host") != header_pairs.end())
+	{
+		std::string host = header_pairs.find("Host")->second;
+		hostname = host.substr(0, host.find_last_of(':'));
+	}
+	return (hostname);
 }
 
 std::string	http_header::get_first_line() const

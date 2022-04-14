@@ -64,9 +64,16 @@ void Response::set_path(std::string const filename)
 {
     path = filename;
     std::string port = ft::remove_whitespace(request->get_port());
+    std::string host = request->get_hostname() + std::string(":") + ft::remove_whitespace(request->get_port());
     bool is_listing_on = config->getDirectoryListing(port);
-    LocationData * loc = config->get_location(port, filename);
-    if (loc != nullptr)
+    LocationData * loc = config->get_location(host, filename);
+	bool is_host = config->getHostStatus();
+    if (is_host == false)
+	{
+		request->set_status_code(400);
+		set_error_page("/400.html");
+	}
+	else if (loc != nullptr)
 	{
 		if((loc->getLocation() == "/" && loc->getLocation().length() == 1))
 			path.insert(0, loc->getRoot());

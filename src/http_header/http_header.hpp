@@ -23,6 +23,7 @@ class http_header
 		std::string						get_http_header(void) const;
 		const std::string&				get_first_line_element(const size_t pos) const;
 		std::string						get_port() const;
+		std::string 					get_hostname() const;
 		std::string						get_first_line() const;
 		
 		void							set_value(const std::string key, const std::string value);
