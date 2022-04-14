@@ -5,6 +5,7 @@ Response::Response(Request& req, Config& data) : request(&req)
 {
 	config = &data;
     default_error = "./documents/html_errors";
+	default_err = "/404.html";
 	if (request->get_error_status() == true)
 	{
 		set_error_path();
@@ -42,6 +43,7 @@ void Response::set_error_path(void)
 	int status = request->get_status_code();
 
 	path = config->getErrorPage(port);
+
     if (path.empty())
 	{
         path = default_error;
@@ -68,6 +70,7 @@ void Response::set_path(std::string const filename)
     bool is_listing_on = config->getDirectoryListing(port);
     LocationData * loc = config->get_location(host, filename);
 	bool is_host = config->getHostStatus();
+	default_err = config->getDefaultErr(port);
     if (is_host == false)
 	{
 		request->set_status_code(400);
@@ -100,7 +103,7 @@ void Response::set_path(std::string const filename)
 				if (is_page_not_found(path, loc->getRoot()))
 				{
 					request->set_status_code(404);
-					set_error_page("/404.html");
+					set_error_page(default_err);
 				}
 			}
 		}
@@ -112,7 +115,7 @@ void Response::set_path(std::string const filename)
 	else
 	{
 		request->set_status_code(404);
-		set_error_page("/404.html");
+		set_error_page(default_err);
 	}
 }
 
@@ -132,7 +135,7 @@ void Response::handle_delete_request(void)
 	}
 	if( std::remove( get_path().c_str()) != 0 )
 	{
-		set_error_page("404.html");
+		set_error_page(default_err);
 	}
 }
 

@@ -24,6 +24,7 @@ private:
 	std::string sPort;
 	std::string serverName;
 	std::string errorPage;
+	std::string defaultErr;
 	std::string sBodySize;
 	std::string directoryListing;
 
@@ -60,6 +61,7 @@ public:
 	int getInterface(void);
 	bool getHostStatus(void);
 	std::string getErrorPage(std::string port);
+	std::string getDefaultErr(std::string port);
 	bool getDirectoryListing(std::string port);
 	LocationData * get_location(std::string port, std::string path);
 	std::string get_hostname(std::string port);

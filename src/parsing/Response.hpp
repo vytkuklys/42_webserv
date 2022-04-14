@@ -33,6 +33,7 @@ class Response : public http_header_response
 			std::ifstream	input_stream;
 			std::string		body;
 			std::string		path;
+			std::string		default_err;
 			std::string		file_ext;
 	
 			void set_body(void);

@@ -1,7 +1,7 @@
 #include "ConfigData.hpp"
 
 ConfigData::ConfigData(void) : npos(-1), Port(8080), serverName("UNKNOWN"),
-errorPage("./documents/html_errors"), BodySize(1), directoryListing("on") {}
+errorPage("./documents/html_errors"), defaultErr("/404.html"), BodySize(1), directoryListing("on") {}
 
 ConfigData::~ConfigData(void)
 {
@@ -227,6 +227,8 @@ void ConfigData::setServerName(std::string inputServerName) { serverName = input
 
 void ConfigData::setErrorPage(std::string inputErrorPages) { errorPage = inputErrorPages; }
 
+void ConfigData::setDefaultErr(std::string inputDefaultErr) { defaultErr = inputDefaultErr; }
+
 void ConfigData::setBodySize(int inputBodySizes) { BodySize = inputBodySizes; }
 
 void ConfigData::setDirectoryListing(std::string inputDirectoryListing) { directoryListing = inputDirectoryListing; }
@@ -237,6 +239,8 @@ int ConfigData::getPort(void) { return (Port); }
 std::string ConfigData::getServerName(void) { return (serverName); }
 
 std::string ConfigData::getErrorPage(void) { return (errorPage); }
+
+std::string ConfigData::getDefaultErr(void) { return (defaultErr); }
 
 int ConfigData::getBodySize(void) { return (BodySize); }
 

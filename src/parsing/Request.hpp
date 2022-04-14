@@ -101,6 +101,10 @@ class Request : public http_header_request
 
 		void			stop_reading(int code);
 		void			set_max_body();
+		void			set_up_cgi_proces();
+		void			set_up_child();
+		bool			proces_chunked_size(std::string& line);
+		bool			proces_chunked_body(std::istringstream& data);
 };
 
 #endif
