@@ -161,3 +161,7 @@ li a:hover {
     left: 91%;
     top: .5rem;
 }
+
+.h-hide{
+    display: none;
+}
