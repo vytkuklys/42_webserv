@@ -21,6 +21,7 @@ private:
 	int Port;
 	std::string serverName;
 	std::string errorPage;
+	std::string defaultErr;
 	int BodySize;
 	std::string directoryListing;
 
@@ -45,12 +46,14 @@ public:
 	void setPort(int inputPort);
 	void setServerName(std::string inputServerName);
 	void setErrorPage(std::string inputErrorPages);
+	void setDefaultErr(std::string inputDefaultErr);
 	void setBodySize(int inputBodySizes);
 	void setDirectoryListing(std::string inputDirectoryListing);
 
 	int getPort(void);
 	std::string getServerName(void);
 	std::string getErrorPage(void);
+	std::string getDefaultErr(void);
 	int getBodySize(void);
 	std::string getDirectoryListing(void);
 
