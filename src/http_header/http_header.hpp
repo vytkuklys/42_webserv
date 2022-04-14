@@ -24,16 +24,16 @@ class http_header
 		const std::string&				get_first_line_element(const size_t pos) const;
 		std::string						get_port() const;
 		std::string						get_first_line() const;
+		
 		void							set_value(const std::string key, const std::string value);
 		void							set_first_line_element(const size_t pos, const std::string& value);
 		void							set_first_line(std::string line);
+
 		iterator						begin();
 		iterator						end();
 		std::pair<std::string,std::string> operator()();
 
 
 };
-
-
 
 #endif

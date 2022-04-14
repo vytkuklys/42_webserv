@@ -1,12 +1,8 @@
 #include "http_header_request.hpp"
 
-http_header_request::http_header_request()
-{
-}
+http_header_request::http_header_request() {}
 
-http_header_request::~http_header_request()
-{
-}
+http_header_request::~http_header_request() {}
 
 const std::string		http_header_request::get_method() const
 {

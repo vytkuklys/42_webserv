@@ -11,4 +11,3 @@ class http_header_response : public http_header
 };
 
 #endif
-

@@ -6,10 +6,7 @@ http_header::http_header() : notf("not found")
 	first_http_line.resize(5);
 }
 
-http_header::~http_header()
-{
-
-}
+http_header::~http_header(){}
 
 const std::string& http_header::get_value(const std::string& key) const
 {
@@ -23,7 +20,6 @@ const std::string& http_header::get_first_line_element(const size_t pos) const
 {
 	if(pos > first_http_line.size() || first_http_line[pos].empty())
 	{
-		// std::cout << pos << std::endl;
 		return(notf);
 	}
 	return(first_http_line[pos]);
@@ -92,7 +88,6 @@ std::string	http_header::get_first_line() const
 
 	for(size_t i = 0; i < first_http_line.size(); ++i)
 	{
-		// std::cout << "i" << i << std::endl;
 		if(get_first_line_element(i) != notf)
 		{
 			ret += get_first_line_element(i);

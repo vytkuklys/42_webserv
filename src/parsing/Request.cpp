@@ -229,8 +229,8 @@ void	Request::fill_header(int fd, Config& conf)
 
 					if(config->getScript() == "./cgi-bin/php-cgi-or")
 					{
-						env_strings.push_back("SCRIPT_FILENAME=/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi.php");
-						env_strings.push_back("SCRIPT_NAME=/Users/shackbei/Documents/code/Projects/webserv/cgi-bin/cgi.php");
+						env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
+						env_strings.push_back("SCRIPT_NAME=./cgi-bin/cgi.php");
 					}
 					// std::cout << env_strings.back() << std::endl;
 					env_strings.push_back("DOCUMENT_ROOT=" + config->getRoot());

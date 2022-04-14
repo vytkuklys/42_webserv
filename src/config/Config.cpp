@@ -425,7 +425,6 @@ LocationData *Config::get_location(std::string port, std::string path)
 			i = location.find_first_of('*');
 			while(static_cast<unsigned long>(i) != std::string::npos)
 			{
-				// std::cout << "test " <<  i << std::endl;
 				location.erase(i, 1);
 				i = location.find_first_of('*');
 			}
