@@ -85,7 +85,7 @@
         const delete_btn = document.querySelectorAll('.delete-btn');
         delete_btn.forEach(item => {
             item.addEventListener('click', (e) =>{
-                e.target.parentNode.parentNode.classList.add('hidden');
+                e.target.parentNode.parentNode.classList.add('h-hide');
                 const url = `http://${location.host}/${e.target.getAttribute("data-filename")}`;
                 fetch(url, {
                 method: 'DELETE',
