@@ -27,7 +27,7 @@ class Request;
 class Response : public http_header_response
 {
 	private:
-			Request			*request;
+			Request			&request;
 			Config			*config;
 			std::string		default_error;
 			std::ifstream	input_stream;
@@ -48,7 +48,7 @@ class Response : public http_header_response
 			void handle_delete_request(void);
 	public:
 			Response(Request& req, Config& data);
-	
+
 			std::string get_path(void);
 			std::string get_http_response(std::map<int,std::string>& status_line);
 			std::string get_http_time();

@@ -30,8 +30,8 @@ namespace SERVER
 			std::map<int,std::string>		status_line;
 			Config*							config;
 			struct sigaction				sigact;
-			void							accepter();
-			void							handler();
+		void							accepter();
+		void							handler();
 		void							responder();
 		void							clear();
 		void							handle_new_client();

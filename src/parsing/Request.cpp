@@ -393,6 +393,11 @@ unsigned long	Request::get_time_of_change()
 	return(time_of_change);
 }
 
+LocationData*	Request::get_config()
+{
+	return(config);
+}
+
 
 
 // --------------------- CHECKERS ---------------------

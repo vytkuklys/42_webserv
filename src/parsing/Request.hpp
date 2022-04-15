@@ -71,6 +71,7 @@ class Request : public http_header_request
 		int				get_parsing_position() const;
 		int				get_content_length();
 		std::string		get_cgi_return();
+		LocationData*	get_config();
 		void			close_pipe_in();
 
 		void			set_status_code(int code);

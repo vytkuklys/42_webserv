@@ -1,31 +1,30 @@
 #include "Response.hpp"
 
 
-Response::Response(Request& req, Config& data) : request(&req)
+Response::Response(Request& req, Config& data) : request(req)
 {
 	config = &data;
     default_error = "./documents/html_errors";
 	default_err = "/404.html";
-	// if (request->get_error_status() == true)
-	if (request->get_status_code() >= 400)
+	if (request.get_status_code() >= 400)
 	{
 		set_error_path();
 	}
-	else if (::is_redirection(request->get_path()))
+	else if (::is_redirection(request.get_path()))
 	{
 		set_redirection_status(true);
 	}
 	else
 	{
 		std::cout << "Responder constructor" << std::endl;
-    	set_path(request->get_path());
-		if (request->get_method() == "DELETE")
+    	set_path(request.get_path());
+		if (request.get_method() == "DELETE")
 		{
 			handle_delete_request();
 		}
 	}
     file_ext = path.substr(path.find_last_of('.') + 1, path.length());
-	if (request->get_method() != "HEAD")
+	if (request.get_method() != "HEAD")
 		set_body();
     set_headers();
 }
@@ -34,7 +33,7 @@ Response::Response(Request& req, Config& data) : request(&req)
 void	Response::stop_writing(void)
 {
 	std::cout << "stop_writing, response" << std::endl;
-	request->set_status_code(500);
+	request.set_status_code(500);
 	set_error_path();
 	file_ext = "html";
 	set_body();
@@ -44,8 +43,8 @@ void	Response::stop_writing(void)
 
 void Response::set_error_path(void)
 {
-	int status = request->get_status_code();
-	path = config->getErrorPage(request->get_hostname());
+	int status = request.get_status_code();
+	path = config->getErrorPage(request.get_hostname());
     if (path.empty())
 	{
         path = default_error;
@@ -67,14 +66,14 @@ void Response::set_error_path(void)
 void Response::set_path(std::string const filename)
 {
     path = filename;
-    std::string host = request->get_hostname();
+    std::string host = request.get_hostname();
     bool is_listing_on = config->getDirectoryListing(host);
-    LocationData * loc = config->get_location(host, filename);
+    LocationData * loc = request.get_config();
 	bool is_host = config->getHostStatus();
 	default_err = config->getDefaultErr(host);
     if (is_host == false)
 	{
-		request->set_status_code(400);
+		request.set_status_code(400);
 		set_error_page("/400.html");
 	}
 	else if (loc != nullptr)
@@ -90,21 +89,21 @@ void Response::set_path(std::string const filename)
 				path += "/";
 			path += loc->getIndex();
 		}
-        bool has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
+        bool has_access = is_authorized(loc->getMethod(), request.get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
 			std::cout <<"hier========" << std::endl;
-			request->set_status_code(405);
+			request.set_status_code(405);
 		}
-		if(request->get_status_code() < 400)
+		if(request.get_status_code() < 400)
 		{
-			if (request->get_method() == "PUT")
-				request->set_status_code(201);
-			else if (request->get_method() != "POST")
+			if (request.get_method() == "PUT")
+				request.set_status_code(201);
+			else if (request.get_method() != "POST")
 			{
 				if (is_page_not_found(path, loc->getRoot()))
 				{
-					request->set_status_code(404);
+					request.set_status_code(404);
 					set_error_page("/" + default_err);
 				}
 			}
@@ -116,14 +115,14 @@ void Response::set_path(std::string const filename)
 	}
 	else
 	{
-		request->set_status_code(404);
+		request.set_status_code(404);
 		set_error_page("/" + default_err);
 	}
 }
 
 void Response::set_error_page(std::string file)
 {
-	path = config->getErrorPage(request->get_hostname());
+	path = config->getErrorPage(request.get_hostname());
 	if (path.empty())
 		path = default_error;
 	path.append(file);
@@ -131,7 +130,7 @@ void Response::set_error_page(std::string file)
 
 void Response::handle_delete_request(void)
 {
-	if (request->get_status_code() != 200 || get_path().find("delete/") == std::string::npos)
+	if (request.get_status_code() != 200 || get_path().find("delete/") == std::string::npos)
 	{
 		return ;
 	}
@@ -158,7 +157,7 @@ void Response::set_headers(void)
 {
 	set_content_type();
 
-	if ((request->get_method() == "GET"))
+	if ((request.get_method() == "GET"))
 	{
 		set_value("Content-length:", ft::to_string(body.length()));
 		set_value("Connection:", "keep-alive");
@@ -166,7 +165,7 @@ void Response::set_headers(void)
 	else
 	{
 		set_value("Connection:", "close");
-		if (request->is_chunked() && request->get_status_code() < 400)
+		if (request.is_chunked() && request.get_status_code() < 400)
 		{
 			set_value("content-type:", "text/html; charset=utf-8");
 			set_value("Transfer-Encoding:", "chunked");
@@ -222,7 +221,7 @@ void Response::set_body(void)
 {
 	if (input_stream.is_open())
 		input_stream.close();
-	if (file_ext == "php" && request->get_method() == "GET")
+	if (file_ext == "php" && request.get_method() == "GET")
 	{
 		set_php_body();
 	}
@@ -230,7 +229,7 @@ void Response::set_body(void)
 	{
 		set_image_body();
 	}
-	else if (request->get_method() == "GET" || request->get_method() == "UNKNOWN" || request->get_method() == "not found" || (request->get_method() == "POST" && !request->is_chunked()))
+	else if (request.get_method() == "GET" || request.get_method() == "UNKNOWN" || request.get_method() == "not found" || (request.get_method() == "POST" && !request.is_chunked()))
 	{
 		set_text_body();
 	}
@@ -308,7 +307,7 @@ void Response::set_text_body(void)
 
 std::string Response::get_http_response(std::map<int,std::string>& status_line_map)
 {
-	set_first_line("HTTP/1.1 " + ft::itos(request->get_status_code()) + " " + status_line_map.find(request->get_status_code())->second );
+	set_first_line("HTTP/1.1 " + ft::itos(request.get_status_code()) + " " + status_line_map.find(request.get_status_code())->second );
 	std::string response = get_http_header();
 	response.append(body);
 	return (response);
