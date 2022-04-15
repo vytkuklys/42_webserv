@@ -92,7 +92,6 @@ void Response::set_path(std::string const filename)
         bool has_access = is_authorized(loc->getMethod(), request.get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
-			std::cout <<"hier========" << std::endl;
 			request.set_status_code(405);
 		}
 		if(request.get_status_code() < 400)
@@ -103,8 +102,16 @@ void Response::set_path(std::string const filename)
 			{
 				if (is_page_not_found(path, loc->getRoot()))
 				{
-					request.set_status_code(404);
-					set_error_page("/" + default_err);
+					if(filename == "/42")
+					{
+						request.set_status_code(303);
+						set_value("Location: ", "/");
+					}
+					else
+					{
+						request.set_status_code(404);
+						set_error_page("/" + default_err);
+					}
 				}
 			}
 		}
@@ -164,6 +171,7 @@ void Response::set_headers(void)
 	}
 	else
 	{
+		set_value("Set-Cookie:", "upload=isdone");
 		set_value("Connection:", "close");
 		if (request.is_chunked() && request.get_status_code() < 400)
 		{

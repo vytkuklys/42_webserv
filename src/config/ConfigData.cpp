@@ -200,6 +200,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 			if (readLine.find("location") != npos)
 			{
 				tempClass = new LocationData();
+					std::cout << BodySize << std::endl;
 					tempClass->setMaxBody(BodySize);
 			}
 		if (whichLine >= start && whichLine < end)

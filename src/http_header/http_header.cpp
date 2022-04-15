@@ -67,8 +67,8 @@ void http_header::set_first_line(std::string line)
 
 std::string http_header::get_http_header(void) const
 {
-	std::string response;
 
+	std::string response;
 	if (get_redirection_status())
 	{
 		response = "HTTP/1.1 301 Moved Permanently\r\n";

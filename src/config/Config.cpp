@@ -99,6 +99,7 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			tempClass.setBodySize(bytes);
 		}
 		bytes = ft::get_bytes(sBodySize);
+		std::cout << "bytes" <<  bytes << "sBodySize" << sBodySize << std::endl;
 		tempClass.setBodySize(bytes);
 		sBodySize.erase();
 	}
@@ -171,7 +172,7 @@ void Config::setData(std::string readLine, std::string find, int level, ConfigDa
 			if (level == 6)
 				directoryListing.push_back(readLine[begin + i]);
 			if (level == 7)
-				defaultErr.push_back(readLine[begin + i]);			
+				defaultErr.push_back(readLine[begin + i]);
 			i++;
 		}
 		pushToClass(level, tempClass);
@@ -498,8 +499,10 @@ bool Config::getHostStatus(void)
 
 bool is_host_valid(std::string host, std::string server_name, std::string port)
 {
-	if (host == "localhost:" && host == "127.0.0.1:" && host == "0.0.0.0:")
+	// std::cout << "host=" << host << std::endl;
+	if (host == "localhost:" || host == "127.0.0.1:" || host == "0.0.0.0:") // changed
 	{
+		std::cout << "if is true" << std::endl;
 		return (false);
 	}
 	if (host.find_last_of(":") + 1 == host.length())

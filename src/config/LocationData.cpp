@@ -1,7 +1,7 @@
 #include "LocationData.hpp"
 
-LocationData::LocationData(void) : location("UNKNOWN"), root("UNKNOWN"), 
-method("UNKNOWN"), index("UNKNOWN"), script("UNKNOWN") {}
+LocationData::LocationData() : location("UNKNOWN"), root("UNKNOWN"),
+method("UNKNOWN"), index("UNKNOWN"), script("UNKNOWN")/*, max_body(1)*/ {}
 
 LocationData::~LocationData(void) {}
 

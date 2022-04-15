@@ -2,9 +2,9 @@
 
 <?php
 	// pcntl_signal(SIGINT,SIG_IGN, false);
-	if (isset($_FILES['user_file']) && ($_SERVER['REQUEST_METHOD'] == "POST"))
+	if (isset($_FILES['user_file']) && ($_SERVER['REQUEST_METHOD'] == "POST") && !isset($_ENV['HTTP_COOKIE']))
 		move_uploaded_file($_FILES['user_file']['tmp_name'], '../documents/uploaded/' . $_FILES['user_file']['name']);
-	else
+	else if(!isset($_ENV['HTTP_COOKIE']))
 	{
 		$fd = fopen('php://stdin', 'rb');
 		if ($fd === FALSE)
@@ -29,7 +29,7 @@
 		// }
 		// $file_error = fopen("/Users/shackbei/Documents/code/Projects/webserv/documents/uploaded/error", 'w');
 		// fwrite($file_error, $file_name);
-		// phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
+		phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
 
 		$out = fopen($file_name, 'w');
 		if ($out === FALSE)
@@ -62,3 +62,4 @@
 		fclose($fd);
 		fclose($file_error);
 	}
+

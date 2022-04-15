@@ -89,6 +89,7 @@ void Request::for_testing_print_request_struct()
 	std::cout << "\n---START LINE \n";
 
 	std::cout << get_http_header() << std::endl;
+
 }
 
 void	Request::set_up_child()
@@ -189,10 +190,11 @@ void	Request::set_up_child()
 void			Request::set_up_cgi_proces()
 {
 	std::cout << "done with header" << std::endl;
-
+	for_testing_print_request_struct();
 	if (content_length == -1)
 	{
 		content_length = get_content_length();
+
 		if (is_payload_too_large() == true)
 		{
 			std::cerr << "is_payload_too_large" << std::endl;
@@ -279,7 +281,14 @@ void	Request::fill_header(int fd, Config& conf)
 	if (parsing_position == done_with_header)
 	{
 		config = conf.get_location(get_hostname(), get_path());
-		set_up_cgi_proces();
+		if(config == nullptr)
+		{
+			parsing_position = send_first;
+			status_code = 400;
+			std::cout << "nullptr" << get_hostname()<<" "<< get_path()<<std::endl;
+		}
+		else
+			set_up_cgi_proces();
 	}
 
 	if (parsing_position >= done_with_header && parsing_position < send_first)
@@ -351,6 +360,7 @@ void Request::set_regular_body(std::istringstream& data)
 int Request::get_content_length()
 {
 	std::string tmp = get_value("Content-Length");
+
 	if(tmp == "not found")
 		return (0);
 	return (ft::stoi(tmp));
@@ -422,10 +432,18 @@ bool	Request::is_chunked_payload_too_large(void)
 
 bool Request::is_payload_too_large()
 {
+	std::cout << "test" << std::endl;
+	config->getMaxBody();
+	std::cout << "test3" << std::endl;
+
 	if (content_length <= config->getMaxBody())
 	{
+	std::cout << "test2" << std::endl;
+
 		return (false);
 	}
+	std::cout << "test1" << std::endl;
+
 	return (true);
 }
 
@@ -480,10 +498,10 @@ bool Request::proces_chunked_size(std::string& line)
 			pipe_in[1] = -1;
 			std::cout << "pid_child" << pid_child << std::endl;
 			waitpid(pid_child, &ret, 0);
-			std::cout << "test2" << std::endl;
+			// std::cout << "test2" << std::endl;
 			pid_child = -1;
 			rewind(out_file);
-			std::cout << "test3" << std::endl;
+			// std::cout << "test3" << std::endl;
 			std::cout << "child return = " << ret << std::endl;
 			parsing_position = send_first;
 			return(false);
