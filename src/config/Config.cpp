@@ -79,7 +79,8 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	}
 	if (level == 3)
 	{
-		if (errorPage.length() == 0 || errorPage.length() > 100)
+		std::ifstream infile(errorPage);
+		if (!infile.good() || errorPage.length() == 0 || errorPage.length() > 100)
 		{
 			std::cout << "Invalid error_pages: '" << errorPage << "'";
 			std::cout << ", default error_pages: './documents/html_errors' used instead" << std::endl;
@@ -119,7 +120,7 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 		if (defaultErr.length() == 0 || defaultErr.length() > 100)
 		{
 			std::cout << "Invalid default_err: '" << defaultErr << "'";
-			std::cout << ", default default_err: '/404.html' used instead" << std::endl;
+			std::cout << ", default default_err: '404.html' used instead" << std::endl;
 		}
 		else
 			tempClass.setDefaultErr(defaultErr);
