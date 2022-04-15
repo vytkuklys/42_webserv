@@ -223,12 +223,14 @@ void SERVER::WebServer::handle_known_client()
 	}
 	std::cout << "process socket information" << std::endl;
 	itr->second.fill_header(tmp_socket_fd, *config);
-	if (itr->second.get_error_status())
+	// if (itr->second.get_error_status())
+	if (itr->second.get_status_code() >= 400)
 	{
 		perror(BOLD(FRED(" ---- ERROR ---- ")));
 		//FD_CLR(tmp_socket_fd, &read_sockets);
 	}
-	if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
+	// if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
+	if (itr->second.get_parsing_position() == send_first || itr->second.get_status_code() >= 400)
 	{
 		std::cout << "set fd to write list fd" << tmp_socket_fd <<std::endl;
 		if (!FD_ISSET(tmp_socket_fd, &write_sockets))

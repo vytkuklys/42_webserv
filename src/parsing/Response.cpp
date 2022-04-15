@@ -6,7 +6,8 @@ Response::Response(Request& req, Config& data) : request(&req)
 	config = &data;
     default_error = "./documents/html_errors";
 	default_err = "/404.html";
-	if (request->get_error_status() == true)
+	// if (request->get_error_status() == true)
+	if (request->get_status_code() >= 400)
 	{
 		set_error_path();
 	}
@@ -92,6 +93,7 @@ void Response::set_path(std::string const filename)
         bool has_access = is_authorized(loc->getMethod(), request->get_method(), (!is_listing_on && filename == "/index.php"));
 		if (has_access == false)
 		{
+			std::cout <<"hier========" << std::endl;
 			request->set_status_code(405);
 		}
 		if(request->get_status_code() < 400)
