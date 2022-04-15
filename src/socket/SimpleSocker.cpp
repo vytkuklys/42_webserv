@@ -25,7 +25,7 @@ void SOCKET::SimpleSocket::check_return(int value)
 {
 	if(value < 0)
 	{
-		perror("can not creat socket");
+		perror("can not create socket");
 		return ;
 	}
 }

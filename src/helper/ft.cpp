@@ -154,3 +154,24 @@ unsigned long	ft::ft_time_dif(unsigned long value)
 {
 	return (ft::time() - value);
 }
+
+std::string		ft::displayTimestamp(void)
+{
+	std::time_t t = std::time(NULL);
+  	std::tm *const pTInfo = std::localtime(&t);
+
+	std::ostringstream time;
+	time << std::setfill('0') << '[' << std::setw(2) << pTInfo->tm_hour << ':' << 
+	std::setw(2) << pTInfo->tm_min << ":" << std::setw(2) << pTInfo->tm_sec << "] ";
+
+	//int length = time.str().size();
+	//char cTime[length + 1];
+
+	//for (int i = 0; i < length; ++i)
+	//{
+	//	cTime[i] = time.str()[i];
+	//}
+	//cTime[length] = '\0';
+	
+	return (time.str());
+}

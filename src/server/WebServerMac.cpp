@@ -107,7 +107,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 	std::vector<int>::iterator it = ports.begin();
 	std::vector<int>::iterator ite = ports.end();
 
-	std::cout << "Listening on port(s):";
+	std::cout << ft::displayTimestamp() << "Listening on port(s):";
 
 	for (; it != ite; ++it)
 		std::cout << " " << *it;
@@ -191,7 +191,7 @@ void SERVER::WebServer::handle_new_client()
 		Request req(*this);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 	}
-	std::cout << BOLD(FGRN("\n ---- ACCEPTED NEW ---- ")) << " fd " << tmp_socket_fd << std::endl;
+	std::cout << "\n" << ft::displayTimestamp() << BOLD(FGRN(" ---- ACCEPTED NEW ---- ")) << " fd " << tmp_socket_fd << std::endl;
 }
 
 void SERVER::WebServer::accepter()
@@ -299,7 +299,7 @@ void SERVER::WebServer::responder()
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			info.set_parsing_position(done_with_send);
 		}
-		std::cout << BOLD(FBLU(" ---- RESPONDED ---- ")) << "fd " << tmp_socket_fd << std::endl;
+		std::cout << ft::displayTimestamp() << BOLD(FBLU(" ---- RESPONDED ---- ")) << "fd " << tmp_socket_fd << std::endl;
 	}
 }
 
@@ -345,7 +345,8 @@ void SERVER::WebServer::clear()
 	data.clear();
 	listeners.clear();
 	delete config;
-	std::cout << "\n" << BOLD(FGRN(" ---- SERVER IS SHUTTING DOWN ---- ")) << std::endl;
+	std::cout << "\n";
+	std::cout << ft::displayTimestamp() << BOLD(FGRN(" ---- SERVER IS SHUTTING DOWN ---- ")) << std::endl;
 }
 
 void	SERVER::WebServer::shutdown(int signal)

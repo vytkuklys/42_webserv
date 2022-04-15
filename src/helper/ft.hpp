@@ -5,6 +5,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <sys/time.h>
+#include <iostream>
+#include <iomanip>
 
 namespace ft
 {
@@ -23,6 +25,7 @@ namespace ft
 	int 			get_bytes(std::string s);
 	unsigned long	time(void);
 	unsigned long	ft_time_dif(unsigned long value);
-
+	std::string		displayTimestamp(void);
 }
+
 #endif

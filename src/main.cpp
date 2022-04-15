@@ -26,9 +26,8 @@ int main (int argc, char **argv)
 		return (-1);
 	}
 	signal(SIGPIPE, ft_printeror);
-
 	Config *config = new Config(argv[1]);
-	// config is deleted in webservermac.cpp
+	std::cout << ft::displayTimestamp() << "Configuration File: " << argv[1] << std::endl;
 	SERVER::WebServer webServer(*config);
 	return (0);
 }
