@@ -265,7 +265,7 @@ void	Request::fill_header(int fd, Config& conf)
 	}
 	else if (static_cast<int>(bytes) == 0)
 	{
-		 stop_reading(400);
+		stop_reading(400);
 		return ;
 	}
 
@@ -503,7 +503,6 @@ bool Request::proces_chunked_size(std::string& line)
 	{
 		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
 		missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-		// std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
 		if (missing_chuncked_data == 0)
 		{
 			// std::getline(data, line);
