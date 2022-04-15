@@ -16,3 +16,9 @@ fclean: clean
 	@rm -f $(NAME)
 
 re: fclean all
+
+install:
+	@rm -rf $(HOME)/.brew && rm -rf $(HOME)/goinfre/.brew && git clone --depth=1 https://github.com/Homebrew/brew $(HOME)/goinfre/.brew && echo \
+	'export PATH=$(HOME)/goinfre/.brew/bin:$(PATH)' >> $(HOME)/.zshrc && source $(HOME)/.zshrc && brew update
+	@exec $(SHELL)
+	@brew install siege

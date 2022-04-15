@@ -105,7 +105,7 @@ void Response::set_path(std::string const filename)
 				if (is_page_not_found(path, loc->getRoot()))
 				{
 					request->set_status_code(404);
-					set_error_page(default_err);
+					set_error_page("/" + default_err);
 				}
 			}
 		}
@@ -117,7 +117,7 @@ void Response::set_path(std::string const filename)
 	else
 	{
 		request->set_status_code(404);
-		set_error_page(default_err);
+		set_error_page("/" + default_err);
 	}
 }
 
@@ -137,7 +137,7 @@ void Response::handle_delete_request(void)
 	}
 	if( std::remove( get_path().c_str()) != 0 )
 	{
-		set_error_page(default_err);
+		set_error_page("/" + default_err);
 	}
 }
 

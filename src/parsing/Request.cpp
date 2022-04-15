@@ -9,13 +9,8 @@ Request::Request(SERVER::WebServer& tmp_webserver):
 ,missing_chuncked_data(0)
 ,pid_child(-1)
 ,parsing_position(read_first_line)
-// ,is_error(false)
-// ,is_pipe_open(false)
-// ,is_forked(false)
 ,remove_n(false)
-// ,max_body(NOT_SET)
 ,chunked_size(0)
-,count_read_byts_from_file(0)
 ,status_code(200)
 {
 	pipe_in[0] = -1;
@@ -194,23 +189,7 @@ void	Request::set_up_child()
 void			Request::set_up_cgi_proces()
 {
 	std::cout << "done with header" << std::endl;
-	// if (max_body == NOT_SET)
-	// {
-	// 	content_length = get_content_length();
-	// 	for_testing_print_request_struct();
-	// 	set_max_body();
-	// 	if (is_payload_too_large() == true)
-	// 	{
-	// 		std::cerr << "is_payload_too_large" << std::endl;
-	// 		stop_reading(413);
-	// 		return ;
-	// 	}
-	// }
-	// if (config->getMaxBody() == 0)
-	// {
-	// 	for_testing_print_request_struct();
-	// 	// set_max_body();
-	// }
+
 	if (content_length == -1)
 	{
 		content_length = get_content_length();
@@ -224,46 +203,37 @@ void			Request::set_up_cgi_proces()
 
 	if (get_method() == "POST" || get_method() == "PUT")
 	{
-		// if (content_length > 0 || is_chunked())
-		// {
-			if (pipe(pipe_in) == -1)
+		if (pipe(pipe_in) == -1)
+		{
+			std::cerr << "pipe creating goes wrong" << std::endl;
+			stop_reading(500);
+			return ;
+		}
+		out_file = tmpfile();
+		pid_child = fork();
+		if (pid_child == -1)
+		{
+			std::cerr << "fork goes wrong" << std::endl;
+			stop_reading(500);
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+			pipe_in[0] = -1;
+			pipe_in[1] = -1;
+			return ;
+		}
+		else if (pid_child == 0)
+			set_up_child();
+		else
+		{
+			std::cout << "creat cild with pid" << pid_child << std::endl;
+			if(close(pipe_in[0]) != 0)
 			{
-				std::cerr << "pipe creating goes wrong" << std::endl;
-				stop_reading(500);
-				return ;
+				std::cout << "close5" << std::endl;
+				exit(EXIT_FAILURE);
 			}
-			// is_pipe_open = true;
-			out_file = tmpfile();
-			pid_child = fork();
-			if (pid_child == -1)
-			{
-				std::cerr << "fork goes wrong" << std::endl;
-				stop_reading(500);
-				close(pipe_in[0]);
-				close(pipe_in[1]);
-				pipe_in[0] = -1;
-				pipe_in[1] = -1;
-				return ;
-			}
-			else if (pid_child == 0)
-				set_up_child();
-			else
-			{
-				std::cout << "creat cild with pid" << pid_child << std::endl;
-				// is_forked = true;
-				if(close(pipe_in[0]) != 0)
-				{
-					std::cout << "close5" << std::endl;
-					exit(EXIT_FAILURE);
-				}
-				pipe_in[0] = -1;
-			}
-		// }
-		// else
-		// {
-		// 	status_code = 204;
-		// 	parsing_position = send_first;
-		// }
+			pipe_in[0] = -1;
+		}
+
 	}
 	else
 		parsing_position = send_first;
@@ -331,32 +301,10 @@ void	Request::set_status_code(int code)
 	status_code = code;
 }
 
-// void	Request::set_error_status(bool status)
-// {
-// 	is_error = status;
-// }
-
 void	Request::set_parsing_position(mile_stones new_pos)
 {
 	parsing_position = new_pos;
 }
-
-// void Request::set_max_body(void)
-// {
-// 	if (max_body == 0)
-// 	{
-// 		if (config == nullptr)
-// 		{
-// 			max_body = 1;
-// 		}
-// 		else
-// 		{
-// 			max_body = config->getMaxBody();
-// 			if(max_body == 0)
-// 				max_body = 1;
-// 		}
-// 	}
-// }
 
 void Request::set_regular_body(std::istringstream& data)
 {
@@ -382,7 +330,6 @@ void Request::set_regular_body(std::istringstream& data)
 		content_length -= written;
 		std::cout << "content_length" << content_length << std::endl;
 
-		// if (content_length == 0 && is_error == false)
 		if (content_length <= 0 && status_code < 400)
 		{
 			if (close(pipe_in[1]) != 0)
@@ -391,7 +338,6 @@ void Request::set_regular_body(std::istringstream& data)
 				exit(EXIT_FAILURE);
 			}
 			pipe_in[1] = -1;
-			// is_pipe_open = false;
 			std::cout << "close regular body pipe_in[1]" << pipe_in[1] << std::endl;
 			wait_for_child();
 			fclose(out_file);
@@ -401,11 +347,6 @@ void Request::set_regular_body(std::istringstream& data)
 }
 
 // ----------------- GETTERS ------------------ //
-
-// bool Request::get_error_status() const
-// {
-// 	return (is_error);
-// }
 
 int Request::get_content_length()
 {
@@ -433,10 +374,10 @@ std::string		Request::get_cgi_return()
 	{
 		std::cout << "close out_file" << std::endl;
 		fclose(out_file);
-		std::cout << "count_read_byts_from_file" << count_read_byts_from_file << std::endl;
-		count_read_byts_from_file = 0;
+		// std::cout << "count_read_byts_from_file" << count_read_byts_from_file << std::endl;
+		// count_read_byts_from_file = 0;
 	}
-	count_read_byts_from_file += bytes;
+	// count_read_byts_from_file += bytes;
 	if (parsing_position == erase_cgi_header)
 	{
 		std::string tmp1(tmp, bytes);
@@ -469,11 +410,9 @@ bool Request::is_chunked(void)
 
 bool	Request::is_chunked_payload_too_large(void)
 {
-	// if (chunked_size > max_body)
 	if (chunked_size > config->getMaxBody())
 	{
 		std::cout << FRED("Chunked payload: ") << "chunked_size: " << chunked_size  << std::endl;
-		// std::cout << FRED("Chunked payload: ") << "chunked_size: " << chunked_size << ", max_body: " << max_body << std::endl;
 		return (true);
 	}
 	return (false);
@@ -481,7 +420,6 @@ bool	Request::is_chunked_payload_too_large(void)
 
 bool Request::is_payload_too_large()
 {
-	// if (content_length <= max_body)
 	if (content_length <= config->getMaxBody())
 	{
 		return (false);
@@ -525,11 +463,8 @@ bool Request::proces_chunked_size(std::string& line)
 	{
 		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
 		missing_chuncked_data = ft::Str_to_Hex_to_Int(line);
-		// std::cout << "chunk size=" << missing_chuncked_data << "line" << line << "." << data.rdbuf()->in_avail() << std::endl;
 		if (missing_chuncked_data == 0)
 		{
-			// std::getline(data, line);
-			// line.clear();
 			if (parsing_position == read_first_chunk_size)
 				status_code = 204;
 			else if (is_payload_too_large() == true)
@@ -541,17 +476,14 @@ bool Request::proces_chunked_size(std::string& line)
 			if (close(pipe_in[1]) != 0)
 				std::cout << "error close" << std::endl;
 			pipe_in[1] = -1;
-			// is_pipe_open = false;
 			std::cout << "pid_child" << pid_child << std::endl;
 			waitpid(pid_child, &ret, 0);
 			std::cout << "test2" << std::endl;
-			// is_forked = false;
 			pid_child = -1;
 			rewind(out_file);
 			std::cout << "test3" << std::endl;
 			std::cout << "child return = " << ret << std::endl;
 			parsing_position = send_first;
-			// chunked_size = 0;
 			return(false);
 		}
 		else
@@ -595,7 +527,7 @@ bool Request::proces_chunked_body(std::istringstream& data)
 		return(false) ;
 	}
 	missing_chuncked_data -= written;
-	// chunked_size += written;
+	chunked_size += written;
 	if (is_chunked_payload_too_large() == true)
 	{
 		std::cerr << "is_chunked_payload_too_large" << std::endl;

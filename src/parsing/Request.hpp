@@ -55,16 +55,11 @@ class Request : public http_header_request
 		pid_t								pid_child;					//proces id of the cgi proces
 		mile_stones							parsing_position;			//tells the paringposion which comes next
 		std::string							raw_header_line;			//if a headr line is not readet at once this stors the line until it is complit
-		// bool								is_error;					//not needed use status code inseted
-		// bool								is_pipe_open;				//not needed check pip[0] && pip[1] == -1 insted
-		// bool								is_forked;					//not needed check pid_child == -1 insted
 		LocationData						*config;					//defind inforamtion in the config file for requested location
 		int									remove_n;					//if getline doesent remove the /n in the line becaus it isent in the recived block this indicate it have to be removed.
-		// int 								max_body;					//not needed check config->getMaxBody() instead
-		int									chunked_size;				//the size
-		int									count_read_byts_from_file;
-		unsigned long						time_of_change;
-		int									status_code;
+		int									chunked_size;				//chounter for chunked body size
+		unsigned long						time_of_change;				// time of the bin of the request
+		int									status_code;				// status code for response
 
 	public:
 		Request(SERVER::WebServer &tmp_webserver);
@@ -75,7 +70,6 @@ class Request : public http_header_request
 		int				get_status_code() const;
 		int				get_parsing_position() const;
 		int				get_content_length();
-		// bool			get_error_status() const;
 		std::string		get_cgi_return();
 		void			close_pipe_in();
 
@@ -95,12 +89,10 @@ class Request : public http_header_request
 
 		int				set_headers(std::string line);
 		bool			set_start_line(std::string s);
-		// void			set_error_status(bool status);
 
 		void			unchunk_body(std::istringstream& data);
 
 		void			stop_reading(int code);
-		// void			set_max_body();
 		void			set_up_cgi_proces();
 		void			set_up_child();
 		bool			proces_chunked_size(std::string& line);
