@@ -115,7 +115,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 
 	std::cout << std::endl;
 
-    signal(SIGQUIT, shutdown);
+    signal(SIGINT, shutdown);
 	int len = 0;
 	while (is_running)
 	{
@@ -279,10 +279,16 @@ void SERVER::WebServer::responder()
 			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
 			if (bytes != total)
 				std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
-			if (bytes == -1 || bytes == 0)
+			if (bytes == -1)
 			{
-				std::cout << "break" << std::endl;
+				data.erase(tmp_socket_fd);
+				FD_CLR(tmp_socket_fd, &read_sockets);
+				close(tmp_socket_fd);
 				break ; //HTTP server closes the socket if an error occurs during the sending of a file
+			}
+			else if (bytes == 0)
+			{
+				break ;
 			}
 			else
 			{
@@ -312,7 +318,7 @@ void SERVER::WebServer::close_all_pipes()
 void SERVER::WebServer::clear()
 {
 	std::map<int, Request>::iterator itr = data.begin();
-    while (itr != data.cend())
+    while (itr != data.end())
     {
 		int fd = itr->first;
 		if (FD_ISSET(fd, &write_sockets))
@@ -323,6 +329,7 @@ void SERVER::WebServer::clear()
 		{
 			FD_CLR(fd, &read_sockets);
 		}
+		itr++;
 		close(fd);
     }
 	for (std::vector<int>::iterator it = listeners.begin(); it != listeners.end(); it++)
@@ -348,7 +355,6 @@ void SERVER::WebServer::clear()
 void	SERVER::WebServer::shutdown(int signal)
 {
 	(void)signal;
-	std::cout << "signal stops working after responding to a client" << std::endl;
 	std::cerr << std::flush;
 	is_running = false;
 }

@@ -253,7 +253,7 @@ void	Request::fill_header(int fd, Config& conf)
 	}
 	else if (static_cast<int>(bytes) == 0)
 	{
-		 stop_reading(400);
+		stop_reading(400);
 		return ;
 	}
 
