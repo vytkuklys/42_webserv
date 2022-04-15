@@ -46,25 +46,20 @@ namespace SERVER
 class Request : public http_header_request
 {
 	private:
-		SERVER::WebServer					&webserver;
-		int									pipe_in[2];
-		FILE*								out_file;
-		int									content_length;
-		unsigned long						missing_chuncked_data;
-		std::string							part_of_hex_of_chunked;
-		pid_t								pid_child;
-		mile_stones							parsing_position;
-		std::string							raw_header_line;
-		bool								is_error;
-		bool								is_pipe_open;
-		bool								is_forked;
-		LocationData						*config;
-		int									remove_n;
-		int 								max_body;
-		int									chunked_size;
-		int									count_read_byts_from_file;
-		unsigned long						time_of_change;
-		int									status_code;
+		SERVER::WebServer					&webserver;					//instanc to the hole webserver to close als pip_in[1] of all other prozesses
+		int									pipe_in[2];					//pipe to deliver the input to the cgi process
+		FILE*								out_file;					//stores the out put (STDOUT) of the cgi process
+		int									content_length;				//content length if defind in request header else -1
+		unsigned long						missing_chuncked_data;		//the number of bytes missing of the current chunck body
+		std::string							part_of_hex_of_chunked;		//if the hex number of chuncked request is not readet at once this stors the line until it is complit
+		pid_t								pid_child;					//proces id of the cgi proces
+		mile_stones							parsing_position;			//tells the paringposion which comes next
+		std::string							raw_header_line;			//if a headr line is not readet at once this stors the line until it is complit
+		LocationData						*config;					//defind inforamtion in the config file for requested location
+		int									remove_n;					//if getline doesent remove the /n in the line becaus it isent in the recived block this indicate it have to be removed.
+		int									chunked_size;				//chounter for chunked body size
+		unsigned long						time_of_change;				// time of the bin of the request
+		int									status_code;				// status code for response
 
 	public:
 		Request(SERVER::WebServer &tmp_webserver);
@@ -75,7 +70,6 @@ class Request : public http_header_request
 		int				get_status_code() const;
 		int				get_parsing_position() const;
 		int				get_content_length();
-		bool			get_error_status() const;
 		std::string		get_cgi_return();
 		void			close_pipe_in();
 
@@ -95,12 +89,10 @@ class Request : public http_header_request
 
 		int				set_headers(std::string line);
 		bool			set_start_line(std::string s);
-		void			set_error_status(bool status);
 
 		void			unchunk_body(std::istringstream& data);
 
 		void			stop_reading(int code);
-		void			set_max_body();
 		void			set_up_cgi_proces();
 		void			set_up_child();
 		bool			proces_chunked_size(std::string& line);
