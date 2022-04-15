@@ -6,47 +6,8 @@
 #include <iostream>
 #include <iomanip>
 
-
-void	test(int sig_num)
-{
-	FILE* tmp1 = fopen("/goinfre/shackbei/upploads/error", "w");
-	fprintf(tmp1, "sig = %d",  sig_num);
-	fclose( tmp1);
-
-}
-
 int main()
 {
-	signal(1, test);
-	signal(3, test);
-	signal(4, test);
-	signal(5, test);
-	signal(6, test);
-	signal(7, test);
-	signal(8, test);
-	signal(9, test);
-	signal(10, test);
-	signal(11, test);
-	signal(12, test);
-	signal(13, test);
-	signal(14, test);
-	signal(15, test);
-	signal(16, test);
-	signal(17, test);
-	signal(18, test);
-	signal(19, test);
-	signal(20, test);
-	signal(21, test);
-	signal(22, test);
-	signal(23, test);
-	signal(24, test);
-	signal(25, test);
-	signal(26, test);
-	signal(27, test);
-	signal(28, test);
-	signal(29, test);
-	signal(30, test);
-	signal(31, test);
 	char test[4001];
 	int ret = 1;
 	FILE* tmp;

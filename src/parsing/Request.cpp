@@ -374,10 +374,7 @@ std::string		Request::get_cgi_return()
 	{
 		std::cout << "close out_file" << std::endl;
 		fclose(out_file);
-		// std::cout << "count_read_byts_from_file" << count_read_byts_from_file << std::endl;
-		// count_read_byts_from_file = 0;
 	}
-	// count_read_byts_from_file += bytes;
 	if (parsing_position == erase_cgi_header)
 	{
 		std::string tmp1(tmp, bytes);
@@ -592,8 +589,6 @@ void		Request::stop_reading(int code)
 {
 	std::cerr << "stop_reading, request: " << code << std::endl;
 	status_code = code;
-	// set_error_status(true);
-	// if (is_pipe_open)
 	if (pipe_in[1] != -1)
 	{
 		if (close(pipe_in[1]) != 0)
@@ -602,13 +597,10 @@ void		Request::stop_reading(int code)
 			exit(EXIT_FAILURE);
 		}
 		pipe_in[1] = -1;
-		// is_pipe_open = false;
 	}
-	// if (is_forked)
 	if (pid_child != -1)
 	{
 		waitpid(pid_child, NULL, 0);
-		// is_forked = false;
 		pid_child = -1;
 	}
 }
