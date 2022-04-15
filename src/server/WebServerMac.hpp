@@ -30,18 +30,16 @@ namespace SERVER
 			std::map<int,std::string>		status_line;
 			Config*							config;
 			struct sigaction				sigact;
-		void							accepter();
-		void							handler();
-		void							responder();
-		void							clear();
-		void							handle_new_client();
-		void							handle_known_client();
-		void							respond_header(std::stringstream& client, Request& info);
-		void							respond_body(std::stringstream& client, Request& info);
-		std::string						http_time(const struct tm *timeptr);
-		static 							WebServer instanse;
-		long							summe;
 
+			void							accepter();
+			void							handler();
+			void							responder();
+			void							clear();
+			void							handle_new_client();
+			void							handle_known_client();
+			void							respond_header(std::stringstream& client, Request& info);
+			void							respond_body(std::stringstream& client, Request& info);
+			std::string						http_time(const struct tm *timeptr);
 			static bool						is_running;
 			static void						shutdown(int a);
 

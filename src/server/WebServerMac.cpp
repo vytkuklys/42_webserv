@@ -8,7 +8,6 @@ bool SERVER::WebServer::is_running = true;
 
 SERVER::WebServer::WebServer(Config& data) : SimpleServer(data.getDomain(), data.getType(), data.getProtocol(), data.getPorts(), data.getInterface(), data.getBacklog())
 {
-	summe = 0;
 	config = &data;
 	FD_ZERO(&read_sockets);
 	FD_ZERO(&write_sockets);
@@ -157,7 +156,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					{
 						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
 						data.erase(itr);
-						std::cout << "close socket summe = " << summe  << "fd=" << tmp_socket_fd << std::endl;
 						FD_CLR(i, &read_sockets);
 						close(i);
 					}
@@ -262,7 +260,6 @@ void SERVER::WebServer::responder()
 			std::cout << "send body" << std::endl;
 			http_response = info.get_cgi_return();
 			total = http_response.length();
-			summe += total;
 			std::stringstream stream;
 			stream << std::hex << total;
 			http_response.insert(0, std::string(stream.str() + "\r\n"));
@@ -299,7 +296,6 @@ void SERVER::WebServer::responder()
 		if(end_of_chunked || !info.is_chunked())
 		{
 			std::cout << "end of response" << std::endl;
-			summe = 0;
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			info.set_parsing_position(done_with_send);
 		}
