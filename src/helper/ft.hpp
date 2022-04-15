@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <iostream>
 #include <iomanip>
+#include "../../inc/Colors.hpp"
 
 namespace ft
 {
@@ -25,7 +26,7 @@ namespace ft
 	int 			get_bytes(std::string s);
 	unsigned long	time(void);
 	unsigned long	ft_time_dif(unsigned long value);
-	std::string		displayTimestamp(void);
+	void			displayTimestamp(void);
 }
 
 #endif
