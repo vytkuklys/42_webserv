@@ -12,6 +12,7 @@ Request::Request(SERVER::WebServer& tmp_webserver):
 ,remove_n(false)
 ,chunked_size(0)
 ,status_code(200)
+,http_response()
 {
 	pipe_in[0] = -1;
 	pipe_in[1] = -1;
@@ -381,7 +382,9 @@ std::string		Request::get_cgi_return()
 	char tmp[ARRAY_SIZE];
 	int bytes;
 	if (!http_response.empty())
+	{
 		return(http_response);
+	}
 	else if ((bytes = fread(tmp, 1, ARRAY_SIZE, out_file)) <= 0)
 	{
 		std::cout << "close out_file" << std::endl;
@@ -394,6 +397,7 @@ std::string		Request::get_cgi_return()
 		parsing_position = send_body;
 		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
 	}
+	std::cout << "get_cgi_return" << bytes<<  std::endl;
 	return(std::string(tmp, bytes));
 }
 

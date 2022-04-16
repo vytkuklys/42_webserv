@@ -293,6 +293,7 @@ void SERVER::WebServer::responder()
 			}
 			else
 			{
+				info.set_http_response("");
 				ptr += bytes;
 				total -= bytes;
 			}
