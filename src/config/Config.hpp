@@ -51,6 +51,7 @@ public:
 	int countElement(std::string const &Element);
 	void setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine);
 	void pushToClass(int level, ConfigData &tempClass);
+	void setHostStatus(bool status);
 
 	std::vector<int> &getPorts(void);
 	std::vector<ConfigData *> &getContConfigData(void);

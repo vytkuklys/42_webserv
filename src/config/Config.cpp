@@ -453,6 +453,7 @@ LocationData *Config::get_location(std::string host, std::string path)
 	std::vector<ConfigData *> data = getContConfigData();
 	std::vector<ConfigData *>::iterator it = data.begin();
 	std::vector<ConfigData *>::iterator ite = data.end();
+	setHostStatus(false);
 
 	while (it != ite)
 	{
@@ -461,7 +462,7 @@ LocationData *Config::get_location(std::string host, std::string path)
 		bool is_host = is_host_valid(host, server_name, sPort);
 		if (is_host)
 		{
-			exists_host = true;
+			setHostStatus(true);
 		}
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
@@ -497,9 +498,15 @@ bool Config::getHostStatus(void)
 	return (exists_host);
 }
 
+void Config::setHostStatus(bool status)
+{
+	exists_host = status;
+}
+
 bool is_host_valid(std::string host, std::string server_name, std::string port)
 {
-	// std::cout << "host=" << host << std::endl;
+	if (host.find_last_of(":") == std::string::npos)
+		host.append(":");
 	if (host == "localhost:" || host == "127.0.0.1:" || host == "0.0.0.0:") // changed
 	{
 		std::cout << "if is true" << std::endl;

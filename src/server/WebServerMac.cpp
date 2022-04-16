@@ -230,7 +230,6 @@ void SERVER::WebServer::handle_known_client()
 		perror(BOLD(FRED(" ---- ERROR ---- ")));
 		//FD_CLR(tmp_socket_fd, &read_sockets);
 	}
-	// if (itr->second.get_parsing_position() == send_first || itr->second.get_error_status())
 	if (itr->second.get_parsing_position() == send_first || itr->second.get_status_code() >= 400)
 	{
 		std::cout << "set fd to write list fd" << tmp_socket_fd <<std::endl;
@@ -256,7 +255,6 @@ void SERVER::WebServer::responder()
 			Response response(info, *config);
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
-			// std::cout << http_response << std::endl;
 		}
 		else
 		{
