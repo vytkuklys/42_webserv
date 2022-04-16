@@ -328,13 +328,10 @@ void Request::set_regular_body(std::istringstream& data)
 		{
 			std::cerr << "write in pipe goes wrong" << std::endl;
 			stop_reading(500);
-			std::cout << "6" << std::endl;
 			return ;
 		}
 		else if (written != bytes)
 		{
-			// stop_reading(500); std::cout << "1" << std::endl;
-			std::cout << "WRITTEN != BYTES, written: " << written << " bytes: " << bytes << std::endl;
 			return;
 		}
 		content_length -= written;
@@ -460,7 +457,7 @@ void Request::wait_for_child()
 		ret_wa = waitpid(pid_child, &ret, 0);
 		if (ret_wa == -1)
 		{
-			std::cout << "waitpid error" << std::endl;
+			stop_reading(500);
 		}
 		if (ret_wa == 0)
 		{
