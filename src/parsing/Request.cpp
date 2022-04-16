@@ -282,16 +282,16 @@ void	Request::fill_header(int fd, Config& conf)
 	if (parsing_position == done_with_header)
 	{
 		config = conf.get_location(get_hostname(), get_path());
-		if(config == nullptr)
+		if(config == NULL)
 		{
 			parsing_position = send_first;
 			status_code = 400;
-			std::cout << "nullptr" << get_hostname()<<" "<< get_path()<<std::endl;
 		}
 		else
 			set_up_cgi_proces();
 	}
-
+	if (status_code >= 400)
+		return ;
 	if (parsing_position >= done_with_header && parsing_position < send_first)
 	{
 		std::cout << "fill_header fd=" << fd << " pid" << pid_child << std::endl;
@@ -333,8 +333,6 @@ void Request::set_regular_body(std::istringstream& data)
 		}
 		else if (written != bytes)
 		{
-			// stop_reading(500);
-			std::cout << "WRITTEN != BYTES, written: " << written << " bytes: " << bytes << std::endl;
 			return;
 		}
 		content_length -= written;
@@ -433,9 +431,13 @@ bool Request::is_chunked(void)
 
 bool	Request::is_chunked_payload_too_large(void)
 {
-	if (chunked_size > config->getMaxBody())
+	int max = 1;
+	if (config != NULL)
 	{
-		std::cout << FRED("Chunked payload: ") << "chunked_size: " << chunked_size  << std::endl;
+		max = config->getMaxBody(); 
+	}
+	if (chunked_size > max)
+	{
 		return (true);
 	}
 	return (false);
@@ -443,17 +445,15 @@ bool	Request::is_chunked_payload_too_large(void)
 
 bool Request::is_payload_too_large()
 {
-	std::cout << "test" << std::endl;
-	config->getMaxBody();
-	std::cout << "test3" << std::endl;
-
-	if (content_length <= config->getMaxBody())
+	int max = 1;
+	if (config != NULL)
 	{
-	std::cout << "test2" << std::endl;
-
+		max = config->getMaxBody(); 
+	}
+	if (content_length <= max)
+	{
 		return (false);
 	}
-	std::cout << "test1" << std::endl;
 
 	return (true);
 }
@@ -468,7 +468,7 @@ void Request::wait_for_child()
 		ret_wa = waitpid(pid_child, &ret, 0);
 		if (ret_wa == -1)
 		{
-			std::cout << "waitpid error" << std::endl;
+			stop_reading(500);
 		}
 		if (ret_wa == 0)
 		{

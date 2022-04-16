@@ -157,12 +157,36 @@ unsigned long	ft::ft_time_dif(unsigned long value)
 
 void	ft::displayTimestamp(void)
 {
-	std::time_t t = std::time(NULL);
-  	std::tm *const pTInfo = std::localtime(&t);
+   	time_t t = time();
+   	tm *pTInfo = localtime(&t);
 
 	std::ostringstream time;
 	time << std::setfill('0') << '[' << std::setw(2) << pTInfo->tm_hour << ':' << 
 	std::setw(2) << pTInfo->tm_min << ":" << std::setw(2) << pTInfo->tm_sec << "] ";
 
 	std::cout << "\x1B[1m" + (KCYN + time.str() + RST) + RST;
+}
+
+void	ft::doublePortChecker(Config & config)
+{
+	std::vector<int>::iterator it = config.getPorts().begin();
+	std::vector<int>::iterator ite = config.getPorts().end();
+	int i = 1;
+	while (it != ite)
+	{
+		std::vector<int>::iterator it2 = config.getPorts().begin() + i;
+		std::vector<int>::iterator ite2 = config.getPorts().end();
+		int temp = *it;
+		while (it2 != ite2)
+		{
+			if (temp == *it2)
+			{
+				std::cout << "Invalid config file, please make sure to use different ports for each server" << std::endl;
+				exit(-1);
+			}
+			++it2;
+		}
+		++i;
+		++it;
+	}
 }

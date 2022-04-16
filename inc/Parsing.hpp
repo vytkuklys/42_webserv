@@ -1,3 +1,4 @@
+#pragma once
 #ifndef Parsing_hpp
 #define Parsing_hpp
 

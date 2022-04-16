@@ -1,5 +1,5 @@
-#include "../inc/Configuration.hpp"
 #include "../inc/Server.hpp"
+#include "../inc/Configuration.hpp"
 
 void ft_printeror(int a)
 {
@@ -27,6 +27,7 @@ int main (int argc, char **argv)
 	}
 	signal(SIGPIPE, ft_printeror);
 	Config *config = new Config(argv[1]);
+	ft::doublePortChecker(*config);
 
 	ft::displayTimestamp();
 	std::cout << "Configuration file: " << argv[1] << std::endl;

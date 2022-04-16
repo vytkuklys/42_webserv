@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ft_HPP
 #define ft_HPP
 
@@ -8,6 +9,9 @@
 #include <iostream>
 #include <iomanip>
 #include "../../inc/Colors.hpp"
+#include "../../inc/Configuration.hpp"
+
+class Config;
 
 namespace ft
 {
@@ -27,6 +31,7 @@ namespace ft
 	unsigned long	time(void);
 	unsigned long	ft_time_dif(unsigned long value);
 	void			displayTimestamp(void);
+	void			doublePortChecker(Config & config);
 }
 
 #endif

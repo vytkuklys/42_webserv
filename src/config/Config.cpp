@@ -79,7 +79,7 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	}
 	if (level == 3)
 	{
-		std::ifstream infile(errorPage);
+		std::ifstream infile(errorPage.c_str());
 		if (!infile.good() || errorPage.length() == 0 || errorPage.length() > 100)
 		{
 			std::cout << "Invalid error_pages: '" << errorPage << "'";
@@ -99,7 +99,6 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			tempClass.setBodySize(bytes);
 		}
 		bytes = ft::get_bytes(sBodySize);
-		std::cout << "bytes" <<  bytes << "sBodySize" << sBodySize << std::endl;
 		tempClass.setBodySize(bytes);
 		sBodySize.erase();
 	}
@@ -256,7 +255,7 @@ void Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	ConfigData *tempClass = nullptr;
+	ConfigData *tempClass = NULL;
 
 	int whichServer = 0;
 	int whichLine = 1;
@@ -444,7 +443,7 @@ LocationData *Config::get_truncated_location(std::vector<std::string> locations,
 		}
 		++it;
 	}
-	return (nullptr);
+	return (NULL);
 }
 
 LocationData *Config::get_location(std::string host, std::string path)
@@ -453,6 +452,7 @@ LocationData *Config::get_location(std::string host, std::string path)
 	std::vector<ConfigData *> data = getContConfigData();
 	std::vector<ConfigData *>::iterator it = data.begin();
 	std::vector<ConfigData *>::iterator ite = data.end();
+	setHostStatus(false);
 
 	while (it != ite)
 	{
@@ -461,7 +461,7 @@ LocationData *Config::get_location(std::string host, std::string path)
 		bool is_host = is_host_valid(host, server_name, sPort);
 		if (is_host)
 		{
-			exists_host = true;
+			setHostStatus(true);
 		}
 		std::vector<LocationData *> locationData = (*it)->getContLocationData();
 		std::vector<LocationData *>::iterator it2 = locationData.begin();
@@ -497,9 +497,15 @@ bool Config::getHostStatus(void)
 	return (exists_host);
 }
 
+void Config::setHostStatus(bool status)
+{
+	exists_host = status;
+}
+
 bool is_host_valid(std::string host, std::string server_name, std::string port)
 {
-	// std::cout << "host=" << host << std::endl;
+	if (host.find_last_of(":") == std::string::npos)
+		host.append(":");
 	if (host == "localhost:" || host == "127.0.0.1:" || host == "0.0.0.0:") // changed
 	{
 		std::cout << "if is true" << std::endl;

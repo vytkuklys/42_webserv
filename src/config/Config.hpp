@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef Config_HPP
 #define Config_HPP
 
@@ -8,9 +10,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <stddef.h>
 
-#include "../../inc/Helper.hpp"
 #include "ConfigData.hpp"
+#include "../../inc/Helper.hpp"
+
+class ConfigData;
 
 class Config
 {
@@ -51,6 +56,7 @@ public:
 	int countElement(std::string const &Element);
 	void setData(std::string readLine, std::string find, int level, ConfigData &tempClass, int whichLine);
 	void pushToClass(int level, ConfigData &tempClass);
+	void setHostStatus(bool status);
 
 	std::vector<int> &getPorts(void);
 	std::vector<ConfigData *> &getContConfigData(void);

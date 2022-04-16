@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WebServer_HPP
 #define WebServer_HPP
 
@@ -11,10 +12,10 @@
 #include "SimpleServer.hpp"
 #include <algorithm>
 #include "../../inc/Colors.hpp"
-class Request;
-#include "../../inc/Parsing.hpp"
 #include "../../inc/Configuration.hpp"
+#include "../../inc/Parsing.hpp"
 
+class Request;
 
 namespace SERVER
 {
@@ -54,3 +55,6 @@ namespace SERVER
 }
 
 #endif
+
+
+

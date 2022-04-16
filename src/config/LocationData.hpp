@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LocationData_HPP
 #define LocationData_HPP
 

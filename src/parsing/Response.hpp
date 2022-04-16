@@ -1,8 +1,7 @@
+#pragma once
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "../../inc/Configuration.hpp"
-#include "../../inc/Http_header.hpp"
 #include "Request.hpp"
 #include <iostream>
 #include <map>
@@ -10,17 +9,21 @@
 #include <string>
 #include <vector>
 #include <cctype>
-#include <sys/socket.h> // For socket functions
-#include <cstdlib>	  // For exit() and EXIT_FAILURE
-#include <unistd.h>	 // For read
+#include <sys/socket.h>
+#include <cstdlib>
+#include <unistd.h>
 #include <sstream>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-#include "../../inc/Helper.hpp"
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stddef.h>
+
+#include "../../inc/Configuration.hpp"
+#include "../../inc/Http_header.hpp"
+#include "../../inc/Helper.hpp"
 
 class Request;
 
