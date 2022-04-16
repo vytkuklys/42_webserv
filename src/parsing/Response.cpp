@@ -76,7 +76,7 @@ void Response::set_path(std::string const filename)
 		request.set_status_code(400);
 		set_error_page("/400.html");
 	}
-	else if (loc != nullptr)
+	else if (loc != NULL)
 	{
 		if((loc->getLocation() == "/" && loc->getLocation().length() == 1))
 			path.insert(0, loc->getRoot());
@@ -188,7 +188,7 @@ void Response::set_headers(void)
 
 void Response::set_image_body(void)
 {
-	std::ifstream in(path, std::ios::binary);
+	std::ifstream in(path.c_str(), std::ios::binary);
 	if (!in.is_open())
 	{
 		stop_writing();

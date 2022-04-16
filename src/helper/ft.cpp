@@ -157,8 +157,8 @@ unsigned long	ft::ft_time_dif(unsigned long value)
 
 void	ft::displayTimestamp(void)
 {
-	std::time_t t = std::time(NULL);
-  	std::tm *const pTInfo = std::localtime(&t);
+   	time_t t = time();
+   	tm *pTInfo = localtime(&t);
 
 	std::ostringstream time;
 	time << std::setfill('0') << '[' << std::setw(2) << pTInfo->tm_hour << ':' << 

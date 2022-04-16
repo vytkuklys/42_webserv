@@ -79,7 +79,7 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 	}
 	if (level == 3)
 	{
-		std::ifstream infile(errorPage);
+		std::ifstream infile(errorPage.c_str());
 		if (!infile.good() || errorPage.length() == 0 || errorPage.length() > 100)
 		{
 			std::cout << "Invalid error_pages: '" << errorPage << "'";
@@ -256,7 +256,7 @@ void Config::retrieveValues(void)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	ConfigData *tempClass = nullptr;
+	ConfigData *tempClass = NULL;
 
 	int whichServer = 0;
 	int whichLine = 1;
@@ -444,7 +444,7 @@ LocationData *Config::get_truncated_location(std::vector<std::string> locations,
 		}
 		++it;
 	}
-	return (nullptr);
+	return (NULL);
 }
 
 LocationData *Config::get_location(std::string host, std::string path)

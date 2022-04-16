@@ -15,14 +15,16 @@
 #include <fcntl.h>
 #include <algorithm>
 #include <cstring>
+#include <fstream>
+#include <sys/wait.h>
+#include <strings.h>
+#include <stddef.h>
+
 #include "../../inc/Http_header.hpp"
 #include "../../inc/Helper.hpp"
 #include "../../inc/Configuration.hpp"
 #include "../../inc/Colors.hpp"
 #include "../../inc/Server.hpp"
-#include <fstream>
-#include <sys/wait.h>
-#include <strings.h>
 
 #define NOT_SET 0
 

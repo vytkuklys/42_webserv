@@ -189,7 +189,7 @@ void ConfigData::retrieveValues(std::string const filename, int start, int end)
 {
 	std::string readLine;
 	std::ifstream readFile;
-	LocationData *tempClass = nullptr;
+	LocationData *tempClass = NULL;
 
 	int whichLine = 1;
 

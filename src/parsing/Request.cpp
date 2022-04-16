@@ -281,7 +281,7 @@ void	Request::fill_header(int fd, Config& conf)
 	if (parsing_position == done_with_header)
 	{
 		config = conf.get_location(get_hostname(), get_path());
-		if(config == nullptr)
+		if(config == NULL)
 		{
 			parsing_position = send_first;
 			status_code = 400;
@@ -421,7 +421,7 @@ bool Request::is_chunked(void)
 bool	Request::is_chunked_payload_too_large(void)
 {
 	int max = 1;
-	if (config != nullptr)
+	if (config != NULL)
 	{
 		max = config->getMaxBody(); 
 	}
@@ -435,7 +435,7 @@ bool	Request::is_chunked_payload_too_large(void)
 bool Request::is_payload_too_large()
 {
 	int max = 1;
-	if (config != nullptr)
+	if (config != NULL)
 	{
 		max = config->getMaxBody(); 
 	}

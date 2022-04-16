@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <stddef.h>
 
 #include "../../inc/Helper.hpp"
 #include "ConfigData.hpp"

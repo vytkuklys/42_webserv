@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sstream>
 #include <vector>
+#include <stddef.h>
 
 #include "../../inc/Helper.hpp"
 #include "LocationData.hpp"
