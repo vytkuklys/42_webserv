@@ -1,3 +1,4 @@
+#pragma once
 #ifndef SimpleServer_HPP
 #define SimpleServer_HPP
 #include "../socket/ListenSocket.hpp"

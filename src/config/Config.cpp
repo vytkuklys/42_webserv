@@ -99,7 +99,6 @@ void Config::pushToClass(int level, ConfigData &tempClass)
 			tempClass.setBodySize(bytes);
 		}
 		bytes = ft::get_bytes(sBodySize);
-		//std::cout << "bytes" <<  bytes << "sBodySize" << sBodySize << std::endl;
 		tempClass.setBodySize(bytes);
 		sBodySize.erase();
 	}

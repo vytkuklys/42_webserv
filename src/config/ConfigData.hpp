@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef ConfigData_HPP
 #define ConfigData_HPP
 
@@ -9,8 +11,8 @@
 #include <vector>
 #include <stddef.h>
 
-#include "../../inc/Helper.hpp"
 #include "LocationData.hpp"
+#include "../../inc/Helper.hpp"
 
 class ConfigData
 {
