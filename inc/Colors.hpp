@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _COLORS_
 #define _COLORS_
 

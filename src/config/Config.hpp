@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef Config_HPP
 #define Config_HPP
 
@@ -9,8 +11,10 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
-#include "../../inc/Helper.hpp"
 #include "ConfigData.hpp"
+#include "../../inc/Helper.hpp"
+
+class ConfigData;
 
 class Config
 {
