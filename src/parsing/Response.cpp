@@ -213,6 +213,7 @@ void Response::set_image_body(void)
 			{
 				if (!in.read(buffer, std::min(length, sizeof(buffer))))
 				{
+					stop_writing();
 					break;
 				}
 				int bytes = in.gcount();
