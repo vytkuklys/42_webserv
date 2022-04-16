@@ -278,7 +278,8 @@ void SERVER::WebServer::responder()
 		{
 			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
 			if (bytes != total)
-				std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
+				info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
+				// std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
 			if (bytes == -1)
 			{
 				data.erase(tmp_socket_fd);

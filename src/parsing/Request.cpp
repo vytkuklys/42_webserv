@@ -243,9 +243,9 @@ void			Request::set_up_cgi_proces()
 
 void	Request::fill_header(int fd, Config& conf)
 {
-	char buffer[4096];
+	char buffer[ARRAY_SIZE];
 	std::string line;
-	size_t bytes = recv(fd, buffer, 4096, 0);
+	size_t bytes = recv(fd, buffer, ARRAY_SIZE, 0);
 
 	if (static_cast<int>(bytes) == -1)
 	{
@@ -318,7 +318,7 @@ void	Request::set_parsing_position(mile_stones new_pos)
 void Request::set_regular_body(std::istringstream& data)
 {
 	parsing_position = body;
-	char buffer[4096];
+	char buffer[ARRAY_SIZE];
 	size_t bytes = data.rdbuf()->in_avail();
 	bytes = data.readsome(buffer, bytes);
 	if (bytes)
@@ -378,9 +378,11 @@ int		Request::get_parsing_position() const
 
 std::string		Request::get_cgi_return()
 {
-	char tmp[4097];
+	char tmp[ARRAY_SIZE];
 	int bytes;
-	if ((bytes = fread(tmp, 1, 4096, out_file)) <= 0)
+	if (!http_response.empty())
+		return(http_response);
+	else if ((bytes = fread(tmp, 1, ARRAY_SIZE, out_file)) <= 0)
 	{
 		std::cout << "close out_file" << std::endl;
 		fclose(out_file);
@@ -393,6 +395,11 @@ std::string		Request::get_cgi_return()
 		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
 	}
 	return(std::string(tmp, bytes));
+}
+
+void Request::set_http_response(std::string tmp_http_response)
+{
+	http_response = tmp_http_response;
 }
 
 unsigned long	Request::get_time_of_change()
@@ -523,7 +530,7 @@ bool Request::proces_chunked_body(std::istringstream& data)
 {
 	size_t		written = 0;
 	size_t		read_bytes = 0;
-	char	buffer[4096];
+	char	buffer[ARRAY_SIZE];
 	if (missing_chuncked_data > static_cast<size_t>(data.rdbuf()->in_avail()))
 	{
 		read_bytes = data.rdbuf()->in_avail();

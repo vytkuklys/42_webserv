@@ -29,7 +29,7 @@
 		// }
 		// $file_error = fopen("/Users/shackbei/Documents/code/Projects/webserv/documents/uploaded/error", 'w');
 		// fwrite($file_error, $file_name);
-		phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
+		// phpinfo(INFO_VARIABLES | INFO_ENVIRONMENT);
 
 		$out = fopen($file_name, 'w');
 		if ($out === FALSE)

@@ -60,6 +60,8 @@ class Request : public http_header_request
 		int									chunked_size;				//chounter for chunked body size
 		unsigned long						time_of_change;				// time of the bin of the request
 		int									status_code;				// status code for response
+		std::string							http_response;				// if wie chant send the respond at once
+
 
 	public:
 		Request(SERVER::WebServer &tmp_webserver);
@@ -82,6 +84,8 @@ class Request : public http_header_request
 		void			fill_header(int fd, Config& conf);
 		bool			is_chunked(void);
 		void			wait_for_child();
+		void			set_http_response(std::string tmp_http_response);
+
 
 	private:
 		void			for_testing_print_request_struct();
