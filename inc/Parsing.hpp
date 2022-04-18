@@ -3,7 +3,7 @@
 #define Parsing_hpp
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE 16384
+#define ARRAY_SIZE 8192/2
 #endif
 
 #include "../src/parsing/Request.hpp"

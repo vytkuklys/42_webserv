@@ -258,7 +258,6 @@ void SERVER::WebServer::responder()
 		}
 		else
 		{
-			std::cout << "send body" << std::endl;
 			http_response = info.get_cgi_return();
 			total = http_response.length();
 			std::stringstream stream;
@@ -272,30 +271,31 @@ void SERVER::WebServer::responder()
 
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
-		while (total > 0)
+
+		int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
+		std::cout << "send body" << bytes << "==" << total << std::endl;
+			// std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
+		if (bytes == -1)
 		{
-			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
-			if (bytes != total)
-				info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
-				// std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
-			if (bytes == -1)
-			{
-				data.erase(tmp_socket_fd);
-				FD_CLR(tmp_socket_fd, &read_sockets);
-				close(tmp_socket_fd);
-				break ; //HTTP server closes the socket if an error occurs during the sending of a file
-			}
-			else if (bytes == 0)
-			{
-				break ;
-			}
-			else
-			{
-				info.set_http_response("");
-				ptr += bytes;
-				total -= bytes;
-			}
+			perror("send");
+			// data.erase(tmp_socket_fd);
+			// FD_CLR(tmp_socket_fd, &read_sockets);
+			// close(tmp_socket_fd);
+			// break ; //HTTP server closes the socket if an error occurs during the sending of a file
 		}
+		else if (bytes == 0)
+		{
+			;// break ;
+		}
+		else if (bytes != total)
+			info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
+		else
+		{
+			info.set_http_response("");
+			ptr += bytes;
+			total -= bytes;
+		}
+
 		if(end_of_chunked || !info.is_chunked())
 		{
 			std::cout << "end of response" << std::endl;
@@ -359,4 +359,5 @@ void	SERVER::WebServer::shutdown(int signal)
 	(void)signal;
 	std::cerr << std::flush;
 	is_running = false;
+
 }

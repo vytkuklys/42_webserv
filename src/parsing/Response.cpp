@@ -166,8 +166,8 @@ void Response::set_headers(void)
 
 	if ((request.get_method() == "GET"))
 	{
-		set_value("Content-length:", ft::to_string(body.length()));
 		set_value("Connection:", "keep-alive");
+		set_value("Content-length:", ft::to_string(body.length()));
 	}
 	else
 	{
