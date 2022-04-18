@@ -4,7 +4,6 @@
 void ft_printeror(int a)
 {
 	(void)a;
-	std::cout << "broken pipe" << std::endl;
 }
 
 bool is_file_exist(const char *fileName)
