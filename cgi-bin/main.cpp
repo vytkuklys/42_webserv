@@ -11,10 +11,12 @@ int main()
 	char test[4001];
 	int ret = 1;
 	FILE* tmp;
-	std::string file("/goinfre/pic0.jpg");
+	std::string file("/goinfre/file_0");
 	while ((tmp = fopen(file.c_str(), "wx")) == NULL)
 	{
-		file[30]++;
+		file[14]++;
+		if (file[14] == '9')
+			file.insert(14, "1");
 	}
 	if(tmp == NULL)
 	{
