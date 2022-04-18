@@ -229,7 +229,7 @@ void SERVER::WebServer::handle_known_client()
 void SERVER::WebServer::responder()
 {
 	bool	end_of_chunked = false;
-
+	bool	is_error = false;
 	std::string http_response;
 	std::map<int, Request>::iterator itr = data.find(tmp_socket_fd);
 	if (itr != data.end())
@@ -265,6 +265,7 @@ void SERVER::WebServer::responder()
 			data.erase(tmp_socket_fd);
 			FD_CLR(tmp_socket_fd, &read_sockets);
 			close(tmp_socket_fd);
+			is_error = true;
 			//HTTP server closes the socket if an error occurs during the sending of a file
 		}
 		else if (bytes == 0)
@@ -280,10 +281,11 @@ void SERVER::WebServer::responder()
 			total -= bytes;
 		}
 
-		if(end_of_chunked || !info.is_chunked())
+		if(is_error || end_of_chunked || !info.is_chunked())
 		{
 			FD_CLR(tmp_socket_fd, &write_sockets);
-			info.set_parsing_position(done_with_send);
+			if (is_error == false)
+				info.set_parsing_position(done_with_send);
 		}
 		ft::displayTimestamp();
 		std::cout << BOLD(FBLU(" ---- RESPONDED ---- ")) << "fd " << tmp_socket_fd << std::endl;
