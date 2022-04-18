@@ -132,7 +132,7 @@ void	Request::set_up_child()
 		}
 		env_strings.push_back("HTTP_" + key + "=" + tmp->second);
 	}
-	if(config->getScript() == "./php-cgi-or")
+	if(config->getScript() == "./php-cgi")
 	{
 		env_strings.push_back("SCRIPT_FILENAME=./cgi.php");
 		env_strings.push_back("SCRIPT_NAME=./cgi.php");

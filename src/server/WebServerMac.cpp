@@ -257,28 +257,30 @@ void SERVER::WebServer::responder()
 
 		total = http_response.length();
 		const char *ptr = static_cast<const char *>(http_response.c_str());
-
-		int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
-		if (bytes == -1)
+		if (total)
 		{
-			perror("send");
-			data.erase(tmp_socket_fd);
-			FD_CLR(tmp_socket_fd, &read_sockets);
-			close(tmp_socket_fd);
-			is_error = true;
-			//HTTP server closes the socket if an error occurs during the sending of a file
-		}
-		else if (bytes == 0)
-		{
-			;// break
-		}
-		else if (bytes != total)
-			info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
-		else
-		{
-			info.set_http_response("");
-			ptr += bytes;
-			total -= bytes;
+			int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
+			if (bytes == -1)
+			{
+				perror("send");
+				data.erase(tmp_socket_fd);
+				FD_CLR(tmp_socket_fd, &read_sockets);
+				close(tmp_socket_fd);
+				is_error = true;
+				//HTTP server closes the socket if an error occurs during the sending of a file
+			}
+			// else if ()
+			// {
+			// 	;// break
+			// }
+			else if (bytes != total || bytes == 0)
+				info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
+			else
+			{
+				info.set_http_response("");
+				ptr += bytes;
+				total -= bytes;
+			}
 		}
 
 		if(is_error || end_of_chunked || !info.is_chunked())
