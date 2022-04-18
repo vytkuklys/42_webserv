@@ -132,7 +132,7 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 			perror("Error");
 			exit(EXIT_FAILURE);
 		}
-		std::cout << " select" << len << std::endl;
+		// std::cout << " select" << len << std::endl;
 		for (int i = 0; len && is_running && i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &tmp_write_sockets)) // fd is ready to be written if true
@@ -155,7 +155,6 @@ void SERVER::WebServer::launch(std::vector<int> &ports)
 					int tmp_time = ft::ft_time_dif(itr->second.get_time_of_change());
 					if (tmp_time > 10 || itr->second.get_method() != "GET")
 					{
-						std::cout << "time=" << tmp_time << "method" << itr->second.get_method()<<"." << std::endl;
 						data.erase(itr);
 						FD_CLR(i, &read_sockets);
 						close(i);
@@ -188,7 +187,6 @@ void SERVER::WebServer::handle_new_client()
 	{
 		fcntl(tmp_socket_fd, F_SETFL, O_NONBLOCK);
 		FD_SET(tmp_socket_fd, &read_sockets);
-		std::cout << "handle_new_client" << std::endl;
 		Request req(*this);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 	}
@@ -210,33 +208,22 @@ void SERVER::WebServer::handle_known_client()
 	{
 		if (itr->second.get_parsing_position() == done_with_send)
 		{
-			std::cout << "erase" << " fd=" << tmp_socket_fd << std::endl;
 			data.erase(itr);
 		}
 	}
 	itr = data.find(tmp_socket_fd);
 	if(itr == data.end())
 	{
-		std::cout << "constructor" << std::endl;
 		Request req(*this);
 		data.insert(std::pair<int, Request>(tmp_socket_fd, req));
 		itr = data.find(tmp_socket_fd);
 	}
-	std::cout << "process socket information" << std::endl;
 	itr->second.fill_header(tmp_socket_fd, *config);
-	// if (itr->second.get_error_status())
-	// if (itr->second.get_status_code() >= 400)
-	// {
-	//	perror(BOLD(FRED(" ---- ERROR ---- ")));
-	// 	//FD_CLR(tmp_socket_fd, &read_sockets);
-	// } // check later
 	if (itr->second.get_parsing_position() == send_first || itr->second.get_status_code() >= 400)
 	{
-		std::cout << "set fd to write list fd" << tmp_socket_fd <<std::endl;
 		if (!FD_ISSET(tmp_socket_fd, &write_sockets))
 			FD_SET(tmp_socket_fd, &write_sockets);
 	}
-	std::cout << "done with know client" << std::endl;
 }
 
 void SERVER::WebServer::responder()
@@ -251,7 +238,6 @@ void SERVER::WebServer::responder()
 		Request &info = itr->second;
 		if(info.get_parsing_position() <= send_first)
 		{
-			std::cout << "send first" << std::endl;
 			Response response(info, *config);
 			http_response = response.get_http_response(status_line);
 			info.set_parsing_position(erase_cgi_header);
@@ -273,19 +259,17 @@ void SERVER::WebServer::responder()
 		const char *ptr = static_cast<const char *>(http_response.c_str());
 
 		int bytes = send(tmp_socket_fd, static_cast<const void *>(ptr), total, 0);
-		std::cout << "send body" << bytes << "==" << total << std::endl;
-			// std::cout << "error send " << bytes << "should" << total<< "measage" << http_response << std::endl;
 		if (bytes == -1)
 		{
 			perror("send");
-			// data.erase(tmp_socket_fd);
-			// FD_CLR(tmp_socket_fd, &read_sockets);
-			// close(tmp_socket_fd);
-			// break ; //HTTP server closes the socket if an error occurs during the sending of a file
+			data.erase(tmp_socket_fd);
+			FD_CLR(tmp_socket_fd, &read_sockets);
+			close(tmp_socket_fd);
+			//HTTP server closes the socket if an error occurs during the sending of a file
 		}
 		else if (bytes == 0)
 		{
-			;// break ;
+			;// break
 		}
 		else if (bytes != total)
 			info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
@@ -298,7 +282,6 @@ void SERVER::WebServer::responder()
 
 		if(end_of_chunked || !info.is_chunked())
 		{
-			std::cout << "end of response" << std::endl;
 			FD_CLR(tmp_socket_fd, &write_sockets);
 			info.set_parsing_position(done_with_send);
 		}

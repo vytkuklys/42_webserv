@@ -16,7 +16,6 @@ Response::Response(Request& req, Config& data) : request(req)
 	}
 	else
 	{
-		std::cout << "Responder constructor" << std::endl;
     	set_path(request.get_path());
 		if (request.get_method() == "DELETE")
 		{
@@ -374,13 +373,11 @@ bool exists_dir(std::string const path)
 		}
 		else
 		{
-			std::cout << "error exists_path" << std::endl;
 			return(false);
 		}
 	}
 	else
 	{
-		std::cout << "error exists_path" << std::endl;
 		return(false);
 	}
 }

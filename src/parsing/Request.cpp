@@ -95,7 +95,6 @@ void Request::for_testing_print_request_struct()
 
 void	Request::set_up_child()
 {
-	std::cout << "script name" << config->getScript().c_str() << std::endl;
 	//set up argv;
 	std::vector<char *> argv;
 	std::vector<std::string> argv_strings;
@@ -132,12 +131,11 @@ void	Request::set_up_child()
 				*pos = '_';
 		}
 		env_strings.push_back("HTTP_" + key + "=" + tmp->second);
-		std::cout << env_strings.back() << std::endl;
 	}
-	if(config->getScript() == "./cgi-bin/php-cgi-or")
+	if(config->getScript() == "./php-cgi-or")
 	{
-		env_strings.push_back("SCRIPT_FILENAME=./cgi-bin/cgi.php");
-		env_strings.push_back("SCRIPT_NAME=./cgi-bin/cgi.php");
+		env_strings.push_back("SCRIPT_FILENAME=./cgi.php");
+		env_strings.push_back("SCRIPT_NAME=./cgi.php");
 	}
 	if ((tmp = get_value("Host")) != "not found")
 	{
@@ -157,7 +155,6 @@ void	Request::set_up_child()
 	for(size_t i = 0; i < env_strings.size(); i++)
 		env.push_back(&(env_strings[i][0]));
 	env.push_back(NULL);
-	std::cout << "execve" << std::endl;
 	webserver.close_all_pipes();
 	if (dup2(pipe_in[0], STDIN_FILENO) == -1)
 	{
@@ -176,7 +173,7 @@ void	Request::set_up_child()
 		exit(EXIT_FAILURE);
 	}
 	close(fileno(out_file));
-	// chdir("./cgi-bin");
+	chdir("./cgi-bin");
 	if (execve(config->getScript().c_str(), &argv[0], &env[0]))
 	{
 		std::cout << "script=" << config->getScript().c_str() << std::endl;
@@ -190,8 +187,6 @@ void	Request::set_up_child()
 
 void			Request::set_up_cgi_proces()
 {
-	std::cout << "done with header" << std::endl;
-	for_testing_print_request_struct();
 	if (content_length == -1)
 	{
 		content_length = get_content_length();
@@ -228,7 +223,6 @@ void			Request::set_up_cgi_proces()
 			set_up_child();
 		else
 		{
-			std::cout << "creat cild with pid" << pid_child << std::endl;
 			if(close(pipe_in[0]) != 0)
 			{
 				std::cout << "close5" << std::endl;
@@ -269,7 +263,6 @@ void	Request::fill_header(int fd, Config& conf)
 		if (set_start_line(line) == EXIT_SUCCESS)
 			break;
 	}
-	std::cout << "fill_header fd" << fd << std::endl;
 
 	while ((parsing_position == read_header) && data && std::getline(data, line))
 	{
@@ -294,7 +287,6 @@ void	Request::fill_header(int fd, Config& conf)
 		return ;
 	if (parsing_position >= done_with_header && parsing_position < send_first)
 	{
-		std::cout << "fill_header fd=" << fd << " pid" << pid_child << std::endl;
 		if (is_chunked())
 		{
 			unchunk_body(data);
@@ -302,7 +294,6 @@ void	Request::fill_header(int fd, Config& conf)
 		else
 			set_regular_body(data);
 	}
-	std::cout << " parsing_position= " << parsing_position << std::endl;
 }
 // ----------------- SETTER ------------------ //
 
@@ -346,7 +337,6 @@ void Request::set_regular_body(std::istringstream& data)
 				exit(EXIT_FAILURE);
 			}
 			pipe_in[1] = -1;
-			std::cout << "close regular body pipe_in[1]" << pipe_in[1] << std::endl;
 			wait_for_child();
 			fclose(out_file);
 			parsing_position = send_first;
@@ -385,17 +375,14 @@ std::string		Request::get_cgi_return()
 	}
 	else if ((bytes = fread(tmp, 1, ARRAY_SIZE, out_file)) <= 0)
 	{
-		std::cout << "close out_file" << std::endl;
 		fclose(out_file);
 	}
 	if (parsing_position == erase_cgi_header)
 	{
 		std::string tmp1(tmp, bytes);
-		std::cout << "remove header" << std::endl;
 		parsing_position = send_body;
 		return(tmp1.erase(0, tmp1.find("\r\n\r\n") + 4));
 	}
-	std::cout << "get_cgi_return" << bytes<<  std::endl;
 	return(std::string(tmp, bytes));
 }
 
@@ -423,7 +410,6 @@ bool Request::is_chunked(void)
 
     if ((get_method() == "POST" || get_method() == "PUT") && get_content_length() == 0)
     {
-		std::cout << "is_chunked" << std::endl;
         return (true);
     }
     return (false);
@@ -434,7 +420,7 @@ bool	Request::is_chunked_payload_too_large(void)
 	int max = 1;
 	if (config != NULL)
 	{
-		max = config->getMaxBody(); 
+		max = config->getMaxBody();
 	}
 	if (chunked_size > max)
 	{
@@ -448,7 +434,7 @@ bool Request::is_payload_too_large()
 	int max = 1;
 	if (config != NULL)
 	{
-		max = config->getMaxBody(); 
+		max = config->getMaxBody();
 	}
 	if (content_length <= max)
 	{
@@ -461,7 +447,6 @@ bool Request::is_payload_too_large()
 void Request::wait_for_child()
 {
 	int	ret;
-	std::cout << "waitpid" << pid_child << std::endl;
 	int ret_wa;
 	if (pid_child != -1)
 	{
@@ -474,7 +459,6 @@ void Request::wait_for_child()
 		{
 			std::cout << "waitpid fine" << std::endl;
 		}
-		std::cout << "after wait_pid" << ret << std::endl;
 	}
 }
 
@@ -507,13 +491,9 @@ bool Request::proces_chunked_size(std::string& line)
 			if (close(pipe_in[1]) != 0)
 				std::cout << "error close" << std::endl;
 			pipe_in[1] = -1;
-			std::cout << "pid_child" << pid_child << std::endl;
 			waitpid(pid_child, &ret, 0);
-			// std::cout << "test2" << std::endl;
 			pid_child = -1;
 			rewind(out_file);
-			// std::cout << "test3" << std::endl;
-			std::cout << "child return = " << ret << std::endl;
 			parsing_position = send_first;
 			return(false);
 		}
@@ -525,7 +505,6 @@ bool Request::proces_chunked_size(std::string& line)
 	else
 	{
 		part_of_hex_of_chunked = line;
-		std::cout << "part_of_hex_of_chunked is now " << part_of_hex_of_chunked << std::endl;
 	}
 	return(true);
 }
@@ -542,8 +521,6 @@ bool Request::proces_chunked_body(std::istringstream& data)
 	}
 	else
 		read_bytes = data.readsome(buffer, missing_chuncked_data);
-	if(std::string(buffer, read_bytes).find("\n") != std::string::npos)
-		std::cout << "why" << std::string(buffer, read_bytes) << std::string(buffer, read_bytes).find("\n") <<" part pf hex nb"<< part_of_hex_of_chunked << "missing_chuncked_data" << missing_chuncked_data << " left in buffer" << data.rdbuf()->in_avail() << std::endl;
 	if(read_bytes)
 		written = write(pipe_in[1], buffer, read_bytes);
 	if (static_cast<int>(written) == -1)
@@ -573,7 +550,6 @@ void Request::unchunk_body(std::istringstream& data)
 
 	std::string		line;
 	size_t			avail = 0;
-	std::cout << "unchunk_body " << parsing_position << std::endl;
 
 	if (parsing_position == done_with_header)
 		parsing_position = read_first_chunk_size;
@@ -581,7 +557,6 @@ void Request::unchunk_body(std::istringstream& data)
 	{
 		if (remove_n)
 		{
-			std::cout << "continue " << line;
 			remove_n = false;
 			continue;
 		}
@@ -589,13 +564,11 @@ void Request::unchunk_body(std::istringstream& data)
 		{
 			if (ft::is_whitespace(line) == EXIT_SUCCESS && part_of_hex_of_chunked.empty())
 			{
-				std::cout << "continue " << line;
 				continue;
 			}
 			if(avail == line.length())
 			{
 				remove_n = true;
-				std::cout << "remove_n=" << remove_n << std::endl;
 			}
 			line = part_of_hex_of_chunked + line;
 			part_of_hex_of_chunked.clear();
@@ -608,10 +581,7 @@ void Request::unchunk_body(std::istringstream& data)
 			if (proces_chunked_body(data) == false)
 				return;
 		}
-		std::cout << "missing_chuncked_data=" << missing_chuncked_data << std::endl;
-
 	} while (data && (avail = data.rdbuf()->in_avail()) && std::getline(data, line));
-	std::cout << "after chunked" << std::endl;
 }
 
 void		Request::stop_reading(int code)
