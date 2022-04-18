@@ -269,10 +269,6 @@ void SERVER::WebServer::responder()
 				is_error = true;
 				//HTTP server closes the socket if an error occurs during the sending of a file
 			}
-			// else if ()
-			// {
-			// 	;// break
-			// }
 			else if (bytes != total || bytes == 0)
 				info.set_http_response(http_response.substr(bytes, http_response.length() - bytes));
 			else
