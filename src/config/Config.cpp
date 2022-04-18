@@ -506,7 +506,7 @@ bool is_host_valid(std::string host, std::string server_name, std::string port)
 {
 	if (host.find_last_of(":") == std::string::npos)
 		host.append(":");
-	if (host == "localhost:" || host == "127.0.0.1:" || host == "0.0.0.0:") // changed
+	if (host == "localhost:" || host == "127.0.0.1:" || host == "0.0.0.0:")
 	{
 		std::cout << "if is true" << std::endl;
 		return (false);
